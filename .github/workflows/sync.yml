@@ -1,0 +1,26 @@
+name: Sync OpenAI usage
+
+on:
+  schedule:
+    # Varje timme, på minut 5 (UTC)
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call /api/sync on deployed dashboard
+        env:
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$DASHBOARD_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "DASHBOARD_URL or CRON_SECRET is not set"
+            exit 1
+          fi
+          curl --fail --silent --show-error \
+            -X POST "$DASHBOARD_URL/api/sync" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP %{http_code}\n"
