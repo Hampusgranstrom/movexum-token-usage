@@ -92,15 +92,29 @@ I GitHub läggs:
 
 ## 4. Vad vi mäter
 
-För en bra team-dashboard visar vi:
+### 4.1 De tre KPI-korten (fasta, överst i dashboarden)
 
-- totalt `output_tokens` per dag
-- totalt `input_tokens` per dag
+Dashboarden har **exakt tre KPI-kort** överst, alltid synliga, alltid i denna
+ordning:
+
+| # | KPI        | Enhet     | Källa                                      |
+|---|------------|-----------|--------------------------------------------|
+| 1 | **Tokens** | st        | OpenAI Usage API (`input_tokens + output_tokens`) |
+| 2 | **Energi** | **kWh**   | Tokens × `KWH_PER_TOKEN` (se avsnitt 5)    |
+| 3 | **CO₂e**   | **kg**    | kWh × `GRID_G_PER_KWH / 1000` (se avsnitt 5) |
+
+Varje kort visar:
+
+- Stor siffra (aktuellt värde för valt datumintervall)
+- Liten delta-pil: `+12% vs föregående period`
+- Mikrograf (sparkline) över perioden
+- Hover-tooltip med exakta värden och källformel
+
+### 4.2 Övriga mätpunkter (sekundära vyer under KPI:erna)
+
 - output/input per modell
 - output/input per projekt
-- kostnad per dag (USD)
-- uppskattad **energi (kWh)** per dag
-- uppskattad **CO₂e (kg)** per dag
+- kostnad per dag (USD) — sekundärt, inte KPI
 - 7-dagars och 30-dagars trend
 - toppdagar och toppmodeller
 
@@ -206,9 +220,10 @@ co2_kg          NUMERIC   -- beräknad kolumn
 ```
 
 **Frontend**
-- KPI-kort överst (tokens idag, tokens 30d, kWh 30d, kg CO₂e 30d, USD 30d)
-- Linjediagram för `output_tokens` per dag
-- Linjediagram för `co2_kg` per dag
+- Tre KPI-kort överst, fasta: **Tokens**, **kWh**, **CO₂e** (se 4.1)
+- Linjediagram för tokens per dag
+- Linjediagram för kWh per dag
+- Linjediagram för CO₂e per dag
 - Tabell per projekt
 - Filter: datumintervall, modell, projekt, elnät (global/sverige)
 
@@ -267,7 +282,110 @@ enligt avsnitt 5.
 
 ---
 
-## 11. Öppna frågor
+## 11. EPIC-läget — hur vi gör dashboarden grymt snygg
+
+Målet: det ska kännas som en produkt från Linear/Stripe/Vercel, inte som en
+intern admin-sida. När någon öppnar skärmen på kontoret ska de stanna upp.
+
+### 11.1 Visuell identitet
+
+- **Dark-first design.** Nästan svart bakgrund (`#0A0B0F`), subtila gradienter,
+  glow-effekter runt KPI-siffrorna. Ljus variant som toggle.
+- **Neon-accenter per KPI:**
+  - Tokens = iskall cyan (`#22D3EE`)
+  - kWh = elektrisk gul (`#FACC15`)
+  - CO₂e = giftgrön (`#4ADE80`) som blir röd när vi överskrider mål
+- **Typografi:** Inter Tight / Geist Sans i rubriker, monospace-siffror
+  (`JetBrains Mono` eller `Geist Mono`) i KPI-korten så siffrorna inte hoppar.
+- **Grid-layout** i bento-stil — olika stora kort, inte en tråkig rad.
+- **Subtle grain / noise** över bakgrunden för att undvika platt digital
+  känsla.
+
+### 11.2 Rörelse och liv
+
+- **Count-up-animation** på KPI-siffrorna när sidan laddas (tokens räknas upp
+  från 0 till dagens värde på ~1,2 s med easing).
+- **Live-ticker:** websocket eller polling var 10:e sekund — när nya tokens
+  registreras tickar siffran upp i realtid med en mjuk puls.
+- **Animerade sparklines** som ritas ut från vänster till höger vid första
+  render.
+- **Hover-tilt** på KPI-korten (lätt 3D-effekt).
+- **Bakgrundsgradient** som långsamt rör sig — syns knappt men ger liv.
+
+### 11.3 Begriplighet — gör siffrorna känslomässiga
+
+Råa tal som "417 kg CO₂e" säger ingenting för de flesta. Vi översätter allt
+till vardagsobjekt:
+
+- **"CO₂e motsvarar…"**
+  - `X tur-och-retur Stockholm–Göteborg med bil`
+  - `Y biffar`
+  - `Z timmars Netflix`
+- **"Energi motsvarar…"**
+  - `X hushåll en dag`
+  - `Y laddningar av en iPhone`
+  - `Z timmars LED-belysning`
+- **"Tokens motsvarar…"**
+  - `X böcker à 80 000 ord`
+  - `Y avsnitt av The Office (manus)`
+
+Allt sitter i en liten config (`src/config/equivalents.ts`) så marknads- och
+hållbarhetsansvariga kan justera referenserna själva.
+
+### 11.4 "EPIC"-komponenter utöver KPI:erna
+
+1. **3D-jordglob** (react-globe.gl) som pulserar på datacenter-platser där
+   Movexums trafik landar. Rent visuellt — men *mycket* snyggt på storbild.
+2. **Sankey-diagram:** Projekt → Modell → CO₂e. Visar flödet av utsläpp på ett
+   ögonkast.
+3. **Heatmap (GitHub-style)** över året: varje ruta = en dag, färgen = tokens.
+   Perfekt för att se mönster ("vi kör alltid hårt på torsdagar").
+4. **Leaderboard:** topp 5 projekt denna vecka, med animerade staplar som
+   tävlar mot varandra.
+5. **Trädräknare:** "Movexums AI-användning denna månad = X träd under ett år
+   för att kompensera". Träden ritas som små SVG-träd som växer fram.
+6. **AI-genererad veckosammanfattning** (själva dashboarden använder GPT för
+   att skriva en 3-raders text: "Denna vecka körde ni främst gpt-4o-mini på
+   projekt X. Utsläppen sjönk 8% jämfört med förra veckan."). Metauppenbart
+   men kul.
+7. **Milstolpar & achievements:** "🎯 Första miljonen tokens", "🌱 Under 10
+   kg CO₂e en hel vecka". Konfetti när de unlockas.
+8. **Prognoslinje** på graferna: streckad linje som extrapolerar resten av
+   månaden baserat på nuvarande tempo.
+9. **"Storskärms-läge"** (`/tv`) — en route optimerad för en TV på kontoret:
+   enorma siffror, långsam auto-rotation mellan vyer, inga filter.
+10. **Delbara kort:** "Export as PNG" på varje KPI och graf, färdigt för
+    LinkedIn/rapporter, med Movexums logga och datum inbrända.
+
+### 11.5 Bibliotek vi föreslår
+
+| Behov              | Lib                                   |
+|--------------------|---------------------------------------|
+| Charts             | `recharts` eller `visx` (visx = snyggare) |
+| Count-up-animation | `framer-motion` + `useMotionValue`    |
+| 3D-glob            | `react-globe.gl`                      |
+| Sankey             | `@nivo/sankey`                        |
+| Heatmap            | `@nivo/calendar`                      |
+| Konfetti           | `canvas-confetti`                     |
+| UI-primitives      | `shadcn/ui` + Tailwind                |
+| Ikoner             | `lucide-react`                        |
+| Exportera PNG      | `html-to-image`                       |
+
+### 11.6 Tre ambitionsnivåer
+
+Så vi inte försöker bygga allt på en gång:
+
+- **MVP (vecka 1):** 3 KPI-kort, 1 graf, darkmode, count-up-animation.
+- **Snygg (vecka 2):** bento-layout, sparklines, vardagsöversättningar,
+  sankey, heatmap.
+- **EPIC (vecka 3+):** 3D-glob, /tv-läge, achievements, AI-sammanfattning,
+  delbara kort.
+
+Varje nivå är demo-bar i sig själv, så vi kan stanna där ambitionen tar slut.
+
+---
+
+## 12. Öppna frågor
 
 - Hur många OpenAI-projekt ska vi bryta ned på från start?
 - Ska vi även mäta Anthropic/Claude-användning i samma dashboard? (Admin API
