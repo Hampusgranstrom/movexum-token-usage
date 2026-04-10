@@ -55,17 +55,34 @@ type OpenAiErrorResponse = {
 
 /**
  * Anropar OpenAI Chat Completions API och returnerar svaret + tokens.
+ *
+ * Använder OPENAI_API_KEY om den finns (rekommenderat — vanlig projekt-nyckel),
+ * annars OPENAI_ADMIN_KEY som fallback. Observera att OpenAI:s admin-nycklar
+ * historiskt inte har fått anropa model-endpoints som chat/completions —
+ * om så är fallet returneras ett 401/403 och du behöver skapa en projekt-nyckel.
  */
 export async function createChatCompletion(
   messages: ChatMessage[],
   opts: { model?: string; temperature?: number } = {},
 ): Promise<ChatCompletionResult> {
-  const key = process.env.OPENAI_API_KEY;
+  const key = process.env.OPENAI_API_KEY ?? process.env.OPENAI_ADMIN_KEY;
   if (!key) {
     throw new Error(
-      "OPENAI_API_KEY saknas i miljön. Skapa en projektnyckel på " +
-        "https://platform.openai.com/api-keys och lägg den som " +
-        "OPENAI_API_KEY i Vercel env vars.",
+      "Ingen OpenAI-nyckel hittades. Sätt OPENAI_API_KEY (reguljär projekt-nyckel) " +
+        "eller OPENAI_ADMIN_KEY i Vercel env vars. Obs: admin-nycklar kan i regel " +
+        "INTE anropa Chat Completions — skapa hellre en projekt-nyckel på " +
+        "https://platform.openai.com/api-keys och sätt den som OPENAI_API_KEY.",
+    );
+  }
+
+  const usingAdminKey =
+    !process.env.OPENAI_API_KEY && !!process.env.OPENAI_ADMIN_KEY;
+  if (usingAdminKey) {
+    console.warn(
+      "[openai-chat] Använder OPENAI_ADMIN_KEY som fallback — detta kommer " +
+        "sannolikt avvisas av OpenAI eftersom admin-nycklar är scopade till " +
+        "organisations-endpoints. Skapa en projekt-nyckel på platform.openai.com/api-keys " +
+        "och sätt den som OPENAI_API_KEY för att lösa problemet.",
     );
   }
 
@@ -94,6 +111,17 @@ export async function createChatCompletion(
     } catch {
       // ignore parse error
     }
+
+    // Specifik hint om admin-nyckeln avvisades
+    if (usingAdminKey && (res.status === 401 || res.status === 403)) {
+      throw new Error(
+        `OpenAI avvisade admin-nyckeln (${res.status}): ${detail}. ` +
+          "Detta bekräftar att admin-nycklar inte kan anropa Chat Completions. " +
+          "Skapa en projekt-nyckel på https://platform.openai.com/api-keys, " +
+          "lägg den som OPENAI_API_KEY i Vercel, och gör en Redeploy.",
+      );
+    }
+
     throw new Error(
       `OpenAI chat completions ${res.status} ${res.statusText}: ${detail}`,
     );
