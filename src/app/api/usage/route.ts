@@ -134,7 +134,7 @@ async function tryReadOpenAi(
     const raw = await fetchOpenAiUsageDaily(days * 2);
     if (raw.length === 0) {
       errors.push(
-        "OpenAI: Usage API returnerade 0 rader (har orgen någon trafik de senaste dagarna?).",
+        "OpenAI: Usage API svarade men returnerade inga dagar med trafik. Möjliga orsaker: (a) admin-nyckeln tillhör en annan org än den som kör API-anrop, (b) orgen har verkligen ingen trafik, (c) anropen körs på en sub-org som admin-nyckeln inte täcker. Kör /api/debug för detaljer.",
       );
       return null;
     }

@@ -87,16 +87,15 @@ async function fetchChunk(
   endTime: number,
   limit: number,
 ): Promise<UsageBucketRow[]> {
+  // Ingen group_by — vi vill ha enkla aggregerade dagsbuckets. Per-projekt
+  // och per-modell-uppdelning kan läggas till senare när dashboarden stödjer
+  // det visuellt.
   const params = new URLSearchParams({
     start_time: String(startTime),
     end_time: String(endTime),
     bucket_width: "1d",
-    "group_by[]": "project_id",
     limit: String(Math.min(limit, MAX_DAYS_PER_CALL)),
   });
-  // group_by tas som en array — lägg till modell separat så URLSearchParams
-  // skapar två group_by[]-parametrar
-  params.append("group_by[]", "model");
 
   const url = `https://api.openai.com/v1/organization/usage/completions?${params.toString()}`;
   const res = await fetch(url, {
@@ -116,8 +115,21 @@ async function fetchChunk(
 
   const json = (await res.json()) as OpenAiUsageResponse;
 
+  // Debug-logg: hur många buckets kom tillbaka och hur mycket data i dem?
+  // Syns i Vercel Functions-loggarna.
+  const bucketCount = json.data?.length ?? 0;
+  const nonEmptyBuckets =
+    json.data?.filter((b) => (b.results?.length ?? 0) > 0).length ?? 0;
+  console.log(
+    `[openai-usage] chunk ${new Date(startTime * 1000)
+      .toISOString()
+      .slice(0, 10)} → ${new Date(endTime * 1000)
+      .toISOString()
+      .slice(0, 10)}: ${bucketCount} buckets, ${nonEmptyBuckets} med data`,
+  );
+
   const out: UsageBucketRow[] = [];
-  for (const bucket of json.data) {
+  for (const bucket of json.data ?? []) {
     const day = new Date(bucket.start_time * 1000).toISOString().slice(0, 10);
     for (const r of bucket.results ?? []) {
       out.push({
