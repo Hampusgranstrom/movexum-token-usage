@@ -5,8 +5,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  *
  * Service role key får ALDRIG skickas till browsern — därför lever den här
  * funktionen bara i `src/lib/` och kallas uteslutande från server routes.
- * Null returneras om env-variablerna inte är satta, så att appen kan falla
- * tillbaka på mockdata under utveckling.
+ * Null returneras om env-variablerna inte är satta; anroparen får då falla
+ * tillbaka till OpenAI direkt eller returnera ett fel.
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
   const url = process.env.SUPABASE_URL;

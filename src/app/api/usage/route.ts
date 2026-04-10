@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { buildSummary } from "@/lib/aggregate";
-import { generateMockUsage } from "@/lib/mock-data";
 import { fetchOpenAiUsageDaily } from "@/lib/openai-usage";
 import { getSupabaseAdmin, type TokenUsageRow } from "@/lib/supabase";
 import type { GridKey } from "@/config/emissions";
-import type { DailyUsage, UsageSummary } from "@/lib/types";
+import type { DailyUsage, DataSource, UsageSummary } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,10 +11,13 @@ export const runtime = "nodejs";
 /**
  * GET /api/usage?days=30&grid=global
  *
- * Fallback-kedja (i ordning):
- *   1. Supabase  — snabbt, aggregerat, cachat av sync-jobbet
- *   2. OpenAI    — direkt live-hämtning om Supabase inte är konfigurerat
- *   3. Mock      — deterministisk testdata så att UI alltid renderas
+ * Live-only. Försöker i ordning:
+ *   1. Supabase-tabellen `token_usage_daily` (primär källa)
+ *   2. OpenAI Usage API direkt (fallback om Supabase är tom)
+ *
+ * Om båda misslyckas returneras 500 med ett beskrivande felmeddelande.
+ * Ingen mockdata längre — dashboarden ska antingen visa riktiga siffror
+ * eller säga exakt vad som gick fel.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -23,88 +25,136 @@ export async function GET(request: Request) {
   const grid: GridKey =
     searchParams.get("grid") === "sweden" ? "sweden" : "global";
 
-  const source = await resolveData(days);
-  const previous = source.days.slice(0, days);
-  const current = source.days.slice(days);
+  const errors: string[] = [];
 
-  const summary: UsageSummary = buildSummary(
-    current,
-    previous,
-    grid,
-    source.source,
+  // 1. Supabase
+  const fromSupabase = await tryReadSupabase(days, errors);
+  if (fromSupabase && fromSupabase.length > 0) {
+    return summaryResponse(fromSupabase, days, grid, "supabase");
+  }
+
+  // 2. OpenAI direkt
+  const fromOpenAi = await tryReadOpenAi(days, errors);
+  if (fromOpenAi && fromOpenAi.length > 0) {
+    return summaryResponse(fromOpenAi, days, grid, "openai-live");
+  }
+
+  // Inget fungerade → explicit fel
+  return NextResponse.json(
+    {
+      error: "Kunde inte hämta användningsdata från någon källa.",
+      details: errors,
+      hints: [
+        "Kontrollera att SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY och OPENAI_ADMIN_KEY är satta i Vercel.",
+        "Kör en Redeploy i Vercel efter att env vars ändrats.",
+        "Kör SQL-migrationen i Supabase (supabase/migrations/0001_initial.sql).",
+        "Trigga /api/sync en gång för att populera tabellen.",
+      ],
+    },
+    { status: 500 },
   );
-  return NextResponse.json(summary);
 }
 
-async function resolveData(
+async function tryReadSupabase(
   days: number,
-): Promise<{ days: DailyUsage[]; source: "live" | "mock" }> {
+  errors: string[],
+): Promise<DailyUsage[] | null> {
   const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    errors.push(
+      "Supabase: SUPABASE_URL eller SUPABASE_SERVICE_ROLE_KEY saknas i miljön.",
+    );
+    return null;
+  }
 
-  // 1. Försök Supabase
-  if (supabase) {
-    try {
-      const since = daysAgoIso(days * 2);
-      const { data, error } = await supabase
-        .from("token_usage_daily")
-        .select(
-          "day, input_tokens, output_tokens, total_tokens, energy_kwh, co2_kg_global, co2_kg_sweden",
-        )
-        .gte("day", since)
-        .order("day", { ascending: true });
+  try {
+    const since = daysAgoIso(days * 2);
+    const { data, error } = await supabase
+      .from("token_usage_daily")
+      .select("day, input_tokens, output_tokens")
+      .gte("day", since)
+      .order("day", { ascending: true });
 
-      if (error) throw error;
+    if (error) {
+      errors.push(`Supabase: ${error.message}`);
+      return null;
+    }
 
-      if (data && data.length > 0) {
-        const rows = data as Pick<
-          TokenUsageRow,
-          | "day"
-          | "input_tokens"
-          | "output_tokens"
-          | "total_tokens"
-        >[];
-        const byDay = new Map<string, DailyUsage>();
-        for (const r of rows) {
-          const existing = byDay.get(r.day);
-          if (existing) {
-            existing.inputTokens += Number(r.input_tokens);
-            existing.outputTokens += Number(r.output_tokens);
-            existing.totalTokens = existing.inputTokens + existing.outputTokens;
-          } else {
-            byDay.set(r.day, {
-              date: r.day,
-              inputTokens: Number(r.input_tokens),
-              outputTokens: Number(r.output_tokens),
-              totalTokens:
-                Number(r.input_tokens) + Number(r.output_tokens),
-            });
-          }
-        }
-        const filled = fillMissingDays(
-          Array.from(byDay.values()).sort((a, b) =>
-            a.date.localeCompare(b.date),
-          ),
-          days * 2,
-        );
-        return { days: filled, source: "live" };
+    if (!data || data.length === 0) {
+      errors.push(
+        "Supabase: tabellen token_usage_daily är tom (kör /api/sync eller trigga GitHub Actions-workflowen).",
+      );
+      return null;
+    }
+
+    const rows = data as Pick<
+      TokenUsageRow,
+      "day" | "input_tokens" | "output_tokens"
+    >[];
+
+    const byDay = new Map<string, DailyUsage>();
+    for (const r of rows) {
+      const input = Number(r.input_tokens);
+      const output = Number(r.output_tokens);
+      const existing = byDay.get(r.day);
+      if (existing) {
+        existing.inputTokens += input;
+        existing.outputTokens += output;
+        existing.totalTokens = existing.inputTokens + existing.outputTokens;
+      } else {
+        byDay.set(r.day, {
+          date: r.day,
+          inputTokens: input,
+          outputTokens: output,
+          totalTokens: input + output,
+        });
       }
-    } catch (err) {
-      console.error("[api/usage] supabase read failed:", err);
     }
+
+    return fillMissingDays(
+      Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)),
+      days * 2,
+    );
+  } catch (err) {
+    errors.push(`Supabase: ${asMessage(err)}`);
+    return null;
+  }
+}
+
+async function tryReadOpenAi(
+  days: number,
+  errors: string[],
+): Promise<DailyUsage[] | null> {
+  if (!process.env.OPENAI_ADMIN_KEY) {
+    errors.push("OpenAI: OPENAI_ADMIN_KEY saknas i miljön.");
+    return null;
   }
 
-  // 2. Direkt-live mot OpenAI (ingen Supabase eller tomt resultat)
-  if (process.env.OPENAI_ADMIN_KEY) {
-    try {
-      const raw = await fetchOpenAiUsageDaily(days * 2);
-      return { days: fillMissingDays(raw, days * 2), source: "live" };
-    } catch (err) {
-      console.error("[api/usage] openai live failed:", err);
+  try {
+    const raw = await fetchOpenAiUsageDaily(days * 2);
+    if (raw.length === 0) {
+      errors.push(
+        "OpenAI: Usage API returnerade 0 rader (har orgen någon trafik de senaste dagarna?).",
+      );
+      return null;
     }
+    return fillMissingDays(raw, days * 2);
+  } catch (err) {
+    errors.push(`OpenAI: ${asMessage(err)}`);
+    return null;
   }
+}
 
-  // 3. Mock
-  return { days: generateMockUsage(days * 2), source: "mock" };
+function summaryResponse(
+  all: DailyUsage[],
+  days: number,
+  grid: GridKey,
+  source: DataSource,
+) {
+  const previous = all.slice(0, days);
+  const current = all.slice(days);
+  const summary: UsageSummary = buildSummary(current, previous, grid, source);
+  return NextResponse.json(summary);
 }
 
 /**
@@ -148,4 +198,9 @@ function clampInt(
   const n = raw ? Number.parseInt(raw, 10) : NaN;
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, n));
+}
+
+function asMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
 }

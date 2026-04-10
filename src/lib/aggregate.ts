@@ -1,5 +1,5 @@
 import { tokensToCo2Kg, tokensToKwh, type GridKey } from "@/config/emissions";
-import type { DailyUsage, UsageSummary } from "./types";
+import type { DailyUsage, DataSource, UsageSummary } from "./types";
 
 /**
  * Tar rå daglig usage och returnerar ett färdigt summary-objekt som frontend
@@ -10,7 +10,7 @@ export function buildSummary(
   currentDays: DailyUsage[],
   previousDays: DailyUsage[],
   grid: GridKey,
-  source: "live" | "mock",
+  source: DataSource,
 ): UsageSummary {
   const totals = sumDays(currentDays);
   const prev = sumDays(previousDays);
