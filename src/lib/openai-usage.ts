@@ -5,6 +5,10 @@
  * Docs:      https://platform.openai.com/docs/api-reference/usage/completions
  *
  * Kräver en ADMIN-nyckel (sk-admin-...). Regulära projekt-nycklar fungerar inte.
+ *
+ * OpenAI begränsar antalet buckets per anrop: max 31 för bucket_width=1d.
+ * Den här klienten paginerar automatiskt i 31-dagars-chunkar för att kunna
+ * hämta längre perioder (t.ex. 60 dagar för delta-beräkning).
  */
 
 import type { DailyUsage } from "./types";
@@ -40,25 +44,59 @@ type OpenAiUsageResponse = {
   next_page?: string;
 };
 
+const SECONDS_PER_DAY = 86400;
+/** OpenAI:s maxgräns för `limit` när `bucket_width=1d`. */
+const MAX_DAYS_PER_CALL = 31;
+
 /**
  * Hämtar detaljerad usage och returnerar en rad per (dag, projekt, modell).
- * Det är den version sync-jobbet använder för att fylla Supabase.
+ * Paginerar automatiskt om `days` > 31.
  */
 export async function fetchOpenAiUsageBuckets(
   days: number,
 ): Promise<UsageBucketRow[]> {
   const key = requireKey();
-  const now = Math.floor(Date.now() / 1000);
-  const todayUtcMidnight = now - (now % 86400);
-  const startTime = todayUtcMidnight - (days - 1) * 86400;
 
+  const now = Math.floor(Date.now() / 1000);
+  const todayUtcMidnight = now - (now % SECONDS_PER_DAY);
+  const endOfTodayExclusive = todayUtcMidnight + SECONDS_PER_DAY;
+  const oldestStart = todayUtcMidnight - (days - 1) * SECONDS_PER_DAY;
+
+  const out: UsageBucketRow[] = [];
+  let cursorStart = oldestStart;
+
+  while (cursorStart < endOfTodayExclusive) {
+    const chunkEnd = Math.min(
+      cursorStart + MAX_DAYS_PER_CALL * SECONDS_PER_DAY,
+      endOfTodayExclusive,
+    );
+    const chunkDays = Math.round((chunkEnd - cursorStart) / SECONDS_PER_DAY);
+
+    const rows = await fetchChunk(key, cursorStart, chunkEnd, chunkDays);
+    out.push(...rows);
+
+    cursorStart = chunkEnd;
+  }
+
+  return out;
+}
+
+async function fetchChunk(
+  key: string,
+  startTime: number,
+  endTime: number,
+  limit: number,
+): Promise<UsageBucketRow[]> {
   const params = new URLSearchParams({
     start_time: String(startTime),
+    end_time: String(endTime),
     bucket_width: "1d",
-    // Gruppera per projekt och modell så att vi kan bryta ned i dashboarden
-    group_by: "project_id,model",
-    limit: String(days),
+    "group_by[]": "project_id",
+    limit: String(Math.min(limit, MAX_DAYS_PER_CALL)),
   });
+  // group_by tas som en array — lägg till modell separat så URLSearchParams
+  // skapar två group_by[]-parametrar
+  params.append("group_by[]", "model");
 
   const url = `https://api.openai.com/v1/organization/usage/completions?${params.toString()}`;
   const res = await fetch(url, {
@@ -96,7 +134,7 @@ export async function fetchOpenAiUsageBuckets(
 
 /**
  * Tunn aggregering per dag — används av den direkta live-pathen i /api/usage
- * när Supabase inte är konfigurerat.
+ * när Supabase inte är konfigurerat eller tomt.
  */
 export async function fetchOpenAiUsageDaily(
   days: number,
