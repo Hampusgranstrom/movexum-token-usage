@@ -1,14 +1,19 @@
 # Movexum · AI Token Usage
 
-Dashboard som mäter Movexums totala AI-token-användning och omvandlar den till
-energi (kWh) och klimatutsläpp (kg CO₂e).
+En intern AI-chat + dashboard som mäter Movexums AI-användning och omvandlar
+den till energi (kWh) och klimatutsläpp (kg CO₂e).
 
-- **Tre fasta KPI-kort** (Tokens, Energi, CO₂e) med delta mot föregående period
-- **Graf** över tokens per dag
-- **Supabase** som datalager, **OpenAI Usage API** som källa
-- **GitHub Actions** syncar varje timme
-- **Live-only:** Supabase först, OpenAI som direkt-fallback. Ingen mockdata —
-  om båda fallerar visas ett tydligt fel istället för påhittade siffror.
+- **`/chat`** — intern AI-assistent som teamet kan använda. Varje anrop går
+  via vår backend → OpenAI Platform API och loggar tokens till Supabase.
+- **`/`** — dashboard med tre KPI-kort (Tokens, Energi, CO₂e), delta mot
+  föregående period och en graf över tokens per dag.
+- **Supabase** lagrar varje anrop i `token_usage_events`. Dashboarden
+  aggregerar via en RPC-funktion.
+
+> **Obs:** Tidigare version försökte läsa usage från OpenAI Usage API, men
+> det funkar inte för ChatGPT Business-användare — OpenAI exponerar bara
+> Platform API-trafik där, inte ChatGPT-chat-data. Lösningen är att bygga
+> en egen chat där vi äger datan själva.
 
 Hela planen ligger i [`PLAN.md`](./PLAN.md).
 

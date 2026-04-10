@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, MessageSquare } from "lucide-react";
+import Link from "next/link";
 import { KpiCard } from "./kpi-card";
 import { UsageChart } from "./usage-chart";
 import type { UsageSummary } from "@/lib/types";
@@ -57,23 +58,26 @@ export function Dashboard() {
   return (
     <div className="relative z-10 space-y-8">
       <header className="flex flex-col gap-2">
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-3"
-        >
-          <div className="h-2 w-2 animate-pulse rounded-full bg-accent-co2" />
-          <span className="text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
-            Movexum · AI Token Usage
-          </span>
-          <span
-            className="rounded-full border border-accent-co2/40 bg-accent-co2/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-co2"
-            title={`Datakälla: ${sourceLabel}`}
+        <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-3"
           >
-            {sourceLabel}
-          </span>
-        </motion.div>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-accent-co2" />
+            <span className="text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
+              Movexum · AI Token Usage
+            </span>
+            <span
+              className="rounded-full border border-accent-co2/40 bg-accent-co2/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-co2"
+              title={`Datakälla: ${sourceLabel}`}
+            >
+              {sourceLabel}
+            </span>
+          </motion.div>
+          <ChatLink />
+        </div>
         <motion.h1
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -148,9 +152,30 @@ export function Dashboard() {
   );
 }
 
+function ChatLink() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Link
+        href="/chat"
+        className="group flex items-center gap-2 rounded-full border border-accent-tokens/40 bg-accent-tokens/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent-tokens transition-all hover:bg-accent-tokens/20 hover:shadow-[0_0_20px_-4px_#22D3EE]"
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+        Öppna chat
+      </Link>
+    </motion.div>
+  );
+}
+
 function ErrorPanel({ err }: { err: ApiError }) {
   return (
     <div className="relative z-10 space-y-6">
+      <div className="flex justify-end">
+        <ChatLink />
+      </div>
       <div className="card border-accent-co2Danger/40 p-6">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-none text-accent-co2Danger" />

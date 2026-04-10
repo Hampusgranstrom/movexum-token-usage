@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildSummary } from "@/lib/aggregate";
 import { fetchOpenAiUsageDaily } from "@/lib/openai-usage";
-import { getSupabaseAdmin, type TokenUsageRow } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import type { GridKey } from "@/config/emissions";
 import type { DailyUsage, DataSource, UsageSummary } from "@/lib/types";
 
@@ -12,12 +12,11 @@ export const runtime = "nodejs";
  * GET /api/usage?days=30&grid=global
  *
  * Live-only. Försöker i ordning:
- *   1. Supabase-tabellen `token_usage_daily` (primär källa)
- *   2. OpenAI Usage API direkt (fallback om Supabase är tom)
+ *   1. Supabase-tabellen `token_usage_events` (primär källa — loggad av /api/chat)
+ *   2. OpenAI Usage API direkt (fallback om events är tomma OCH admin-nyckeln
+ *      tillhör en org med Platform API-trafik)
  *
  * Om båda misslyckas returneras 500 med ett beskrivande felmeddelande.
- * Ingen mockdata längre — dashboarden ska antingen visa riktiga siffror
- * eller säga exakt vad som gick fel.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -27,35 +26,35 @@ export async function GET(request: Request) {
 
   const errors: string[] = [];
 
-  // 1. Supabase
-  const fromSupabase = await tryReadSupabase(days, errors);
-  if (fromSupabase && fromSupabase.length > 0) {
-    return summaryResponse(fromSupabase, days, grid, "supabase");
+  // 1. token_usage_events (från vår egna chat)
+  const fromEvents = await tryReadEvents(days, errors);
+  if (fromEvents && fromEvents.length > 0) {
+    return summaryResponse(fromEvents, days, grid, "supabase");
   }
 
-  // 2. OpenAI direkt
+  // 2. OpenAI Usage API direkt (fallback — funkar bara om orgen har Platform API-trafik)
   const fromOpenAi = await tryReadOpenAi(days, errors);
   if (fromOpenAi && fromOpenAi.length > 0) {
     return summaryResponse(fromOpenAi, days, grid, "openai-live");
   }
 
-  // Inget fungerade → explicit fel
+  // Inget fungerade → explicit fel med hjälp
   return NextResponse.json(
     {
       error: "Kunde inte hämta användningsdata från någon källa.",
       details: errors,
       hints: [
-        "Kontrollera att SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY och OPENAI_ADMIN_KEY är satta i Vercel.",
-        "Kör en Redeploy i Vercel efter att env vars ändrats.",
-        "Kör SQL-migrationen i Supabase (supabase/migrations/0001_initial.sql).",
-        "Trigga /api/sync en gång för att populera tabellen.",
+        "Öppna /chat och skicka ett meddelande — då loggas det automatiskt till Supabase.",
+        "Kontrollera att OPENAI_API_KEY (projektnyckel), SUPABASE_URL och SUPABASE_SERVICE_ROLE_KEY är satta i Vercel.",
+        "Kör migrationen 0002_chat_events.sql i Supabase SQL Editor.",
+        "Kör Redeploy i Vercel efter att env vars ändrats.",
       ],
     },
     { status: 500 },
   );
 }
 
-async function tryReadSupabase(
+async function tryReadEvents(
   days: number,
   errors: string[],
 ): Promise<DailyUsage[] | null> {
@@ -69,52 +68,41 @@ async function tryReadSupabase(
 
   try {
     const since = daysAgoIso(days * 2);
-    const { data, error } = await supabase
-      .from("token_usage_daily")
-      .select("day, input_tokens, output_tokens")
-      .gte("day", since)
-      .order("day", { ascending: true });
+    // Använd RPC för att aggregera på Postgres-sidan
+    const { data, error } = await supabase.rpc("get_daily_usage", {
+      since,
+    });
 
     if (error) {
-      errors.push(`Supabase: ${error.message}`);
-      return null;
-    }
-
-    if (!data || data.length === 0) {
+      // Vanligaste orsak: migrationen 0002 är inte körd än
       errors.push(
-        "Supabase: tabellen token_usage_daily är tom (kör /api/sync eller trigga GitHub Actions-workflowen).",
+        `Supabase RPC get_daily_usage: ${error.message}. Kör migrationen 0002_chat_events.sql.`,
       );
       return null;
     }
 
-    const rows = data as Pick<
-      TokenUsageRow,
-      "day" | "input_tokens" | "output_tokens"
-    >[];
+    const rows = (data ?? []) as Array<{
+      day: string;
+      input_tokens: number;
+      output_tokens: number;
+      total_tokens: number;
+    }>;
 
-    const byDay = new Map<string, DailyUsage>();
-    for (const r of rows) {
-      const input = Number(r.input_tokens);
-      const output = Number(r.output_tokens);
-      const existing = byDay.get(r.day);
-      if (existing) {
-        existing.inputTokens += input;
-        existing.outputTokens += output;
-        existing.totalTokens = existing.inputTokens + existing.outputTokens;
-      } else {
-        byDay.set(r.day, {
-          date: r.day,
-          inputTokens: input,
-          outputTokens: output,
-          totalTokens: input + output,
-        });
-      }
+    if (rows.length === 0) {
+      errors.push(
+        "Supabase: token_usage_events är tom. Öppna /chat och skicka ett meddelande för att generera första datapunkten.",
+      );
+      return null;
     }
 
-    return fillMissingDays(
-      Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)),
-      days * 2,
-    );
+    const daily: DailyUsage[] = rows.map((r) => ({
+      date: r.day,
+      inputTokens: Number(r.input_tokens),
+      outputTokens: Number(r.output_tokens),
+      totalTokens: Number(r.total_tokens),
+    }));
+
+    return fillMissingDays(daily, days * 2);
   } catch (err) {
     errors.push(`Supabase: ${asMessage(err)}`);
     return null;
@@ -126,7 +114,7 @@ async function tryReadOpenAi(
   errors: string[],
 ): Promise<DailyUsage[] | null> {
   if (!process.env.OPENAI_ADMIN_KEY) {
-    errors.push("OpenAI: OPENAI_ADMIN_KEY saknas i miljön.");
+    // Inte ett fel — admin-nyckel är valfri när vi har chat-events
     return null;
   }
 
@@ -134,7 +122,7 @@ async function tryReadOpenAi(
     const raw = await fetchOpenAiUsageDaily(days * 2);
     if (raw.length === 0) {
       errors.push(
-        "OpenAI: Usage API svarade men returnerade inga dagar med trafik. Möjliga orsaker: (a) admin-nyckeln tillhör en annan org än den som kör API-anrop, (b) orgen har verkligen ingen trafik, (c) anropen körs på en sub-org som admin-nyckeln inte täcker. Kör /api/debug för detaljer.",
+        "OpenAI: Usage API svarade men returnerade ingen trafik (admin-nyckeln tillhör en org utan Platform API-anrop — helt normalt för ChatGPT Business-användare).",
       );
       return null;
     }
@@ -159,7 +147,7 @@ function summaryResponse(
 
 /**
  * Fyller i nolldagar för datum som saknas, så att grafen alltid har en
- * punkt per dag även om OpenAI inte returnerade en bucket.
+ * punkt per dag även om inget hände på just den dagen.
  */
 function fillMissingDays(rows: DailyUsage[], totalDays: number): DailyUsage[] {
   const map = new Map(rows.map((r) => [r.date, r]));
