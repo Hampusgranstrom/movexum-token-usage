@@ -7,7 +7,8 @@ energi (kWh) och klimatutsläpp (kg CO₂e).
 - **Graf** över tokens per dag
 - **Supabase** som datalager, **OpenAI Usage API** som källa
 - **GitHub Actions** syncar varje timme
-- **Fallback-kedja** Supabase → OpenAI live → mock så UI:t alltid renderas
+- **Live-only:** Supabase först, OpenAI som direkt-fallback. Ingen mockdata —
+  om båda fallerar visas ett tydligt fel istället för påhittade siffror.
 
 Hela planen ligger i [`PLAN.md`](./PLAN.md).
 
@@ -101,10 +102,13 @@ Dashboarden på <http://localhost:3000> läser nu från Supabase.
 
 Returnerar aggregerat summary för valt intervall.
 
-Fallback-ordning:
-1. Supabase (`token_usage_daily`)
-2. OpenAI direkt (om `OPENAI_ADMIN_KEY` är satt men Supabase är tom)
-3. Deterministisk mockdata
+Källordning:
+1. Supabase (`token_usage_daily`) — primär
+2. OpenAI direkt (om Supabase är tom eller inte konfigurerad)
+
+Om båda misslyckas returneras `500` med ett JSON-svar:
+`{ "error": "...", "details": [...], "hints": [...] }` och dashboarden visar
+en felpanel med exakt orsak.
 
 Query-parametrar:
 
@@ -160,7 +164,6 @@ src/
 │   └── emissions.ts          # Energi- och CO2-koefficienter
 └── lib/
     ├── aggregate.ts          # UsageSummary + delta
-    ├── mock-data.ts          # Deterministisk fallback
     ├── openai-usage.ts       # OpenAI Usage API-klient
     ├── supabase.ts           # Server-klient (service role)
     ├── sync.ts               # Sync-logik

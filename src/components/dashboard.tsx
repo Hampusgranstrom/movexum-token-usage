@@ -2,43 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 import { KpiCard } from "./kpi-card";
 import { UsageChart } from "./usage-chart";
 import type { UsageSummary } from "@/lib/types";
 
+type ApiError = {
+  error: string;
+  details?: string[];
+  hints?: string[];
+};
+
 export function Dashboard() {
   const [summary, setSummary] = useState<UsageSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<ApiError | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/usage?days=30&grid=global", { cache: "no-store" })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<UsageSummary>;
+      .then(async (r) => {
+        const body = (await r.json()) as UsageSummary | ApiError;
+        if (!r.ok) {
+          throw body as ApiError;
+        }
+        return body as UsageSummary;
       })
       .then((data) => {
         if (!cancelled) setSummary(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(String(err));
+        if (cancelled) return;
+        if (err && typeof err === "object" && "error" in err) {
+          setApiError(err as ApiError);
+        } else {
+          setApiError({ error: String(err) });
+        }
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (error) {
-    return (
-      <div className="card p-6 text-accent-co2Danger">
-        Kunde inte hämta data: {error}
-      </div>
-    );
+  if (apiError) {
+    return <ErrorPanel err={apiError} />;
   }
 
   if (!summary) {
     return <SkeletonDashboard />;
   }
+
+  const sourceLabel =
+    summary.source === "supabase" ? "Supabase" : "OpenAI live";
 
   return (
     <div className="relative z-10 space-y-8">
@@ -53,8 +67,11 @@ export function Dashboard() {
           <span className="text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
             Movexum · AI Token Usage
           </span>
-          <span className="rounded-full border border-bg-border bg-bg-card/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-muted">
-            {summary.source === "live" ? "Live" : "Mock"}
+          <span
+            className="rounded-full border border-accent-co2/40 bg-accent-co2/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-co2"
+            title={`Datakälla: ${sourceLabel}`}
+          >
+            {sourceLabel}
           </span>
         </motion.div>
         <motion.h1
@@ -127,6 +144,54 @@ export function Dashboard() {
         </div>
         <UsageChart data={summary.days} />
       </motion.section>
+    </div>
+  );
+}
+
+function ErrorPanel({ err }: { err: ApiError }) {
+  return (
+    <div className="relative z-10 space-y-6">
+      <div className="card border-accent-co2Danger/40 p-6">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-none text-accent-co2Danger" />
+          <div className="flex-1 space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-accent-co2Danger">
+                Ingen data
+              </h2>
+              <p className="mt-1 text-sm text-text-primary">{err.error}</p>
+            </div>
+
+            {err.details && err.details.length > 0 && (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                  Detaljer
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-text-secondary">
+                  {err.details.map((d, i) => (
+                    <li key={i} className="font-mono">
+                      · {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {err.hints && err.hints.length > 0 && (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+                  Så löser du det
+                </p>
+                <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-text-secondary">
+                  {err.hints.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

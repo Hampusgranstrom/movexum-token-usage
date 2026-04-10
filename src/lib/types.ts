@@ -22,8 +22,15 @@ export type UsageSummary = {
     kwh: number;
     co2Kg: number;
   };
-  /** "live" = från OpenAI Usage API, "mock" = genererad testdata. */
-  source: "live" | "mock";
+  /** Var datan kom ifrån. */
+  source: DataSource;
   /** Vilket elnät som användes vid CO₂-beräkningen. */
   grid: "global" | "sweden";
 };
+
+/**
+ * Var dashboarden hämtade sin data.
+ *  - "supabase"      = aggregat från token_usage_daily (primär path)
+ *  - "openai-live"   = direkt fallback mot OpenAI Usage API
+ */
+export type DataSource = "supabase" | "openai-live";
