@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Movexum · AI Token Usage",
+  title: "Movexum Startupkompass",
   description:
-    "Movexums totala AI-token-användning omvandlat till energi och CO₂e.",
+    "AI-drivet verktyg för att hantera inflöde av idébärare till Movexums inkubator.",
 };
 
 export default function RootLayout({
