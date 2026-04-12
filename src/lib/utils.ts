@@ -27,3 +27,14 @@ export function formatPercent(value: number, digits = 1): string {
   const sign = value > 0 ? "+" : "";
   return `${sign}${(value * 100).toFixed(digits)}%`;
 }
+
+/**
+ * Formaterar ett ISO-datum till svenskt kort format (t.ex. "12 apr 2026").
+ */
+export function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("sv-SE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}

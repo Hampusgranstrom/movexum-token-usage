@@ -1,7 +1,7 @@
 import { ChatUI } from "@/components/chat-ui";
 
 export const metadata = {
-  title: "Movexum · AI Chat",
+  title: "Movexum Startupkompass · AI-intag",
 };
 
 export default function ChatPage() {

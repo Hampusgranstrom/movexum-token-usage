@@ -5,42 +5,46 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { CountUp } from "./count-up";
 import { cn, formatPercent } from "@/lib/utils";
 
+type AccentKey = "leads" | "sources" | "funnel" | "conversion";
+
 type Props = {
   label: string;
   value: number;
   unit: string;
-  /** Procentuell förändring som decimal (0.12 = +12%). */
   delta: number;
-  /** Beskrivning för hover-tooltip / caption. */
   formula: string;
-  /** Färgnyckel för accent. */
-  accent: "tokens" | "energy" | "co2";
+  accent: AccentKey;
   decimals?: number;
-  /** Index i grid — används för stagger-animation. */
   index?: number;
 };
 
 const ACCENT_CLASSES: Record<
-  Props["accent"],
+  AccentKey,
   { text: string; bg: string; border: string; glow: string }
 > = {
-  tokens: {
-    text: "text-accent-tokens",
-    bg: "bg-accent-tokens/10",
-    border: "border-accent-tokens/30",
+  leads: {
+    text: "text-accent-leads",
+    bg: "bg-accent-leads/10",
+    border: "border-accent-leads/30",
     glow: "shadow-[0_0_60px_-20px_#22D3EE]",
   },
-  energy: {
-    text: "text-accent-energy",
-    bg: "bg-accent-energy/10",
-    border: "border-accent-energy/30",
+  sources: {
+    text: "text-accent-sources",
+    bg: "bg-accent-sources/10",
+    border: "border-accent-sources/30",
     glow: "shadow-[0_0_60px_-20px_#FACC15]",
   },
-  co2: {
-    text: "text-accent-co2",
-    bg: "bg-accent-co2/10",
-    border: "border-accent-co2/30",
+  funnel: {
+    text: "text-accent-funnel",
+    bg: "bg-accent-funnel/10",
+    border: "border-accent-funnel/30",
     glow: "shadow-[0_0_60px_-20px_#4ADE80]",
+  },
+  conversion: {
+    text: "text-accent-conversion",
+    bg: "bg-accent-conversion/10",
+    border: "border-accent-conversion/30",
+    glow: "shadow-[0_0_60px_-20px_#A78BFA]",
   },
 };
 
@@ -73,7 +77,6 @@ export function KpiCard({
         "hover:" + classes.glow,
       )}
     >
-      {/* Accent-ribbon längst upp */}
       <div
         className={cn(
           "absolute inset-x-0 top-0 h-px",
@@ -84,11 +87,7 @@ export function KpiCard({
       />
 
       <div className="flex items-center justify-between">
-        <span
-          className={cn(
-            "text-xs font-medium uppercase tracking-[0.14em] text-text-secondary",
-          )}
-        >
+        <span className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
           {label}
         </span>
         <DeltaPill
@@ -123,9 +122,9 @@ function DeltaPill({
 }) {
   const Icon = positive ? ArrowUpRight : negative ? ArrowDownRight : Minus;
   const color = positive
-    ? "text-accent-co2Danger"
+    ? "text-accent-funnel"
     : negative
-      ? "text-accent-co2"
+      ? "text-accent-danger"
       : "text-text-muted";
 
   return (

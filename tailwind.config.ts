@@ -13,10 +13,11 @@ const config: Config = {
           border: "#1F2230",
         },
         accent: {
-          tokens: "#22D3EE",
-          energy: "#FACC15",
-          co2: "#4ADE80",
-          co2Danger: "#F87171",
+          leads: "#22D3EE",
+          sources: "#FACC15",
+          funnel: "#4ADE80",
+          conversion: "#A78BFA",
+          danger: "#F87171",
         },
         text: {
           primary: "#F5F7FA",
