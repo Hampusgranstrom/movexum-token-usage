@@ -2,6 +2,7 @@ import { LeadList } from "@/components/lead-list";
 import { Nav } from "@/components/nav";
 import { getCurrentUser } from "@/lib/auth";
 import { getBrandSettings } from "@/lib/brand";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Movexum Startupkompass · Leads",
@@ -14,6 +15,10 @@ export default async function LeadsPage() {
     getCurrentUser(),
     getBrandSettings(),
   ]);
+
+  if (!user) {
+    redirect("/login?redirect=/leads");
+  }
 
   return (
     <>
