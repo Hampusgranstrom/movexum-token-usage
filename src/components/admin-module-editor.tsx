@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, ListChecks, Trash2, ExternalLink } from "lucide-react";
-import type { Module } from "@/lib/modules";
+import { BarChart3, ListChecks, Trash2, ExternalLink, Plus, X } from "lucide-react";
+import type { Module, ResultBucket } from "@/lib/modules";
 
 export function ModuleEditor({ module: initial }: { module: Module }) {
   const router = useRouter();
@@ -39,6 +39,7 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
           is_active: mod.is_active,
           require_email: mod.require_email,
           require_phone: mod.require_phone,
+          result_buckets: mod.result_buckets,
         }),
       });
       const data = await res.json();
@@ -134,6 +135,7 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
             >
               <option value="wizard">Formulär (wizard)</option>
               <option value="chat">AI-chatt</option>
+              <option value="quiz">Quiz med scoring och resultat</option>
               <option value="hybrid" disabled>
                 Hybrid (kommer)
               </option>
@@ -239,6 +241,13 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
         </div>
       </section>
 
+      {mod.flow_type === "quiz" && (
+        <ResultBucketsEditor
+          buckets={mod.result_buckets ?? []}
+          onChange={(next) => patch("result_buckets", next)}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <button onClick={remove} className="btn-ghost text-danger">
           <Trash2 className="h-4 w-4" />
@@ -276,6 +285,169 @@ function Field({
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function ResultBucketsEditor({
+  buckets,
+  onChange,
+}: {
+  buckets: ResultBucket[];
+  onChange: (next: ResultBucket[]) => void;
+}) {
+  const updateBucket = (i: number, patch: Partial<ResultBucket>) => {
+    const next = buckets.slice();
+    next[i] = { ...next[i], ...patch };
+    onChange(next);
+  };
+  const removeBucket = (i: number) => {
+    onChange(buckets.filter((_, idx) => idx !== i));
+  };
+  const addBucket = () => {
+    onChange([
+      ...buckets,
+      {
+        key: "ny_bucket",
+        title: "Ny profil",
+        description: "",
+        tips: [],
+        cta_label: "",
+        cta_url: "",
+      },
+    ]);
+  };
+
+  return (
+    <section className="card space-y-5 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="eyebrow">Resultat-profiler</h2>
+          <p className="mt-1 text-sm text-muted">
+            Användarens svar räknas till buckets; den med högst poäng vinner
+            och dess profil visas. Nyckeln används i alternativens scoring.
+          </p>
+        </div>
+        <button onClick={addBucket} className="btn-ghost">
+          <Plus className="h-4 w-4" />
+          Profil
+        </button>
+      </div>
+
+      {buckets.length === 0 && (
+        <p className="text-sm text-muted">Inga profiler än.</p>
+      )}
+
+      <div className="space-y-6">
+        {buckets.map((b, i) => (
+          <div key={i} className="space-y-3 rounded-2xl bg-bg p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-1 gap-3">
+                <input
+                  className="w-32 rounded-full bg-surface px-3 py-1.5 text-xs font-medium shadow-soft focus:outline-none"
+                  placeholder="Nyckel"
+                  value={b.key}
+                  onChange={(e) => updateBucket(i, { key: e.target.value })}
+                />
+                <input
+                  className="flex-1 rounded-full bg-surface px-3 py-1.5 text-sm shadow-soft focus:outline-none"
+                  placeholder="Titel"
+                  value={b.title}
+                  onChange={(e) => updateBucket(i, { title: e.target.value })}
+                />
+              </div>
+              <button
+                onClick={() => removeBucket(i)}
+                className="text-muted hover:text-danger"
+                title="Ta bort profil"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <textarea
+              className="textarea text-sm"
+              rows={2}
+              placeholder="Beskrivning"
+              value={b.description}
+              onChange={(e) => updateBucket(i, { description: e.target.value })}
+            />
+            <TipsEditor
+              tips={b.tips ?? []}
+              onChange={(tips) => updateBucket(i, { tips })}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                className="input"
+                placeholder="CTA-etikett"
+                value={b.cta_label}
+                onChange={(e) => updateBucket(i, { cta_label: e.target.value })}
+              />
+              <input
+                className="input"
+                placeholder="CTA-länk (/m/... eller https://...)"
+                value={b.cta_url}
+                onChange={(e) => updateBucket(i, { cta_url: e.target.value })}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TipsEditor({
+  tips,
+  onChange,
+}: {
+  tips: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  return (
+    <div>
+      <span className="eyebrow">Tips</span>
+      <ul className="mt-2 space-y-1">
+        {tips.map((t, i) => (
+          <li key={i} className="flex items-center gap-2 text-sm">
+            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-accent" />
+            <span className="flex-1">{t}</span>
+            <button
+              onClick={() => onChange(tips.filter((_, idx) => idx !== i))}
+              className="text-muted hover:text-danger"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex gap-2">
+        <input
+          className="input flex-1"
+          placeholder="Lägg till tips..."
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && draft.trim()) {
+              e.preventDefault();
+              onChange([...tips, draft.trim()]);
+              setDraft("");
+            }
+          }}
+        />
+        <button
+          onClick={() => {
+            if (draft.trim()) {
+              onChange([...tips, draft.trim()]);
+              setDraft("");
+            }
+          }}
+          className="btn-ghost"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
