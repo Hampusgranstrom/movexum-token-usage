@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Building, Sparkles } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building, Sparkles, Download, Trash2 } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { cn, formatDate } from "@/lib/utils";
 import type { Lead, LeadStatus, Conversation } from "@/lib/types";
@@ -12,7 +12,13 @@ const STATUS_OPTIONS: LeadStatus[] = [
   "new", "contacted", "meeting-booked", "evaluating", "accepted", "declined",
 ];
 
-export function LeadDetail({ id }: { id: string }) {
+export function LeadDetail({
+  id,
+  canManagePii = false,
+}: {
+  id: string;
+  canManagePii?: boolean;
+}) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -249,6 +255,45 @@ export function LeadDetail({ id }: { id: string }) {
               className="input"
             />
           </div>
+
+          {canManagePii && (
+            <div className="card p-6">
+              <h3 className="eyebrow mb-4">GDPR</h3>
+              <p className="text-xs text-muted">
+                Art. 15 (export) och Art. 17 (radering). Loggas i
+                säkerhetsevents.
+              </p>
+              <div className="mt-4 flex flex-col gap-2">
+                <a
+                  href={`/api/admin/leads/${id}/export`}
+                  className="btn-secondary"
+                  download
+                >
+                  <Download className="h-4 w-4" />
+                  Exportera JSON
+                </a>
+                <button
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        "Radera permanent? Cascadar till samtal, meddelanden, svar och samtyckesevents. Åtgärden kan inte ångras.",
+                      )
+                    )
+                      return;
+                    const res = await fetch(`/api/admin/leads/${id}/erase`, {
+                      method: "DELETE",
+                    });
+                    if (res.ok) router.push("/leads");
+                    else alert("Kunde inte radera");
+                  }}
+                  className="btn-ghost text-danger"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Radera permanent
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

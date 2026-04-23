@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { getAdminOrigin } from "@/lib/domain";
 
 export const runtime = "nodejs";
 
@@ -66,10 +67,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
   }
 
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    req.headers.get("origin") ??
-    new URL(req.url).origin;
+  const origin = getAdminOrigin(req);
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { role, invited_by: guard.user.id },
