@@ -132,6 +132,11 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    if (pathname.startsWith("/api/")) {
+      const res = NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      securityHeaders(res);
+      return res;
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     const res = NextResponse.redirect(loginUrl);
@@ -157,6 +162,11 @@ export async function middleware(request: NextRequest) {
 
   if (!role) {
     await supabase.auth.signOut();
+    if (pathname.startsWith("/api/")) {
+      const res = NextResponse.json({ error: "not_invited" }, { status: 401 });
+      securityHeaders(res);
+      return res;
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "not_invited");
     const res = NextResponse.redirect(loginUrl);
@@ -165,6 +175,11 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/admin") && role !== "superadmin") {
+    if (pathname.startsWith("/api/")) {
+      const res = NextResponse.json({ error: "forbidden" }, { status: 403 });
+      securityHeaders(res);
+      return res;
+    }
     const res = NextResponse.redirect(new URL("/", request.url));
     securityHeaders(res);
     return res;
@@ -176,7 +191,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Skip Next internals, favicon, and static image assets — they don't need
+  // auth and we don't want to pay the cookie-parse cost on every tile.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
   ],
 };

@@ -188,6 +188,12 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
           </button>
         </div>
 
+        <p className="px-2 text-center text-[10px] leading-relaxed text-subtle">
+          Genom att chatta godkänner du att Movexum behandlar dina uppgifter för
+          att kunna kontakta dig. Läs mer i vår integritetspolicy. Dela inte
+          känsliga personuppgifter i chatten.
+        </p>
+
         <div className="flex items-center justify-center text-[10px] uppercase tracking-wider text-subtle">
           <span>Powered by Movexum</span>
         </div>

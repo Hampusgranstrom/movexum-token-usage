@@ -18,16 +18,13 @@ export type LeadStatus =
   | "accepted"
   | "declined";
 
-export const STATUS_CONFIG: Record<
-  LeadStatus,
-  { label: string; color: string; order: number }
-> = {
-  new: { label: "Ny", color: "accent-leads", order: 0 },
-  contacted: { label: "Kontaktad", color: "accent-sources", order: 1 },
-  "meeting-booked": { label: "Möte bokat", color: "accent-funnel", order: 2 },
-  evaluating: { label: "Utvärderas", color: "text-secondary", order: 3 },
-  accepted: { label: "Antagen", color: "accent-conversion", order: 4 },
-  declined: { label: "Avböjd", color: "accent-danger", order: 5 },
+export const STATUS_CONFIG: Record<LeadStatus, { label: string }> = {
+  new: { label: "Ny" },
+  contacted: { label: "Kontaktad" },
+  "meeting-booked": { label: "Möte bokat" },
+  evaluating: { label: "Utvärderas" },
+  accepted: { label: "Antagen" },
+  declined: { label: "Avböjd" },
 };
 
 // --- Lead ---
@@ -52,7 +49,7 @@ export type Lead = {
   tags: string[];
 };
 
-// --- Conversations & messages ---
+// --- Conversations ---
 
 export type ExtractedLeadData = {
   name?: string;
@@ -61,9 +58,6 @@ export type ExtractedLeadData = {
   organization?: string;
   idea_summary?: string;
   idea_category?: string;
-  source_hint?: string;
-  readiness_level?: "idea" | "prototype" | "mvp" | "revenue";
-  needs?: string[];
 };
 
 export type Conversation = {
@@ -76,16 +70,6 @@ export type Conversation = {
   extracted_data: ExtractedLeadData;
   total_input_tokens: number;
   total_output_tokens: number;
-};
-
-export type Message = {
-  id: string;
-  conversation_id: string;
-  created_at: string;
-  role: "system" | "user" | "assistant";
-  content: string;
-  input_tokens: number;
-  output_tokens: number;
 };
 
 // --- Dashboard API ---
