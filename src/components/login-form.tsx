@@ -89,6 +89,7 @@ export function LoginForm({
             onChange={(e) => setEmail(e.target.value)}
             required
             autoFocus
+            autoComplete="email"
             className="input"
             placeholder="namn@movexum.se"
           />
@@ -103,6 +104,7 @@ export function LoginForm({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
             className="input"
             placeholder="Lösenord"
           />
