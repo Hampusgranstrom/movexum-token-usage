@@ -12,6 +12,11 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Abuse limits — chosen to allow a real conversation while stopping credit-drain.
+const MAX_MESSAGES = 40;
+const MAX_MESSAGE_CHARS = 4000;
+const MAX_TOTAL_CHARS = 40_000;
+
 type ChatBody = ChatRequestBody & { moduleSlug?: string };
 
 export async function POST(request: Request) {
@@ -29,15 +34,34 @@ export async function POST(request: Request) {
     moduleSlug,
   } = body;
 
-  if (!sessionId || typeof sessionId !== "string") {
+  if (!sessionId || typeof sessionId !== "string" || sessionId.length > 128) {
     return NextResponse.json({ error: "sessionId krävs." }, { status: 400 });
   }
+
+  if (conversationId !== undefined && conversationId !== null) {
+    if (typeof conversationId !== "string" || conversationId.length > 64) {
+      return NextResponse.json(
+        { error: "Ogiltigt conversationId." },
+        { status: 400 },
+      );
+    }
+  }
+
   if (!Array.isArray(clientMessages) || clientMessages.length === 0) {
     return NextResponse.json(
       { error: "messages måste vara en icke-tom array." },
       { status: 400 },
     );
   }
+
+  if (clientMessages.length > MAX_MESSAGES) {
+    return NextResponse.json(
+      { error: `Konversationen är för lång (max ${MAX_MESSAGES} meddelanden).` },
+      { status: 400 },
+    );
+  }
+
+  let totalChars = 0;
   for (const m of clientMessages) {
     if (
       !m ||
@@ -49,6 +73,19 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (m.content.length > MAX_MESSAGE_CHARS) {
+      return NextResponse.json(
+        { error: `Ett meddelande är för långt (max ${MAX_MESSAGE_CHARS} tecken).` },
+        { status: 400 },
+      );
+    }
+    totalChars += m.content.length;
+  }
+  if (totalChars > MAX_TOTAL_CHARS) {
+    return NextResponse.json(
+      { error: "Konversationen är för stor." },
+      { status: 400 },
+    );
   }
 
   // Resolve module + consent gate
@@ -240,8 +277,11 @@ export async function POST(request: Request) {
       leadId,
     });
   } catch (err) {
+    // Log the real error but return a generic message to the client so we
+    // don't leak library internals or Anthropic errors.
+    console.error("[api/chat] failed:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
+      { error: "Tjänsten är tillfälligt otillgänglig. Försök igen." },
       { status: 500 },
     );
   }
