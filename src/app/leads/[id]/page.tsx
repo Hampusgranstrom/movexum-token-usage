@@ -24,7 +24,7 @@ export default async function LeadDetailPage({
     <>
       <Nav user={user} brand={brand} />
       <main className="mx-auto min-h-screen max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
-        <LeadDetail id={id} />
+        <LeadDetail id={id} canManagePii={user?.role === "superadmin"} />
       </main>
     </>
   );

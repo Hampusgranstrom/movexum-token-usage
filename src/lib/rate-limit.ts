@@ -1,59 +1,42 @@
 /**
- * Simple in-memory sliding-window rate limiter.
- *
- * Good enough for single-instance deployments (Vercel serverless functions
- * behind a single region) to push back casual abuse of /api/chat. For a
- * multi-region setup this should be replaced with a Redis / Upstash-backed
- * limiter — the interface here is designed to swap in place.
+ * Simple in-memory sliding-window rate limiter. Good enough for a single
+ * Node process. For multi-instance production, swap `bucket` for Upstash
+ * Redis — the public interface stays the same.
  */
 
-type Entry = { windowStart: number; count: number };
+type Bucket = { hits: number; resetAt: number };
+const bucket = new Map<string, Bucket>();
 
-const buckets = new Map<string, Entry>();
-
-export type RateLimitResult = {
-  ok: boolean;
-  remaining: number;
-  resetMs: number;
-};
+export type RateLimitResult = { ok: true } | { ok: false; retryAfterMs: number };
 
 export function rateLimit(
   key: string,
-  limit: number,
-  windowMs: number,
+  opts: { limit: number; windowMs: number },
 ): RateLimitResult {
   const now = Date.now();
-  const entry = buckets.get(key);
+  const entry = bucket.get(key);
 
-  if (!entry || now - entry.windowStart >= windowMs) {
-    buckets.set(key, { windowStart: now, count: 1 });
-    return { ok: true, remaining: limit - 1, resetMs: windowMs };
+  if (!entry || entry.resetAt < now) {
+    bucket.set(key, { hits: 1, resetAt: now + opts.windowMs });
+    return { ok: true };
   }
 
-  entry.count += 1;
-  const resetMs = windowMs - (now - entry.windowStart);
-
-  if (entry.count > limit) {
-    return { ok: false, remaining: 0, resetMs };
+  if (entry.hits >= opts.limit) {
+    return { ok: false, retryAfterMs: entry.resetAt - now };
   }
 
-  return { ok: true, remaining: Math.max(0, limit - entry.count), resetMs };
+  entry.hits += 1;
+  return { ok: true };
 }
 
-// Opportunistic cleanup to stop the map growing unbounded under long uptime.
-// Runs on 1-in-50 requests.
-export function maybeReap(windowMs: number) {
-  if (Math.random() > 0.02) return;
-  const now = Date.now();
-  for (const [k, v] of buckets) {
-    if (now - v.windowStart >= windowMs) buckets.delete(k);
+/** Periodically drop expired buckets so memory stays bounded. */
+if (typeof globalThis !== "undefined") {
+  const g = globalThis as unknown as { __rateLimitGcRegistered?: boolean };
+  if (!g.__rateLimitGcRegistered) {
+    g.__rateLimitGcRegistered = true;
+    setInterval(() => {
+      const now = Date.now();
+      for (const [k, v] of bucket) if (v.resetAt < now) bucket.delete(k);
+    }, 60_000).unref?.();
   }
-}
-
-export function getClientIp(req: Request): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
-  const real = req.headers.get("x-real-ip");
-  if (real) return real.trim();
-  return "unknown";
 }
