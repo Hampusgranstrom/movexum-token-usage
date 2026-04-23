@@ -1,22 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Middleware that protects admin routes (dashboard, leads) behind Supabase Auth.
- * The /chat route and /api/chat are public — anyone can use the AI intake.
+ * Middleware that protects admin routes (dashboard, leads, /admin) behind
+ * Supabase Auth and app_users role lookup. /chat and /api/chat stay
+ * public — anyone can use the AI intake.
  */
 
-const PUBLIC_PATHS = ["/chat", "/login", "/api/chat", "/api/sources"];
+const PUBLIC_PATHS = [
+  "/chat",
+  "/login",
+  "/accept-invite",
+  "/api/chat",
+  "/api/sources",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  // Allow static assets and Next.js internals
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
@@ -25,7 +31,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // If Supabase env vars are not set, skip auth (dev mode)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -57,13 +62,41 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect to login if not authenticated
   if (!user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
+  // Role lookup via service_role (bypasses RLS). If no row → not invited.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceUrl = process.env.SUPABASE_URL ?? supabaseUrl;
+  let role: "admin" | "superadmin" | null = null;
+
+  if (serviceKey) {
+    const admin = createClient(serviceUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: row } = await admin
+      .from("app_users")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    role = (row?.role as "admin" | "superadmin" | undefined) ?? null;
+  }
+
+  if (!role) {
+    await supabase.auth.signOut();
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("error", "not_invited");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname.startsWith("/admin") && role !== "superadmin") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  response.headers.set("x-user-role", role);
   return response;
 }
 

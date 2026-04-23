@@ -14,7 +14,7 @@ type Props = {
  * Räknar upp från 0 till `value` med en mjuk ease-out. Använder framer-motions
  * `animate` för att driva en motion value och skriver ut den formatterad.
  */
-export function CountUp({ value, durationMs = 1400, decimals = 0 }: Props) {
+export function CountUp({ value, durationMs = 700, decimals = 0 }: Props) {
   const [display, setDisplay] = useState(0);
   const prev = useRef(0);
 

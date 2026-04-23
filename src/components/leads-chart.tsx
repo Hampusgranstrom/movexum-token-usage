@@ -18,7 +18,7 @@ type Props = {
 export function LeadsChart({ data }: Props) {
   if (data.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-text-muted">
+      <div className="flex h-64 items-center justify-center text-muted">
         Ingen data att visa
       </div>
     );
@@ -29,24 +29,24 @@ export function LeadsChart({ data }: Props) {
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22D3EE" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#22D3EE" stopOpacity={0} />
+            <stop offset="0%" stopColor="#0A0A0A" stopOpacity={0.14} />
+            <stop offset="100%" stopColor="#0A0A0A" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid
-          strokeDasharray="3 3"
-          stroke="#1F2230"
+          strokeDasharray="2 4"
+          stroke="#E6E6E2"
           vertical={false}
         />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#5A6275", fontSize: 11 }}
+          tick={{ fill: "#A8A8A4", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: string) => v.slice(5)}
         />
         <YAxis
-          tick={{ fill: "#5A6275", fontSize: 11 }}
+          tick={{ fill: "#A8A8A4", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => formatCompact(v, 0)}
@@ -54,20 +54,22 @@ export function LeadsChart({ data }: Props) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#11131A",
-            border: "1px solid #1F2230",
-            borderRadius: "0.75rem",
-            color: "#F5F7FA",
+            backgroundColor: "#FFFFFF",
+            border: "none",
+            borderRadius: "10px",
+            boxShadow:
+              "0 1px 2px 0 rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.12)",
+            color: "#0A0A0A",
             fontSize: "0.8125rem",
           }}
-          labelStyle={{ color: "#9BA3B4" }}
+          labelStyle={{ color: "#6B6B68" }}
           formatter={(value: number) => [value, "Leads"]}
         />
         <Area
           type="monotone"
           dataKey="count"
-          stroke="#22D3EE"
-          strokeWidth={2}
+          stroke="#0A0A0A"
+          strokeWidth={1.5}
           fill="url(#leadsGradient)"
         />
       </AreaChart>
