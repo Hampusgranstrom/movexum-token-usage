@@ -39,9 +39,7 @@ export function KpiCard({
       className="card p-6"
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-          {label}
-        </span>
+        <span className="eyebrow">{label}</span>
         <DeltaPill
           delta={delta}
           positive={deltaPositive}
@@ -50,7 +48,7 @@ export function KpiCard({
       </div>
 
       <div className="mt-6 flex items-baseline gap-2">
-        <span className="text-5xl font-semibold tracking-tight text-fg">
+        <span className="text-5xl font-semibold tracking-tight text-fg-deep">
           <CountUp value={value} decimals={decimals} />
         </span>
         <span className="text-base font-medium text-muted">{unit}</span>
@@ -71,11 +69,17 @@ function DeltaPill({
   negative: boolean;
 }) {
   const Icon = positive ? ArrowUpRight : negative ? ArrowDownRight : Minus;
+  const classes = positive
+    ? "bg-accent-soft text-fg-deep"
+    : negative
+      ? "bg-[#FCE4E9] text-danger"
+      : "bg-bg text-muted";
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-bg px-2 py-1 text-xs font-medium text-fg",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+        classes,
       )}
       title="Jämfört med föregående period"
     >

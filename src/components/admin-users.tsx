@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Trash2, ShieldCheck, Shield } from "lucide-react";
+import { Trash2, ShieldCheck, Shield, ArrowRight } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 type AdminUser = {
@@ -91,15 +91,18 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
 
   return (
     <div className="space-y-10">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Användare</h1>
-        <p className="text-sm text-muted">
+      <header className="max-w-2xl space-y-3">
+        <span className="eyebrow">Superadmin</span>
+        <h1 className="text-4xl sm:text-5xl">
+          <span className="text-accent">Teamet</span> som bygger verktyget
+        </h1>
+        <p className="text-base text-muted">
           Bjud in och hantera personer som har tillgång till Startupkompass.
         </p>
       </header>
 
       <section className="card p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
+        <h2 className="eyebrow">
           Bjud in admin
         </h2>
         <form
@@ -137,8 +140,9 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
           <button
             type="submit"
             disabled={inviteBusy}
-            className="btn-primary sm:w-44"
+            className="btn-primary sm:w-52"
           >
+            <ArrowRight className="h-4 w-4" />
             {inviteBusy ? "Skickar..." : "Skicka inbjudan"}
           </button>
         </form>
@@ -160,19 +164,11 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left">
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  E-post
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Roll
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Skapad
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Senast inloggad
-                </th>
-                <th className="px-5 py-3" />
+                <th className="px-6 py-4 eyebrow">E-post</th>
+                <th className="px-6 py-4 eyebrow">Roll</th>
+                <th className="px-6 py-4 eyebrow">Skapad</th>
+                <th className="px-6 py-4 eyebrow">Senast inloggad</th>
+                <th className="px-6 py-4" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -193,7 +189,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
                   const isSelf = u.id === currentUserId;
                   return (
                     <tr key={u.id}>
-                      <td className="px-5 py-4 font-medium">
+                      <td className="px-6 py-4 font-medium">
                         {u.email}
                         {isSelf && (
                           <span className="ml-2 text-xs text-muted">(du)</span>
@@ -202,16 +198,16 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
                       <td className="px-5 py-4">
                         <RoleBadge role={u.role} />
                       </td>
-                      <td className="px-5 py-4 text-muted">
+                      <td className="px-6 py-4 text-muted">
                         {formatDate(u.created_at)}
                       </td>
-                      <td className="px-5 py-4 text-muted">
+                      <td className="px-6 py-4 text-muted">
                         {u.last_sign_in_at
                           ? formatDate(u.last_sign_in_at)
                           : "-"}
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-1">
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
                           <button
                             onClick={() =>
                               changeRole(
@@ -219,7 +215,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
                                 u.role === "superadmin" ? "admin" : "superadmin",
                               )
                             }
-                            className="btn-ghost"
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-bg text-muted transition hover:bg-surface hover:text-fg-deep hover:shadow-soft"
                             title={
                               u.role === "superadmin"
                                 ? "Degradera till admin"
@@ -234,7 +230,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
                           </button>
                           <button
                             onClick={() => remove(u.id, u.email)}
-                            className="btn-ghost text-danger"
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-bg text-danger transition hover:bg-[#FCE4E9]"
                             title="Ta bort användare"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -257,10 +253,10 @@ function RoleBadge({ role }: { role: "admin" | "superadmin" }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
         role === "superadmin"
-          ? "bg-fg text-surface"
-          : "bg-border/60 text-fg",
+          ? "bg-fg-deep text-white"
+          : "bg-accent-soft text-fg-deep",
       )}
     >
       {role === "superadmin" ? "Superadmin" : "Admin"}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export function LoginForm({
@@ -53,24 +54,31 @@ export function LoginForm({
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm space-y-8">
+    <div className="mx-auto w-full max-w-md space-y-8">
       <div className="text-center">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoUrl}
             alt={productName}
-            className="mx-auto h-12 w-auto max-w-[160px] object-contain"
+            className="mx-auto h-10 w-auto max-w-[180px] object-contain"
           />
         ) : (
-          <h1 className="text-2xl font-semibold tracking-tight">{productName}</h1>
+          <span className="text-2xl font-semibold tracking-tight text-fg-deep">
+            {productName.toLowerCase()}
+          </span>
         )}
-        <p className="mt-3 text-sm text-muted">Logga in för att hantera leads</p>
+        <h1 className="mt-8 text-4xl leading-tight sm:text-5xl">
+          Välkommen <span className="text-accent">tillbaka</span>
+        </h1>
+        <p className="mt-4 text-base text-muted">
+          Logga in för att hantera inflödet
+        </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl bg-surface p-6 shadow-card"
+        className="space-y-4 rounded-2xl bg-surface p-8 shadow-card"
       >
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted">
@@ -104,6 +112,7 @@ export function LoginForm({
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
+          <ArrowRight className="h-4 w-4" />
           {loading ? "Loggar in..." : "Logga in"}
         </button>
       </form>

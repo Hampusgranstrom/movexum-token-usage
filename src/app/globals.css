@@ -3,14 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #F4F4F2;
+  /* Movexum-inspired palette */
+  --color-bg: #EAF5FA;
+  --color-bg-deep: #DCEEF5;
   --color-surface: #FFFFFF;
-  --color-fg: #0A0A0A;
-  --color-muted: #6B6B68;
-  --color-subtle: #A8A8A4;
-  --color-border: #E6E6E2;
-  --color-danger: #1A1A1A;
-  --color-success: #0A0A0A;
+  --color-fg: #0E3F52;
+  --color-fg-deep: #0A3546;
+  --color-muted: #5A7886;
+  --color-subtle: #9EB7C2;
+  --color-border: #D4E7EF;
+  --color-accent: #38B4E3;
+  --color-accent-soft: #BFE5F3;
+  --color-danger: #B6374E;
+  --color-success: #177A55;
 }
 
 @layer base {
@@ -19,12 +24,18 @@
   }
   body {
     @apply bg-bg text-fg font-sans antialiased;
-    font-feature-settings: "ss01", "cv11";
+    font-feature-settings: "ss01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4 {
-    letter-spacing: -0.015em;
+    @apply text-fg-deep;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-fg-deep);
   }
 }
 
@@ -38,23 +49,48 @@
   .num {
     @apply tabular-nums tracking-tight;
   }
+
   .input {
-    @apply w-full rounded-lg bg-bg px-3 py-2 text-sm text-fg shadow-soft
-           placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-black/10;
+    @apply w-full rounded-full bg-surface px-4 py-2.5 text-sm text-fg shadow-soft
+           placeholder:text-subtle focus:outline-none focus:ring-2;
+    --tw-ring-color: rgba(56, 180, 227, 0.4);
   }
+  .textarea {
+    @apply w-full rounded-2xl bg-surface px-4 py-3 text-sm text-fg shadow-soft
+           placeholder:text-subtle focus:outline-none focus:ring-2;
+    --tw-ring-color: rgba(56, 180, 227, 0.4);
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-fg px-4 py-2.5 text-sm
-           font-medium text-surface shadow-soft transition
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-fg px-5 py-2.5 text-sm
+           font-medium text-white shadow-soft transition
+           hover:bg-fg-deep hover:shadow-card disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm
+           font-medium text-white shadow-soft transition
+           hover:brightness-105 disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm
+           font-medium text-fg shadow-soft transition
            hover:shadow-card disabled:opacity-50 disabled:shadow-none;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm
-           font-medium text-muted transition hover:bg-bg hover:text-fg
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm
+           font-medium text-muted transition hover:bg-white hover:text-fg
            disabled:opacity-50;
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg bg-surface px-4 py-2.5 text-sm
-           font-medium text-fg shadow-soft transition
-           hover:shadow-card disabled:opacity-50 disabled:shadow-none;
+  .icon-btn {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-fg
+           text-white shadow-soft transition hover:bg-fg-deep;
+  }
+  .icon-btn-outline {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-surface
+           text-fg shadow-soft transition hover:shadow-card;
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-muted;
   }
 }

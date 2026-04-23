@@ -10,13 +10,13 @@ type FunnelItem = {
   count: number;
 };
 
-const STAGE_SHADES: Record<string, string> = {
-  new: "bg-[#0A0A0A]",
-  contacted: "bg-[#2E2E2E]",
-  "meeting-booked": "bg-[#545452]",
-  evaluating: "bg-[#7D7D7A]",
-  accepted: "bg-[#0A0A0A]",
-  declined: "bg-[#C9C9C5]",
+const STAGE_COLORS: Record<string, string> = {
+  new: "bg-[#BFE5F3]",
+  contacted: "bg-[#7ECCE7]",
+  "meeting-booked": "bg-[#38B4E3]",
+  evaluating: "bg-[#2E7691]",
+  accepted: "bg-[#0E3F52]",
+  declined: "bg-[#E6D0D4]",
 };
 
 export function FunnelChart({ data }: { data: FunnelItem[] }) {
@@ -50,12 +50,12 @@ export function FunnelChart({ data }: { data: FunnelItem[] }) {
                   ease: "easeOut",
                 }}
                 className={cn(
-                  "h-7 rounded-r-md",
-                  STAGE_SHADES[item.status] ?? "bg-subtle",
+                  "h-7 rounded-full",
+                  STAGE_COLORS[item.status] ?? "bg-subtle",
                 )}
               />
             </div>
-            <span className="w-10 text-right font-mono text-sm text-fg">
+            <span className="w-10 text-right font-mono text-sm text-fg-deep">
               {item.count}
             </span>
           </motion.div>
@@ -69,7 +69,7 @@ export function FunnelChart({ data }: { data: FunnelItem[] }) {
           </span>
           <div className="relative flex-1">
             <div
-              className="h-5 rounded-r-md bg-[#E6E6E2]"
+              className="h-5 rounded-full bg-[#E6D0D4]"
               style={{
                 width: `${Math.max(8, (declinedStage.count / maxCount) * 100)}%`,
               }}

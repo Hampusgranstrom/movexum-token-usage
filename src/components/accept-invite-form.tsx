@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export function AcceptInviteForm() {
@@ -17,8 +18,6 @@ export function AcceptInviteForm() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
-
-    // Supabase-ssr auto-exchanges the link hash for a session on mount.
     const check = async () => {
       const { data } = await supabase.auth.getUser();
       if (data.user?.email) {
@@ -28,8 +27,6 @@ export function AcceptInviteForm() {
         setStatus("missing");
       }
     };
-
-    // Give the SDK a tick to process the URL hash
     const t = setTimeout(check, 150);
     return () => clearTimeout(t);
   }, []);
@@ -65,7 +62,7 @@ export function AcceptInviteForm() {
 
   if (status === "checking") {
     return (
-      <div className="mx-auto max-w-sm text-center text-sm text-muted">
+      <div className="mx-auto max-w-md text-center text-sm text-muted">
         Verifierar inbjudan...
       </div>
     );
@@ -73,8 +70,8 @@ export function AcceptInviteForm() {
 
   if (status === "missing") {
     return (
-      <div className="mx-auto max-w-sm space-y-4 rounded-2xl bg-surface p-8 shadow-soft">
-        <h1 className="text-2xl font-semibold">Inbjudan saknas</h1>
+      <div className="mx-auto max-w-md space-y-4 rounded-2xl bg-surface p-8 shadow-card text-center">
+        <h1 className="text-3xl">Inbjudan saknas</h1>
         <p className="text-sm text-muted">
           Länken ser ut att ha gått ut eller öppnats i fel webbläsare. Be din
           superadmin skicka en ny inbjudan.
@@ -84,17 +81,19 @@ export function AcceptInviteForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-sm space-y-8">
+    <div className="mx-auto w-full max-w-md space-y-8">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Välkommen</h1>
-        <p className="mt-2 text-sm text-muted">
+        <h1 className="text-4xl leading-tight sm:text-5xl">
+          Välkommen <span className="text-accent">ombord</span>
+        </h1>
+        <p className="mt-4 text-sm text-muted">
           Sätt ett lösenord för <span className="font-medium text-fg">{email}</span>.
         </p>
       </div>
 
       <form
         onSubmit={submit}
-        className="space-y-4 rounded-2xl bg-surface p-6 shadow-soft"
+        className="space-y-4 rounded-2xl bg-surface p-8 shadow-card"
       >
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted">
@@ -129,11 +128,8 @@ export function AcceptInviteForm() {
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full"
-        >
+        <button type="submit" disabled={loading} className="btn-primary w-full">
+          <ArrowRight className="h-4 w-4" />
           {loading ? "Sparar..." : "Skapa konto"}
         </button>
       </form>
