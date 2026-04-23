@@ -19,6 +19,21 @@ export function AcceptInviteForm() {
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     const check = async () => {
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (!sessionError) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+      }
+
       const { data } = await supabase.auth.getUser();
       if (data.user?.email) {
         setEmail(data.user.email);
@@ -53,7 +68,7 @@ export function AcceptInviteForm() {
         setError(updateError.message);
         return;
       }
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setLoading(false);

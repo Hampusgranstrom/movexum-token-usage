@@ -69,9 +69,13 @@ export async function POST(req: Request) {
 
   const origin = getAdminOrigin(req);
 
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: { role, invited_by: guard.user.id },
-    redirectTo: `${origin}/accept-invite`,
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: {
+      data: { role, invited_by: guard.user.id },
+      redirectTo: `${origin}/accept-invite`,
+    },
   });
 
   if (error) {
@@ -87,5 +91,10 @@ export async function POST(req: Request) {
       .eq("id", data.user.id);
   }
 
-  return NextResponse.json({ ok: true, user_id: data.user?.id ?? null });
+  return NextResponse.json({
+    ok: true,
+    user_id: data.user?.id ?? null,
+    invite_url: data.properties?.action_link ?? null,
+    redirect_to: data.properties?.redirect_to ?? `${origin}/accept-invite`,
+  });
 }
