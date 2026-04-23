@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { DEFAULT_SOURCES } from "@/config/lead-sources";
+import {
+  VALID_SORT_FIELDS,
+  VALID_STATUSES,
+  sanitizeSearchTerm,
+} from "@/lib/validation";
 import type { Lead, LeadStatus, LeadListResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const VALID_STATUSES = new Set<string>([
-  "new", "contacted", "meeting-booked", "evaluating", "accepted", "declined",
-]);
-
-const VALID_SORT_FIELDS = new Set(["created_at", "score", "name", "status"]);
+const VALID_SOURCE_IDS = new Set<string>(DEFAULT_SOURCES.map((s) => s.id));
 
 export async function GET(request: Request) {
+  const guard = await requireRole("admin");
+  if ("error" in guard) return guard.error;
+
   const supabase = getSupabaseAdmin();
   if (!supabase) {
     return NextResponse.json({ error: "Supabase ej konfigurerad." }, { status: 500 });
@@ -21,23 +28,33 @@ export async function GET(request: Request) {
   const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize")) || 20));
   const status = searchParams.get("status") ?? "alla";
   const source = searchParams.get("source") ?? "";
-  const search = searchParams.get("search") ?? "";
+  const rawSearch = searchParams.get("search") ?? "";
   const sortBy = searchParams.get("sortBy") ?? "created_at";
-  const sortDir = searchParams.get("sortDir") === "asc" ? true : false;
+  const sortDir = searchParams.get("sortDir") === "asc";
 
   let query = supabase
     .from("leads")
     .select("*", { count: "exact" });
 
-  if (status !== "alla" && VALID_STATUSES.has(status)) {
+  if (status !== "alla" && VALID_STATUSES.has(status as LeadStatus)) {
     query = query.eq("status", status);
   }
-  if (source) {
+  if (source && VALID_SOURCE_IDS.has(source)) {
     query = query.eq("source_id", source);
   }
+
+  // Sanitised search term — prevents PostgREST filter-string injection via the
+  // `.or(...)` chain (commas, parens and dots delimit filters and values).
+  const search = sanitizeSearchTerm(rawSearch);
   if (search) {
+    const pattern = `%${search}%`;
     query = query.or(
-      `name.ilike.%${search}%,email.ilike.%${search}%,idea_summary.ilike.%${search}%,organization.ilike.%${search}%`,
+      [
+        `name.ilike.${pattern}`,
+        `email.ilike.${pattern}`,
+        `idea_summary.ilike.${pattern}`,
+        `organization.ilike.${pattern}`,
+      ].join(","),
     );
   }
 
@@ -50,7 +67,10 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("[api/leads] query failed:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Kunde inte hämta leads." },
+      { status: 500 },
+    );
   }
 
   const response: LeadListResponse = {
@@ -64,6 +84,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const guard = await requireRole("admin");
+  if ("error" in guard) return guard.error;
+
   const supabase = getSupabaseAdmin();
   if (!supabase) {
     return NextResponse.json({ error: "Supabase ej konfigurerad." }, { status: 500 });
@@ -76,26 +99,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const name = body.name as string | undefined;
-  const sourceId = body.source_id as string | undefined;
-  if (!name || !sourceId) {
-    return NextResponse.json(
-      { error: "name och source_id krävs." },
-      { status: 400 },
-    );
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const sourceId = typeof body.source_id === "string" ? body.source_id : "";
+  if (!name) {
+    return NextResponse.json({ error: "name krävs." }, { status: 400 });
+  }
+  if (!VALID_SOURCE_IDS.has(sourceId)) {
+    return NextResponse.json({ error: "Ogiltig source_id." }, { status: 400 });
   }
 
+  const statusRaw = typeof body.status === "string" ? body.status : "new";
+  if (!VALID_STATUSES.has(statusRaw as LeadStatus)) {
+    return NextResponse.json({ error: "Ogiltig status." }, { status: 400 });
+  }
+
+  const optionalString = (v: unknown, maxLen = 4000): string | null => {
+    if (v === null || v === undefined || v === "") return null;
+    if (typeof v !== "string") return null;
+    return v.slice(0, maxLen);
+  };
+
   const insertData = {
-    name,
-    email: (body.email as string) ?? null,
-    phone: (body.phone as string) ?? null,
-    organization: (body.organization as string) ?? null,
-    idea_summary: (body.idea_summary as string) ?? null,
-    idea_category: (body.idea_category as string) ?? null,
+    name: name.slice(0, 200),
+    email: optionalString(body.email, 254),
+    phone: optionalString(body.phone, 40),
+    organization: optionalString(body.organization, 200),
+    idea_summary: optionalString(body.idea_summary),
+    idea_category: optionalString(body.idea_category, 100),
     source_id: sourceId,
-    source_detail: (body.source_detail as string) ?? null,
-    status: ((body.status as string) ?? "new") as LeadStatus,
-    notes: (body.notes as string) ?? null,
+    source_detail: optionalString(body.source_detail),
+    status: statusRaw as LeadStatus,
+    notes: optionalString(body.notes),
   };
 
   const { data, error } = await supabase
@@ -106,14 +140,16 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error("[api/leads] insert failed:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Kunde inte skapa lead." },
+      { status: 500 },
+    );
   }
 
-  // Log analytics event
   await supabase.from("analytics_events").insert({
     event_type: "lead_created",
     lead_id: data.id,
-    metadata: { source: sourceId },
+    metadata: { source: sourceId, created_by: guard.user.id },
   });
 
   return NextResponse.json({ lead: data }, { status: 201 });

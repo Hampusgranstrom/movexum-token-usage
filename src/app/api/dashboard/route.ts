@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { DashboardSummary, LeadStatus } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/types";
 import { DEFAULT_SOURCES } from "@/config/lead-sources";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  const guard = await requireRole("admin");
+  if ("error" in guard) return guard.error;
+
   const { searchParams } = new URL(request.url);
   const days = Math.min(90, Math.max(7, Number(searchParams.get("days")) || 30));
 
@@ -169,7 +174,7 @@ export async function GET(request: Request) {
   } catch (err) {
     console.error("[api/dashboard] failed:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
+      { error: "Kunde inte ladda dashboard-data." },
       { status: 500 },
     );
   }

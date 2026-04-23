@@ -3,31 +3,45 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Middleware that protects admin routes (dashboard, leads, /admin) behind
- * Supabase Auth and app_users role lookup. /chat and /api/chat stay
- * public — anyone can use the AI intake.
+ * Middleware that protects admin routes (dashboard, leads, /admin, /api/*)
+ * behind Supabase Auth + the app_users role table. /chat and /api/chat stay
+ * public so the AI intake can be used anonymously.
+ *
+ * Each admin API route also enforces requireRole() itself as defence in
+ * depth — don't rely solely on this middleware for authorization.
  */
 
-const PUBLIC_PATHS = [
-  "/chat",
-  "/login",
-  "/accept-invite",
-  "/api/chat",
-  "/api/sources",
-];
+const PUBLIC_PAGE_PATHS = new Set(["/chat", "/login", "/accept-invite"]);
+const PUBLIC_API_PATHS = new Set(["/api/chat"]);
+
+function isPublic(pathname: string): boolean {
+  if (PUBLIC_PAGE_PATHS.has(pathname)) return true;
+  if (PUBLIC_API_PATHS.has(pathname)) return true;
+  // /accept-invite may carry fragments/queries but nothing nested.
+  for (const p of PUBLIC_PAGE_PATHS) {
+    if (pathname === p || pathname.startsWith(`${p}/`)) return true;
+  }
+  return false;
+}
+
+function unauthorized(request: NextRequest, reason?: string) {
+  const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json(
+      { error: reason ?? "unauthorized" },
+      { status: 401 },
+    );
+  }
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set("redirect", pathname);
+  if (reason) loginUrl.searchParams.set("error", reason);
+  return NextResponse.redirect(loginUrl);
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  ) {
+  if (isPublic(pathname)) {
     return NextResponse.next();
   }
 
@@ -63,9 +77,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    return unauthorized(request);
   }
 
   // Role lookup via service_role (bypasses RLS). If no row → not invited.
@@ -87,21 +99,23 @@ export async function middleware(request: NextRequest) {
 
   if (!role) {
     await supabase.auth.signOut();
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("error", "not_invited");
-    return NextResponse.redirect(loginUrl);
+    return unauthorized(request, "not_invited");
   }
 
   if (pathname.startsWith("/admin") && role !== "superadmin") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  response.headers.set("x-user-role", role);
   return response;
 }
 
 export const config = {
+  // Skip Next internals, favicon, and static image assets — they don't need
+  // auth and we don't want to pay the cookie-parse cost on every tile.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
   ],
 };

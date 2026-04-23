@@ -18,10 +18,7 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med dessa f
   "phone": "telefonnummer",
   "organization": "företag eller organisation",
   "idea_summary": "kort sammanfattning av startup-idén (max 2 meningar)",
-  "idea_category": "en av: tech, social-impact, cleantech, health, education, fintech, food, other",
-  "source_hint": "hur personen hörde om Movexum",
-  "readiness_level": "en av: idea, prototype, mvp, revenue",
-  "needs": ["lista av behov, t.ex. mentorskap, finansiering, nätverk"]
+  "idea_category": "en av: tech, social-impact, cleantech, health, education, fintech, food, other"
 }
 
 Svara ENBART med JSON-objektet.`;

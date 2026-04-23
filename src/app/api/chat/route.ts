@@ -4,13 +4,34 @@ import { extractLeadData } from "@/lib/extract-lead-data";
 import { scoreLead } from "@/lib/lead-scoring";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { INTAKE_SYSTEM_PROMPT } from "@/config/system-prompt";
+import { getClientIp, maybeReap, rateLimit } from "@/lib/rate-limit";
 import type { ChatRequestBody, ExtractedLeadData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Abuse limits — chosen to allow a real conversation while stopping credit-drain.
+const MAX_MESSAGES = 40;
+const MAX_MESSAGE_CHARS = 4000;
+const MAX_TOTAL_CHARS = 40_000;
+const RATE_LIMIT = 20;               // requests
+const RATE_WINDOW_MS = 60_000;       // per minute per IP
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  maybeReap(RATE_WINDOW_MS);
+  const rl = rateLimit(`chat:${ip}`, RATE_LIMIT, RATE_WINDOW_MS);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "För många förfrågningar. Försök igen om en stund." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) },
+      },
+    );
+  }
+
   let body: ChatRequestBody;
   try {
     body = (await request.json()) as ChatRequestBody;
@@ -20,11 +41,17 @@ export async function POST(request: Request) {
 
   const { messages: clientMessages, sessionId, conversationId } = body;
 
-  if (!sessionId || typeof sessionId !== "string") {
-    return NextResponse.json(
-      { error: "sessionId krävs." },
-      { status: 400 },
-    );
+  if (!sessionId || typeof sessionId !== "string" || sessionId.length > 128) {
+    return NextResponse.json({ error: "sessionId krävs." }, { status: 400 });
+  }
+
+  if (conversationId !== undefined && conversationId !== null) {
+    if (typeof conversationId !== "string" || conversationId.length > 64) {
+      return NextResponse.json(
+        { error: "Ogiltigt conversationId." },
+        { status: 400 },
+      );
+    }
   }
 
   if (!Array.isArray(clientMessages) || clientMessages.length === 0) {
@@ -34,6 +61,14 @@ export async function POST(request: Request) {
     );
   }
 
+  if (clientMessages.length > MAX_MESSAGES) {
+    return NextResponse.json(
+      { error: `Konversationen är för lång (max ${MAX_MESSAGES} meddelanden).` },
+      { status: 400 },
+    );
+  }
+
+  let totalChars = 0;
   for (const m of clientMessages) {
     if (
       !m ||
@@ -45,6 +80,19 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (m.content.length > MAX_MESSAGE_CHARS) {
+      return NextResponse.json(
+        { error: `Ett meddelande är för långt (max ${MAX_MESSAGE_CHARS} tecken).` },
+        { status: 400 },
+      );
+    }
+    totalChars += m.content.length;
+  }
+  if (totalChars > MAX_TOTAL_CHARS) {
+    return NextResponse.json(
+      { error: "Konversationen är för stor." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -227,9 +275,11 @@ export async function POST(request: Request) {
       leadId,
     });
   } catch (err) {
+    // Log the real error but return a generic message to the client so we
+    // don't leak library internals or Anthropic errors.
     console.error("[api/chat] failed:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
+      { error: "Tjänsten är tillfälligt otillgänglig. Försök igen." },
       { status: 500 },
     );
   }
