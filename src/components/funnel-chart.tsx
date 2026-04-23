@@ -10,19 +10,18 @@ type FunnelItem = {
   count: number;
 };
 
-const FUNNEL_COLORS: Record<string, string> = {
-  new: "bg-accent-leads",
-  contacted: "bg-accent-sources",
-  "meeting-booked": "bg-accent-funnel",
-  evaluating: "bg-text-secondary",
-  accepted: "bg-accent-conversion",
-  declined: "bg-accent-danger",
+const STAGE_COLORS: Record<string, string> = {
+  new: "bg-[#BFE5F3]",
+  contacted: "bg-[#7ECCE7]",
+  "meeting-booked": "bg-[#38B4E3]",
+  evaluating: "bg-[#2E7691]",
+  accepted: "bg-[#0E3F52]",
+  declined: "bg-[#E6D0D4]",
 };
 
 export function FunnelChart({ data }: { data: FunnelItem[] }) {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
-  // Show funnel without the "declined" stage (it's not part of the progression)
   const funnelStages = data.filter((d) => d.status !== "declined");
   const declinedStage = data.find((d) => d.status === "declined");
 
@@ -33,27 +32,30 @@ export function FunnelChart({ data }: { data: FunnelItem[] }) {
         return (
           <motion.div
             key={item.status}
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.06, duration: 0.4 }}
+            transition={{ delay: i * 0.04, duration: 0.3 }}
             className="flex items-center gap-3"
           >
-            <span className="w-24 text-right text-xs text-text-secondary">
+            <span className="w-28 text-right text-xs text-muted">
               {item.label}
             </span>
             <div className="relative flex-1">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${widthPercent}%` }}
-                transition={{ delay: i * 0.06 + 0.2, duration: 0.6, ease: "easeOut" }}
+                transition={{
+                  delay: i * 0.04 + 0.1,
+                  duration: 0.5,
+                  ease: "easeOut",
+                }}
                 className={cn(
-                  "h-7 rounded-r-md",
-                  FUNNEL_COLORS[item.status] ?? "bg-text-muted",
-                  "opacity-70",
+                  "h-7 rounded-full",
+                  STAGE_COLORS[item.status] ?? "bg-subtle",
                 )}
               />
             </div>
-            <span className="w-10 text-right font-mono text-sm text-text-primary">
+            <span className="w-10 text-right font-mono text-sm text-fg-deep">
               {item.count}
             </span>
           </motion.div>
@@ -61,19 +63,19 @@ export function FunnelChart({ data }: { data: FunnelItem[] }) {
       })}
 
       {declinedStage && declinedStage.count > 0 && (
-        <div className="mt-2 flex items-center gap-3 border-t border-bg-border pt-3">
-          <span className="w-24 text-right text-xs text-text-muted">
+        <div className="mt-2 flex items-center gap-3 pt-3">
+          <span className="w-28 text-right text-xs text-subtle">
             {declinedStage.label}
           </span>
           <div className="relative flex-1">
             <div
-              className="h-5 rounded-r-md bg-accent-danger opacity-40"
+              className="h-5 rounded-full bg-[#E6D0D4]"
               style={{
                 width: `${Math.max(8, (declinedStage.count / maxCount) * 100)}%`,
               }}
             />
           </div>
-          <span className="w-10 text-right font-mono text-sm text-text-muted">
+          <span className="w-10 text-right font-mono text-sm text-muted">
             {declinedStage.count}
           </span>
         </div>

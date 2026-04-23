@@ -2,42 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Movexum-inspired palette */
+  --color-bg: #EAF5FA;
+  --color-bg-deep: #DCEEF5;
+  --color-surface: #FFFFFF;
+  --color-fg: #0E3F52;
+  --color-fg-deep: #0A3546;
+  --color-muted: #5A7886;
+  --color-subtle: #9EB7C2;
+  --color-border: #D4E7EF;
+  --color-accent: #38B4E3;
+  --color-accent-soft: #BFE5F3;
+  --color-danger: #B6374E;
+  --color-success: #177A55;
+}
+
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
   body {
-    @apply bg-bg-base text-text-primary font-sans antialiased;
-    background-image:
-      radial-gradient(
-        ellipse 80% 50% at 50% -10%,
-        rgba(34, 211, 238, 0.08),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 60% 40% at 80% 100%,
-        rgba(74, 222, 128, 0.06),
-        transparent 60%
-      );
-    background-attachment: fixed;
+    @apply bg-bg text-fg font-sans antialiased;
+    font-feature-settings: "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  /* Subtle noise overlay */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.025;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  h1, h2, h3, h4 {
+    @apply text-fg-deep;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-fg-deep);
   }
 }
 
 @layer components {
   .card {
-    @apply relative rounded-2xl border border-bg-border bg-bg-card/60 backdrop-blur-sm;
+    @apply rounded-2xl bg-surface shadow-card;
+  }
+  .card-flat {
+    @apply rounded-2xl bg-surface shadow-soft;
   }
   .num {
-    @apply font-mono tabular-nums tracking-tight;
+    @apply tabular-nums tracking-tight;
+  }
+
+  .input {
+    @apply w-full rounded-full bg-surface px-4 py-2.5 text-sm text-fg shadow-soft
+           placeholder:text-subtle focus:outline-none focus:ring-2;
+    --tw-ring-color: rgba(56, 180, 227, 0.4);
+  }
+  .textarea {
+    @apply w-full rounded-2xl bg-surface px-4 py-3 text-sm text-fg shadow-soft
+           placeholder:text-subtle focus:outline-none focus:ring-2;
+    --tw-ring-color: rgba(56, 180, 227, 0.4);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-fg px-5 py-2.5 text-sm
+           font-medium text-white shadow-soft transition
+           hover:bg-fg-deep hover:shadow-card disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm
+           font-medium text-white shadow-soft transition
+           hover:brightness-105 disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm
+           font-medium text-fg shadow-soft transition
+           hover:shadow-card disabled:opacity-50 disabled:shadow-none;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm
+           font-medium text-muted transition hover:bg-white hover:text-fg
+           disabled:opacity-50;
+  }
+  .icon-btn {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-fg
+           text-white shadow-soft transition hover:bg-fg-deep;
+  }
+  .icon-btn-outline {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-surface
+           text-fg shadow-soft transition hover:shadow-card;
+  }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-muted;
   }
 }

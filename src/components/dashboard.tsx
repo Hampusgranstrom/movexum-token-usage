@@ -36,10 +36,10 @@ export function Dashboard() {
   if (error) {
     return (
       <div className="card mx-auto max-w-xl p-8 text-center">
-        <h2 className="text-lg font-semibold text-accent-danger">
+        <h2 className="text-lg font-semibold text-danger">
           Kunde inte ladda data
         </h2>
-        <p className="mt-2 text-sm text-text-secondary">{error}</p>
+        <p className="mt-2 text-sm text-muted">{error}</p>
       </div>
     );
   }
@@ -49,8 +49,17 @@ export function Dashboard() {
   const { kpis, leadsPerDay, leadsPerSource, funnel } = data;
 
   return (
-    <div className="space-y-8">
-      {/* KPI Cards */}
+    <div className="space-y-10">
+      <header className="max-w-3xl">
+        <span className="eyebrow">Dashboard</span>
+        <h1 className="mt-3 text-4xl sm:text-5xl">
+          Översikt över <span className="text-accent">inflödet</span>
+        </h1>
+        <p className="mt-3 text-base text-muted">
+          Senaste 30 dagarna · AI-scoring, källor och konverteringstratt
+        </p>
+      </header>
+
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Leads denna period"
@@ -58,7 +67,6 @@ export function Dashboard() {
           unit="st"
           delta={kpis.leadsDelta}
           formula={`Totalt ${kpis.totalLeads} leads`}
-          accent="leads"
           index={0}
         />
         <KpiCard
@@ -67,7 +75,6 @@ export function Dashboard() {
           unit="%"
           delta={kpis.conversionDelta}
           formula="Antagna / totalt antal leads"
-          accent="conversion"
           decimals={0}
           index={1}
         />
@@ -77,7 +84,6 @@ export function Dashboard() {
           unit="st"
           delta={kpis.pipelineDelta}
           formula="Leads i aktiva steg"
-          accent="funnel"
           index={2}
         />
         <KpiCard
@@ -86,48 +92,43 @@ export function Dashboard() {
           unit="/ 100"
           delta={kpis.scoreDelta}
           formula="AI-baserad lead scoring"
-          accent="sources"
           index={3}
         />
       </div>
 
-      {/* Charts row */}
       <div className="grid gap-5 lg:grid-cols-2">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.6 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
           className="card p-6"
         >
-          <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-secondary">
+          <h3 className="eyebrow mb-4">
             Leads per dag
           </h3>
           <LeadsChart data={leadsPerDay} />
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
+          transition={{ delay: 0.25, duration: 0.4 }}
           className="card p-6"
         >
-          <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-secondary">
+          <h3 className="eyebrow mb-4">
             Leads per källa
           </h3>
           <SourceChart data={leadsPerSource} />
         </motion.div>
       </div>
 
-      {/* Funnel */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45, duration: 0.6 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
         className="card p-6"
       >
-        <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-secondary">
-          Konverteringstratt
-        </h3>
+        <h3 className="eyebrow mb-4">Konverteringstratt</h3>
         <FunnelChart data={funnel} />
       </motion.div>
     </div>
@@ -136,12 +137,16 @@ export function Dashboard() {
 
 function SkeletonDashboard() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
+      <div className="space-y-3">
+        <div className="h-4 w-20 animate-pulse rounded-full bg-bg-deep" />
+        <div className="h-12 w-96 max-w-full animate-pulse rounded-full bg-bg-deep" />
+      </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="card h-40 animate-pulse p-6">
-            <div className="h-3 w-24 rounded bg-bg-border" />
-            <div className="mt-6 h-10 w-32 rounded bg-bg-border" />
+            <div className="h-3 w-24 rounded-full bg-bg-deep" />
+            <div className="mt-6 h-10 w-32 rounded-full bg-bg-deep" />
           </div>
         ))}
       </div>

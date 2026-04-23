@@ -1,13 +1,11 @@
-import { ChatUI } from "@/components/chat-ui";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Movexum Startupkompass · AI-intag",
-};
+export const dynamic = "force-dynamic";
 
-export default function ChatPage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-6xl px-6 py-8 sm:px-10">
-      <ChatUI />
-    </main>
-  );
+/**
+ * Legacy alias — the founders module is the direct replacement for the
+ * old /chat experience. Permanent redirect so bookmarks keep working.
+ */
+export default function LegacyChat() {
+  redirect("/m/founders");
 }

@@ -19,10 +19,13 @@ type Props = {
   }>;
 };
 
+// Movexum-inspired palette (deep teal → accent sky).
+const SHADES = ["#0E3F52", "#1F5B72", "#2E7691", "#38B4E3", "#7ECCE7", "#BFE5F3"];
+
 export function SourceChart({ data }: Props) {
   if (data.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-text-muted">
+      <div className="flex h-48 items-center justify-center text-muted">
         Ingen data att visa
       </div>
     );
@@ -37,31 +40,33 @@ export function SourceChart({ data }: Props) {
       >
         <XAxis
           type="number"
-          tick={{ fill: "#5A6275", fontSize: 11 }}
+          tick={{ fill: "#9EB7C2", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           type="category"
           dataKey="label"
-          tick={{ fill: "#9BA3B4", fontSize: 12 }}
+          tick={{ fill: "#5A7886", fontSize: 12 }}
           tickLine={false}
           axisLine={false}
           width={120}
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#11131A",
-            border: "1px solid #1F2230",
-            borderRadius: "0.75rem",
-            color: "#F5F7FA",
+            backgroundColor: "#FFFFFF",
+            border: "none",
+            borderRadius: "14px",
+            boxShadow:
+              "0 2px 4px 0 rgba(14,63,82,0.05), 0 12px 30px -10px rgba(14,63,82,0.18)",
+            color: "#0E3F52",
             fontSize: "0.8125rem",
           }}
           formatter={(value: number) => [value, "Leads"]}
         />
-        <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
-          {data.map((entry, index) => (
-            <Cell key={index} fill={entry.color} fillOpacity={0.8} />
+        <Bar dataKey="count" radius={[0, 999, 999, 0]} barSize={18}>
+          {data.map((_, index) => (
+            <Cell key={index} fill={SHADES[index % SHADES.length]} />
           ))}
         </Bar>
       </BarChart>

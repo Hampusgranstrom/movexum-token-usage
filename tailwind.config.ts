@@ -1,40 +1,36 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bg: {
-          base: "#0A0B0F",
-          card: "#11131A",
-          cardHover: "#161923",
-          border: "#1F2230",
-        },
-        accent: {
-          leads: "#22D3EE",
-          sources: "#FACC15",
-          funnel: "#4ADE80",
-          conversion: "#A78BFA",
-          danger: "#F87171",
-        },
-        text: {
-          primary: "#F5F7FA",
-          secondary: "#9BA3B4",
-          muted: "#5A6275",
-        },
+        bg: "var(--color-bg)",
+        "bg-deep": "var(--color-bg-deep)",
+        surface: "var(--color-surface)",
+        fg: "var(--color-fg)",
+        "fg-deep": "var(--color-fg-deep)",
+        muted: "var(--color-muted)",
+        subtle: "var(--color-subtle)",
+        border: "var(--color-border)",
+        accent: "var(--color-accent)",
+        "accent-soft": "var(--color-accent-soft)",
+        danger: "var(--color-danger)",
+        success: "var(--color-success)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {
-        glow: "0 0 40px -10px currentColor",
+        soft: "0 1px 2px 0 rgba(14, 63, 82, 0.04), 0 4px 14px -4px rgba(14, 63, 82, 0.08)",
+        card: "0 2px 4px 0 rgba(14, 63, 82, 0.05), 0 12px 30px -10px rgba(14, 63, 82, 0.12)",
+        pop: "0 4px 12px -2px rgba(14, 63, 82, 0.08), 0 24px 48px -12px rgba(14, 63, 82, 0.18)",
       },
-      backgroundImage: {
-        "grid-fade":
-          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.15), transparent)",
+      borderRadius: {
+        lg: "12px",
+        xl: "16px",
+        "2xl": "22px",
       },
     },
   },
