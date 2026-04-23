@@ -18,7 +18,7 @@ export default async function Page({ params }: Props) {
     getModuleById(id),
   ]);
   if (!user) redirect("/login");
-  if (user.role !== "superadmin") redirect("/");
+  if (user.role !== "superadmin") redirect("/dashboard");
   if (!mod) redirect("/admin/modules");
 
   return (

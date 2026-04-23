@@ -11,7 +11,7 @@ import type { BrandSettings } from "@/lib/brand";
 type NavUser = { email: string; role: AppRole } | null;
 
 const BASE_ITEMS = [
-  { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/leads", label: "Leads" },
   { href: "/m/founders", label: "Intag" },
 ];
@@ -48,7 +48,7 @@ export function Nav({
   return (
     <nav className="relative">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-10">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           {brand.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -66,9 +66,7 @@ export function Nav({
         <div className="hidden items-center gap-2 md:flex">
           {items.map((item) => {
             const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+              pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -115,9 +113,7 @@ export function Nav({
       <div className="flex flex-wrap items-center gap-2 px-6 pb-4 md:hidden">
         {items.map((item) => {
           const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+            pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}

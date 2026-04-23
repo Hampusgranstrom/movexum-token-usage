@@ -69,6 +69,7 @@ function securityHeaders(res: NextResponse) {
 function isPublicAuthSkip(path: string) {
   // Paths that don't require admin auth (available on admin surface for login,
   // or are the public surface's own routes).
+  if (path === "/") return true;
   return (
     ADMIN_ONLY_PUBLIC_PATHS.some((p) => path === p || path.startsWith(p)) ||
     PUBLIC_SURFACE_PATHS.some((p) => path === p || path.startsWith(p))
@@ -233,7 +234,7 @@ export async function middleware(request: NextRequest) {
       securityHeaders(res);
       return res;
     }
-    const res = NextResponse.redirect(new URL("/", request.url));
+    const res = NextResponse.redirect(new URL("/dashboard", request.url));
     securityHeaders(res);
     return res;
   }
