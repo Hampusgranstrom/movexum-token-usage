@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
@@ -12,9 +12,8 @@ export function LoginForm({
   productName: string;
   logoUrl: string | null;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/";
+  const redirect = searchParams.get("redirect") ?? "/dashboard";
   const initialError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,10 +67,10 @@ export function LoginForm({
           </span>
         )}
         <h1 className="mt-8 text-4xl leading-tight sm:text-5xl">
-          Välkommen <span className="text-accent">tillbaka</span>
+          Adminplattform för <span className="text-accent">Startupkompassen</span>
         </h1>
         <p className="mt-4 text-base text-muted">
-          Logga in för att hantera inflödet
+          Logga in för att hantera moduler, frågor, leads och varumärke
         </p>
       </div>
 
