@@ -13,7 +13,7 @@ export default async function Page() {
     getBrandSettings(),
   ]);
   if (!user) redirect("/login");
-  if (user.role !== "superadmin") redirect("/");
+  if (user.role !== "superadmin") redirect("/dashboard");
 
   return (
     <>

@@ -46,8 +46,8 @@ export function getPublicOrigin(req: Request): string {
  * redirects these to ADMIN_HOST if hit on the public surface.
  */
 export function isAdminRoute(path: string): boolean {
-  if (path === "/") return true;
   return (
+    path.startsWith("/dashboard") ||
     path.startsWith("/admin") ||
     path.startsWith("/leads") ||
     path.startsWith("/login") ||
@@ -64,6 +64,7 @@ export function isAdminRoute(path: string): boolean {
  */
 export function isPublicRoute(path: string): boolean {
   return (
+    path === "/" ||
     path.startsWith("/m/") ||
     path === "/chat" ||
     path.startsWith("/api/modules") ||
