@@ -92,6 +92,12 @@ export async function middleware(request: NextRequest) {
 
   // ---- Domain routing ----
   if (surface === "admin") {
+    if (pathname === "/") {
+      const res = NextResponse.redirect(new URL("/dashboard", request.url));
+      securityHeaders(res);
+      return res;
+    }
+
     // Admin host serving a public-only path → redirect to public host.
     if (isPublicRoute(pathname) && !isSharedRoute(pathname)) {
       const publicHost = process.env.PUBLIC_HOST!;
