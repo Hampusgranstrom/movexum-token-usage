@@ -29,24 +29,24 @@ export function LeadsChart({ data }: Props) {
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0A0A0A" stopOpacity={0.14} />
-            <stop offset="100%" stopColor="#0A0A0A" stopOpacity={0} />
+            <stop offset="0%" stopColor="#38B4E3" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#38B4E3" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid
           strokeDasharray="2 4"
-          stroke="#E6E6E2"
+          stroke="#D4E7EF"
           vertical={false}
         />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#A8A8A4", fontSize: 11 }}
+          tick={{ fill: "#9EB7C2", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: string) => v.slice(5)}
         />
         <YAxis
-          tick={{ fill: "#A8A8A4", fontSize: 11 }}
+          tick={{ fill: "#9EB7C2", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => formatCompact(v, 0)}
@@ -56,20 +56,20 @@ export function LeadsChart({ data }: Props) {
           contentStyle={{
             backgroundColor: "#FFFFFF",
             border: "none",
-            borderRadius: "10px",
+            borderRadius: "14px",
             boxShadow:
-              "0 1px 2px 0 rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.12)",
-            color: "#0A0A0A",
+              "0 2px 4px 0 rgba(14,63,82,0.05), 0 12px 30px -10px rgba(14,63,82,0.18)",
+            color: "#0E3F52",
             fontSize: "0.8125rem",
           }}
-          labelStyle={{ color: "#6B6B68" }}
+          labelStyle={{ color: "#5A7886" }}
           formatter={(value: number) => [value, "Leads"]}
         />
         <Area
           type="monotone"
           dataKey="count"
-          stroke="#0A0A0A"
-          strokeWidth={1.5}
+          stroke="#0E3F52"
+          strokeWidth={2}
           fill="url(#leadsGradient)"
         />
       </AreaChart>

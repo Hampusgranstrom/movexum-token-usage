@@ -61,26 +61,27 @@ export function BrandSettingsForm({
 
   return (
     <div className="space-y-10">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Varumärke</h1>
-        <p className="text-sm text-muted">
+      <header className="max-w-2xl space-y-3">
+        <span className="eyebrow">Superadmin</span>
+        <h1 className="text-4xl sm:text-5xl">
+          Ert <span className="text-accent">varumärke</span>
+        </h1>
+        <p className="text-base text-muted">
           Ladda upp en logotyp som visas i navigeringen och vid inloggning.
         </p>
       </header>
 
-      <section className="card p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted">
-          Logotyp
-        </h2>
+      <section className="card p-8">
+        <h2 className="eyebrow">Logotyp</h2>
 
         <div className="mt-6 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 flex-none items-center justify-center rounded-2xl bg-bg shadow-soft">
+          <div className="flex h-28 w-28 flex-none items-center justify-center rounded-3xl bg-bg shadow-soft">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}
                 alt="Logotyp"
-                className="max-h-16 max-w-16 object-contain"
+                className="max-h-20 max-w-20 object-contain"
               />
             ) : (
               <span className="text-xs text-muted">Ingen</span>

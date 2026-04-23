@@ -120,7 +120,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto rounded-2xl bg-surface p-6 shadow-card"
+        className="flex-1 overflow-y-auto rounded-3xl bg-surface p-6 shadow-card"
       >
         {messages.length === 0 && !loading && (
           <EmptyState onPick={(text) => setInput(text)} productName={productName} />
@@ -139,7 +139,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-2 rounded-lg bg-bg p-3 text-xs text-fg shadow-soft"
+              className="flex items-start gap-2 rounded-2xl bg-accent-soft p-4 text-xs text-fg-deep"
             >
               <CheckCircle className="mt-0.5 h-4 w-4 flex-none" />
               <span>
@@ -154,7 +154,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-3 flex items-start gap-2 rounded-lg bg-surface p-3 text-xs text-danger shadow-soft"
+          className="mt-3 flex items-start gap-2 rounded-2xl bg-surface p-3 text-xs text-danger shadow-soft"
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-none" />
           <div className="flex-1 break-words font-mono">{error}</div>
@@ -162,7 +162,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
       )}
 
       <div className="mt-4 flex flex-col gap-2">
-        <div className="relative flex items-end gap-2 rounded-2xl bg-surface p-3 shadow-card">
+        <div className="relative flex items-end gap-2 rounded-full bg-surface p-2 pl-5 shadow-card">
           <textarea
             ref={textareaRef}
             value={input}
@@ -171,15 +171,15 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
             placeholder="Berätta om din startup-idé..."
             rows={1}
             disabled={loading}
-            className="flex-1 resize-none bg-transparent px-2 py-1 text-sm text-fg placeholder:text-subtle focus:outline-none disabled:opacity-50"
+            className="flex-1 resize-none bg-transparent py-2 text-sm text-fg placeholder:text-subtle focus:outline-none disabled:opacity-50"
           />
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             className={cn(
-              "flex h-9 w-9 flex-none items-center justify-center rounded-lg transition",
+              "flex h-10 w-10 flex-none items-center justify-center rounded-full transition",
               input.trim() && !loading
-                ? "bg-fg text-surface shadow-soft hover:shadow-card"
+                ? "bg-fg text-white hover:bg-fg-deep"
                 : "bg-bg text-subtle",
             )}
             aria-label="Skicka meddelande"
@@ -207,8 +207,8 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     >
       <div
         className={cn(
-          "flex h-8 w-8 flex-none items-center justify-center rounded-full",
-          isUser ? "bg-fg text-surface" : "bg-bg text-fg",
+          "flex h-9 w-9 flex-none items-center justify-center rounded-full shadow-soft",
+          isUser ? "bg-fg text-white" : "bg-accent-soft text-fg-deep",
         )}
       >
         {isUser ? <User2 className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
@@ -216,7 +216,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-          isUser ? "bg-fg text-surface" : "bg-bg text-fg",
+          isUser ? "bg-fg text-white" : "bg-bg text-fg-deep",
         )}
       >
         <div className="whitespace-pre-wrap break-words">{message.content}</div>
@@ -232,7 +232,7 @@ function TypingIndicator() {
       animate={{ opacity: 1 }}
       className="flex gap-3"
     >
-      <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-bg text-fg">
+      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-accent-soft text-fg-deep shadow-soft">
         <Sparkles className="h-4 w-4 animate-pulse" />
       </div>
       <div className="rounded-2xl bg-bg px-4 py-3">
@@ -240,7 +240,7 @@ function TypingIndicator() {
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="h-1.5 w-1.5 rounded-full bg-fg"
+              className="h-1.5 w-1.5 rounded-full bg-accent"
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{
                 duration: 1.1,
@@ -276,12 +276,13 @@ function EmptyState({
       transition={{ duration: 0.4 }}
       className="flex h-full flex-col items-center justify-center gap-8 py-12 text-center"
     >
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Välkommen till {productName}
+      <div className="space-y-3">
+        <h2 className="text-4xl sm:text-5xl">
+          Hemmaplan för <br />
+          <span className="text-accent">innovativa idéer</span>
         </h2>
-        <p className="max-w-md text-sm text-muted">
-          Berätta om din startup-idé så hjälper vi dig utforska den. Movexum
+        <p className="mx-auto max-w-md text-sm text-muted">
+          Berätta om din startup-idé så utforskar vi den tillsammans. Movexum
           erbjuder kostnadsfri rådgivning och stöd för idébärare i Gävleborg.
         </p>
       </div>
@@ -291,7 +292,7 @@ function EmptyState({
             key={s}
             type="button"
             onClick={() => onPick(s)}
-            className="rounded-xl bg-bg p-3 text-left text-xs text-muted shadow-soft transition hover:text-fg hover:shadow-card"
+            className="rounded-full bg-bg px-4 py-3 text-left text-xs text-muted transition hover:bg-surface hover:text-fg-deep hover:shadow-soft"
           >
             {s}
           </button>

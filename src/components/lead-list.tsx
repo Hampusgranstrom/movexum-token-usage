@@ -66,30 +66,37 @@ export function LeadList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight">Leads</h1>
+        <div>
+          <h1 className="text-4xl sm:text-5xl">
+            <span className="text-accent">Inflöde</span> av idéer
+          </h1>
+          <p className="mt-2 text-sm text-muted">
+            Alla leads som kommit in via chatt, event och formulär
+          </p>
+        </div>
 
         <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Sök namn, e-post, idé..."
-            className="input pl-10 sm:w-72"
+            className="input pl-11 sm:w-80"
           />
         </form>
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-xl bg-surface p-1 shadow-soft">
+      <div className="flex flex-wrap gap-1.5">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleStatusChange(tab.key)}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              "rounded-full px-4 py-1.5 text-xs font-medium transition",
               status === tab.key
-                ? "bg-bg text-fg"
-                : "text-muted hover:text-fg",
+                ? "bg-fg text-white shadow-soft"
+                : "bg-surface text-muted shadow-soft hover:text-fg",
             )}
           >
             {tab.label}
@@ -102,24 +109,12 @@ export function LeadList() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left">
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Namn
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Idé
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Källa
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Status
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Poäng
-                </th>
-                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
-                  Skapad
-                </th>
+                <th className="px-6 py-4 eyebrow">Namn</th>
+                <th className="px-6 py-4 eyebrow">Idé</th>
+                <th className="px-6 py-4 eyebrow">Källa</th>
+                <th className="px-6 py-4 eyebrow">Status</th>
+                <th className="px-6 py-4 eyebrow">Poäng</th>
+                <th className="px-6 py-4 eyebrow">Skapad</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -127,15 +122,15 @@ export function LeadList() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 6 }).map((_, j) => (
-                      <td key={j} className="px-5 py-4">
-                        <div className="h-4 w-20 animate-pulse rounded bg-bg" />
+                      <td key={j} className="px-6 py-4">
+                        <div className="h-4 w-20 animate-pulse rounded-full bg-bg-deep" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : data?.leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-muted">
+                  <td colSpan={6} className="px-6 py-16 text-center text-muted">
                     Inga leads hittades
                   </td>
                 </tr>
@@ -153,7 +148,7 @@ export function LeadList() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-5 py-3">
+          <div className="flex items-center justify-between border-t border-border px-6 py-4">
             <span className="text-xs text-muted">
               {data?.total ?? 0} leads totalt
             </span>
@@ -161,7 +156,7 @@ export function LeadList() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="rounded p-1 text-muted hover:text-fg disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-bg text-muted transition hover:text-fg disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -171,7 +166,7 @@ export function LeadList() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="rounded p-1 text-muted hover:text-fg disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-bg text-muted transition hover:text-fg disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -189,25 +184,25 @@ function LeadRow({ lead, onClick }: { lead: Lead; onClick: () => void }) {
       onClick={onClick}
       className="cursor-pointer transition-colors hover:bg-bg"
     >
-      <td className="px-5 py-4">
-        <div className="font-medium text-fg">{lead.name}</div>
+      <td className="px-6 py-4">
+        <div className="font-medium text-fg-deep">{lead.name}</div>
         {lead.email && <div className="text-xs text-muted">{lead.email}</div>}
       </td>
-      <td className="max-w-[240px] truncate px-5 py-4 text-muted">
+      <td className="max-w-[260px] truncate px-6 py-4 text-muted">
         {lead.idea_summary ?? "-"}
       </td>
-      <td className="px-5 py-4 text-muted">{lead.source_id}</td>
-      <td className="px-5 py-4">
+      <td className="px-6 py-4 text-muted">{lead.source_id}</td>
+      <td className="px-6 py-4">
         <StatusBadge status={lead.status} />
       </td>
-      <td className="px-5 py-4">
+      <td className="px-6 py-4">
         {lead.score != null ? (
-          <span className="font-mono text-fg">{lead.score}</span>
+          <span className="font-mono font-medium text-fg-deep">{lead.score}</span>
         ) : (
           <span className="text-subtle">-</span>
         )}
       </td>
-      <td className="px-5 py-4 text-muted">{formatDate(lead.created_at)}</td>
+      <td className="px-6 py-4 text-muted">{formatDate(lead.created_at)}</td>
     </tr>
   );
 }

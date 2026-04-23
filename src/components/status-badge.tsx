@@ -2,15 +2,14 @@ import { cn } from "@/lib/utils";
 import type { LeadStatus } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/types";
 
-// Grayscale hierarchy: darker = further along the funnel, plus a distinct
-// treatment for declined.
+// Teal → accent hierarchy matching the Movexum palette.
 const STATUS_CLASSES: Record<LeadStatus, string> = {
-  new: "bg-bg text-fg",
-  contacted: "bg-[#EAEAE6] text-fg",
-  "meeting-booked": "bg-[#2E2E2E] text-surface",
-  evaluating: "bg-[#545452] text-surface",
-  accepted: "bg-fg text-surface",
-  declined: "bg-bg text-subtle line-through",
+  new: "bg-accent-soft text-fg-deep",
+  contacted: "bg-[#BFE5F3] text-fg-deep",
+  "meeting-booked": "bg-accent text-white",
+  evaluating: "bg-[#2E7691] text-white",
+  accepted: "bg-fg-deep text-white",
+  declined: "bg-bg-deep text-muted line-through",
 };
 
 export function StatusBadge({ status }: { status: LeadStatus }) {
@@ -19,7 +18,7 @@ export function StatusBadge({ status }: { status: LeadStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
         STATUS_CLASSES[status],
       )}
     >

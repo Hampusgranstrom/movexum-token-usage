@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import type { AppRole } from "@/lib/auth";
@@ -13,7 +13,6 @@ type NavUser = { email: string; role: AppRole } | null;
 const BASE_ITEMS = [
   { href: "/", label: "Dashboard" },
   { href: "/leads", label: "Leads" },
-  { href: "/chat", label: "AI-intag" },
 ];
 
 const ADMIN_ITEMS = [
@@ -44,24 +43,24 @@ export function Nav({
   ];
 
   return (
-    <nav className="bg-surface shadow-soft">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <nav className="relative">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-10">
         <Link href="/" className="flex items-center gap-3">
           {brand.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={brand.logoUrl}
               alt={brand.productName}
-              className="h-7 w-auto max-w-[120px] object-contain"
+              className="h-7 w-auto max-w-[140px] object-contain"
             />
           ) : (
-            <span className="text-base font-semibold tracking-tight">
-              {brand.productName}
+            <span className="text-xl font-semibold tracking-tight text-fg-deep">
+              {brand.productName.toLowerCase()}
             </span>
           )}
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="hidden items-center gap-2 md:flex">
           {items.map((item) => {
             const active =
               item.href === "/"
@@ -72,9 +71,9 @@ export function Nav({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "rounded-full px-4 py-2 text-sm font-medium transition",
                   active
-                    ? "bg-bg text-fg"
+                    ? "text-fg-deep"
                     : "text-muted hover:text-fg",
                 )}
               >
@@ -83,25 +82,56 @@ export function Nav({
             );
           })}
 
-          {user && (
-            <div className="ml-3 flex items-center gap-3 border-l border-border pl-3">
-              <div className="hidden text-right sm:block">
-                <div className="text-xs font-medium text-fg">{user.email}</div>
-                <div className="text-[10px] uppercase tracking-[0.12em] text-muted">
-                  {user.role === "superadmin" ? "Superadmin" : "Admin"}
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="btn-ghost"
-                aria-label="Logga ut"
-                title="Logga ut"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          )}
+          <Link href="/chat" className="btn-primary ml-1">
+            <ArrowRight className="h-4 w-4" />
+            AI-intag
+          </Link>
         </div>
+
+        {user ? (
+          <div className="flex items-center gap-3">
+            <div className="hidden text-right lg:block">
+              <div className="text-xs font-medium text-fg">{user.email}</div>
+              <div className="eyebrow text-[10px]">
+                {user.role === "superadmin" ? "Superadmin" : "Admin"}
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="icon-btn"
+              aria-label="Logga ut"
+              title="Logga ut"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* mobile items */}
+      <div className="flex flex-wrap items-center gap-2 px-6 pb-4 md:hidden">
+        {items.map((item) => {
+          const active =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-sm transition",
+                active ? "bg-surface text-fg-deep shadow-soft" : "text-muted",
+              )}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+        <Link href="/chat" className="btn-primary py-1.5 text-xs">
+          <ArrowRight className="h-3.5 w-3.5" />
+          AI-intag
+        </Link>
       </div>
     </nav>
   );

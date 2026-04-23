@@ -19,8 +19,8 @@ type Props = {
   }>;
 };
 
-// Grayscale ramp for B&W palette; we pick a shade per row deterministically.
-const SHADES = ["#0A0A0A", "#2E2E2E", "#545452", "#7D7D7A", "#A8A8A4", "#C9C9C5"];
+// Movexum-inspired palette (deep teal → accent sky).
+const SHADES = ["#0E3F52", "#1F5B72", "#2E7691", "#38B4E3", "#7ECCE7", "#BFE5F3"];
 
 export function SourceChart({ data }: Props) {
   if (data.length === 0) {
@@ -40,14 +40,14 @@ export function SourceChart({ data }: Props) {
       >
         <XAxis
           type="number"
-          tick={{ fill: "#A8A8A4", fontSize: 11 }}
+          tick={{ fill: "#9EB7C2", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           type="category"
           dataKey="label"
-          tick={{ fill: "#6B6B68", fontSize: 12 }}
+          tick={{ fill: "#5A7886", fontSize: 12 }}
           tickLine={false}
           axisLine={false}
           width={120}
@@ -56,15 +56,15 @@ export function SourceChart({ data }: Props) {
           contentStyle={{
             backgroundColor: "#FFFFFF",
             border: "none",
-            borderRadius: "10px",
+            borderRadius: "14px",
             boxShadow:
-              "0 1px 2px 0 rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.12)",
-            color: "#0A0A0A",
+              "0 2px 4px 0 rgba(14,63,82,0.05), 0 12px 30px -10px rgba(14,63,82,0.18)",
+            color: "#0E3F52",
             fontSize: "0.8125rem",
           }}
           formatter={(value: number) => [value, "Leads"]}
         />
-        <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
+        <Bar dataKey="count" radius={[0, 999, 999, 0]} barSize={18}>
           {data.map((_, index) => (
             <Cell key={index} fill={SHADES[index % SHADES.length]} />
           ))}

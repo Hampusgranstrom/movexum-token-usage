@@ -77,22 +77,24 @@ export function LeadDetail({ id }: { id: string }) {
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/leads")}
-          className="btn-ghost"
+          className="icon-btn-outline"
           aria-label="Tillbaka"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{lead.name}</h1>
-          <p className="text-sm text-muted">
+          <h1 className="text-4xl">{lead.name}</h1>
+          <p className="mt-1 text-sm text-muted">
             Skapad {formatDate(lead.created_at)}
           </p>
         </div>
         <StatusBadge status={lead.status} />
         {lead.score != null && (
-          <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-1 shadow-soft">
-            <Sparkles className="h-4 w-4 text-muted" />
-            <span className="font-mono text-sm text-fg">{lead.score}/100</span>
+          <div className="flex items-center gap-2 rounded-full bg-surface px-4 py-1.5 shadow-soft">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <span className="font-mono text-sm font-medium text-fg-deep">
+              {lead.score}/100
+            </span>
           </div>
         )}
       </div>
@@ -100,7 +102,7 @@ export function LeadDetail({ id }: { id: string }) {
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <div className="card p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            <h3 className="eyebrow mb-4">
               Kontakt
             </h3>
             <div className="space-y-3">
@@ -134,7 +136,7 @@ export function LeadDetail({ id }: { id: string }) {
 
           {lead.idea_summary && (
             <div className="card p-6">
-              <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+              <h3 className="eyebrow mb-4">
                 Startup-idé
               </h3>
               <p className="text-fg">{lead.idea_summary}</p>
@@ -148,7 +150,7 @@ export function LeadDetail({ id }: { id: string }) {
 
           {lead.score_reasoning && (
             <div className="card p-6">
-              <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+              <h3 className="eyebrow mb-4">
                 AI-bedömning
               </h3>
               <p className="text-muted">{lead.score_reasoning}</p>
@@ -156,20 +158,20 @@ export function LeadDetail({ id }: { id: string }) {
           )}
 
           <div className="card p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            <h3 className="eyebrow mb-4">
               Anteckningar
             </h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="input resize-y"
+              className="textarea resize-y"
               placeholder="Skriv anteckningar..."
             />
             <button
               onClick={handleSaveNotes}
               disabled={saving || notes === (lead.notes ?? "")}
-              className="btn-primary mt-3"
+              className="btn-primary mt-4"
             >
               {saving ? "Sparar..." : "Spara anteckningar"}
             </button>
@@ -177,16 +179,16 @@ export function LeadDetail({ id }: { id: string }) {
 
           {conversations.length > 0 && (
             <div className="card p-6">
-              <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+              <h3 className="eyebrow mb-4">
                 AI-konversationer
               </h3>
               <div className="space-y-2">
                 {conversations.map((conv) => (
                   <div
                     key={conv.id}
-                    className="flex items-center justify-between rounded-lg bg-bg p-3"
+                    className="flex items-center justify-between rounded-full bg-bg px-4 py-2.5"
                   >
-                    <span className="text-sm text-fg">
+                    <span className="text-sm text-fg-deep">
                       {formatDate(conv.created_at)}
                     </span>
                     <span className="text-xs text-muted">
@@ -201,19 +203,19 @@ export function LeadDetail({ id }: { id: string }) {
 
         <div className="space-y-5">
           <div className="card p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            <h3 className="eyebrow mb-4">
               Ändra status
             </h3>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {STATUS_OPTIONS.map((s) => (
                 <button
                   key={s}
                   onClick={() => updateLead({ status: s })}
                   disabled={saving || lead.status === s}
                   className={cn(
-                    "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    "w-full rounded-full px-4 py-2 text-left text-sm transition",
                     lead.status === s
-                      ? "bg-bg font-medium text-fg"
+                      ? "bg-fg font-medium text-white"
                       : "text-muted hover:bg-bg hover:text-fg",
                     saving && "opacity-50",
                   )}
@@ -225,7 +227,7 @@ export function LeadDetail({ id }: { id: string }) {
           </div>
 
           <div className="card p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            <h3 className="eyebrow mb-4">
               Källa
             </h3>
             <p className="text-sm text-fg">{lead.source_id}</p>
@@ -235,7 +237,7 @@ export function LeadDetail({ id }: { id: string }) {
           </div>
 
           <div className="card p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            <h3 className="eyebrow mb-4">
               Tilldelad
             </h3>
             <input
