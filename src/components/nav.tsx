@@ -13,12 +13,15 @@ type NavUser = { email: string; role: AppRole } | null;
 const BASE_ITEMS = [
   { href: "/", label: "Dashboard" },
   { href: "/leads", label: "Leads" },
+  { href: "/m/founders", label: "Intag" },
 ];
 
 const ADMIN_ITEMS = [
+  { href: "/admin/modules", label: "Moduler" },
   { href: "/admin/users", label: "Användare" },
   { href: "/admin/partners", label: "Partners" },
   { href: "/admin/brand", label: "Varumärke" },
+  { href: "/admin/security", label: "Säkerhet" },
 ];
 
 export function Nav({
@@ -83,9 +86,9 @@ export function Nav({
             );
           })}
 
-          <Link href="/chat" className="btn-primary ml-1">
+          <Link href="/m/founders" className="btn-primary ml-1">
             <ArrowRight className="h-4 w-4" />
-            AI-intag
+            Öppna intag
           </Link>
         </div>
 
@@ -129,9 +132,9 @@ export function Nav({
             </Link>
           );
         })}
-        <Link href="/chat" className="btn-primary py-1.5 text-xs">
+        <Link href="/m/founders" className="btn-primary py-1.5 text-xs">
           <ArrowRight className="h-3.5 w-3.5" />
-          AI-intag
+          Öppna intag
         </Link>
       </div>
     </nav>
