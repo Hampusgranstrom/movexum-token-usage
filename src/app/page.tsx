@@ -2,6 +2,7 @@ import { Dashboard } from "@/components/dashboard";
 import { Nav } from "@/components/nav";
 import { getCurrentUser } from "@/lib/auth";
 import { getBrandSettings } from "@/lib/brand";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,10 @@ export default async function HomePage() {
     getCurrentUser(),
     getBrandSettings(),
   ]);
+
+  if (!user) {
+    redirect("/login?redirect=/");
+  }
 
   return (
     <>
