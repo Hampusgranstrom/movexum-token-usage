@@ -13,6 +13,12 @@ export type QuestionType =
   | "scale_1_5"
   | "consent";
 
+export type QuestionOption = {
+  value: string;
+  label: string;
+  scores?: Record<string, number>;
+};
+
 export type Question = {
   id: string;
   question_set_id: string;
@@ -21,7 +27,7 @@ export type Question = {
   type: QuestionType;
   required: boolean;
   help_text: string | null;
-  options: Array<{ value: string; label: string }>;
+  options: QuestionOption[];
   validation: Record<string, unknown>;
   depends_on: Array<{ question_key: string; equals: unknown }>;
   is_active: boolean;

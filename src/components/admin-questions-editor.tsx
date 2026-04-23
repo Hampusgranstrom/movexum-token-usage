@@ -17,6 +17,12 @@ type QType =
   | "scale_1_5"
   | "consent";
 
+type QOption = {
+  value: string;
+  label: string;
+  scores?: Record<string, number>;
+};
+
 type Question = {
   id: string;
   key: string;
@@ -24,7 +30,7 @@ type Question = {
   type: QType;
   required: boolean;
   help_text: string | null;
-  options: Array<{ value: string; label: string }>;
+  options: QOption[];
   is_active: boolean;
 };
 
@@ -383,6 +389,163 @@ function QuestionCard({
           </button>
         </form>
       </div>
+
+      {(question.type === "single_choice" || question.type === "multi_choice") && (
+        <OptionsEditor question={question} onRefresh={onRefresh} />
+      )}
     </article>
+  );
+}
+
+function OptionsEditor({
+  question,
+  onRefresh,
+}: {
+  question: Question;
+  onRefresh: () => void;
+}) {
+  const [options, setOptions] = useState<QOption[]>(question.options ?? []);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const allBucketKeys = Array.from(
+    new Set(
+      options.flatMap((o) => Object.keys(o.scores ?? {})),
+    ),
+  );
+
+  const updateOption = (i: number, patch: Partial<QOption>) => {
+    const next = options.slice();
+    next[i] = { ...next[i], ...patch };
+    setOptions(next);
+    setDirty(true);
+  };
+
+  const updateScore = (i: number, bucket: string, value: number) => {
+    const next = options.slice();
+    const scores = { ...(next[i].scores ?? {}) };
+    if (value === 0) delete scores[bucket];
+    else scores[bucket] = value;
+    next[i] = { ...next[i], scores };
+    setOptions(next);
+    setDirty(true);
+  };
+
+  const addOption = () => {
+    const nextLetter = String.fromCharCode(65 + options.length);
+    setOptions([...options, { value: nextLetter, label: "", scores: {} }]);
+    setDirty(true);
+  };
+
+  const removeOption = (i: number) => {
+    setOptions(options.filter((_, idx) => idx !== i));
+    setDirty(true);
+  };
+
+  const addBucket = () => {
+    const key = prompt("Ny bucket-nyckel (t.ex. green, builder):");
+    if (!key) return;
+    const next = options.map((o) => ({
+      ...o,
+      scores: { ...(o.scores ?? {}), [key]: 0 },
+    }));
+    setOptions(next);
+    setDirty(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/questions/${question.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ options }),
+      });
+      if (res.ok) {
+        setDirty(false);
+        onRefresh();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 space-y-3 border-t border-border pt-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="eyebrow">Alternativ & scoring</span>
+          <p className="mt-1 text-xs text-muted">
+            Varje alternativ kan ge poäng till en eller flera bucketar.
+            Bucketar definierar du på modulen (Resultat-profiler).
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={addBucket} className="btn-ghost">
+            + Bucket
+          </button>
+          <button onClick={addOption} className="btn-ghost">
+            <Plus className="h-4 w-4" />
+            Alternativ
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {options.map((opt, i) => (
+          <div
+            key={i}
+            className="flex flex-wrap items-center gap-2 rounded-2xl bg-bg px-4 py-3 text-sm"
+          >
+            <input
+              className="w-12 rounded-full bg-surface px-3 py-1 text-xs font-medium shadow-soft focus:outline-none"
+              value={opt.value}
+              onChange={(e) => updateOption(i, { value: e.target.value })}
+              placeholder="A"
+            />
+            <input
+              className="min-w-[220px] flex-1 rounded-full bg-surface px-3 py-1 text-xs shadow-soft focus:outline-none"
+              value={opt.label}
+              onChange={(e) => updateOption(i, { label: e.target.value })}
+              placeholder="Svarstext"
+            />
+            {allBucketKeys.map((b) => (
+              <label
+                key={b}
+                className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted"
+              >
+                {b}
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  className="w-12 rounded-full bg-surface px-2 py-1 text-right text-xs shadow-soft focus:outline-none"
+                  value={opt.scores?.[b] ?? 0}
+                  onChange={(e) =>
+                    updateScore(i, b, Number(e.target.value))
+                  }
+                />
+              </label>
+            ))}
+            <button
+              onClick={() => removeOption(i)}
+              className="text-muted hover:text-danger"
+              title="Ta bort alternativ"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+        {options.length === 0 && (
+          <p className="text-xs text-muted">Inga alternativ än.</p>
+        )}
+      </div>
+
+      {dirty && (
+        <button onClick={save} disabled={saving} className="btn-primary">
+          {saving ? "Sparar..." : "Spara alternativ"}
+        </button>
+      )}
+    </div>
   );
 }

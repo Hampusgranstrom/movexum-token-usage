@@ -2,34 +2,43 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { rateLimit } from "./lib/rate-limit";
+import {
+  getSurface,
+  isAdminRoute,
+  isPublicRoute,
+  isSharedRoute,
+} from "./lib/domain";
 
 /**
- * Middleware protects admin routes behind Supabase Auth + role,
- * rate-limits hot endpoints and attaches security headers to every
- * response.
+ * Middleware:
+ *   1. Attach security headers to every response.
+ *   2. Enforce domain split (admin.* vs public.*) if ADMIN_HOST/PUBLIC_HOST set.
+ *   3. Rate-limit hot endpoints.
+ *   4. Gate admin routes behind Supabase Auth + app_users role.
  */
 
-const PUBLIC_PATHS = [
+const ADMIN_ONLY_PUBLIC_PATHS = [
   "/login",
   "/accept-invite",
-  "/chat",               // legacy, redirected at page level
-  "/m/",                 // any /m/<slug>
+];
+
+const PUBLIC_SURFACE_PATHS = [
+  "/m/",
+  "/chat",            // legacy redirect page
   "/api/chat",
   "/api/sources",
+  "/api/modules/",
   "/api/health",
-  "/api/modules/",       // public module endpoints (prefix match)
 ];
 
 const RATE_LIMITS: Array<{ prefix: string; limit: number; windowMs: number }> = [
-  { prefix: "/api/chat",                      limit: 20, windowMs: 60_000 },
-  { prefix: "/api/modules/",                  limit: 60, windowMs: 60_000 },
-  { prefix: "/api/admin/users",               limit: 10, windowMs: 60_000 },
-  { prefix: "/api/admin/brand",               limit: 10, windowMs: 60_000 },
+  { prefix: "/api/chat", limit: 20, windowMs: 60_000 },
+  { prefix: "/api/modules/", limit: 60, windowMs: 60_000 },
+  { prefix: "/api/admin/users", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/admin/brand", limit: 10, windowMs: 60_000 },
 ];
 
 function securityHeaders(res: NextResponse) {
-  // Content-Security-Policy: self + Supabase (for API + storage) + Anthropic.
-  // Google Fonts are served via next/font and bundled, so no font-src needed.
   res.headers.set(
     "Content-Security-Policy",
     [
@@ -44,7 +53,10 @@ function securityHeaders(res: NextResponse) {
       "form-action 'self'",
     ].join("; "),
   );
-  res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  res.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload",
+  );
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   res.headers.set("X-Frame-Options", "DENY");
@@ -54,14 +66,19 @@ function securityHeaders(res: NextResponse) {
   );
 }
 
-function isPublic(path: string) {
-  return PUBLIC_PATHS.some((p) => path === p || path.startsWith(p));
+function isPublicAuthSkip(path: string) {
+  // Paths that don't require admin auth (available on admin surface for login,
+  // or are the public surface's own routes).
+  return (
+    ADMIN_ONLY_PUBLIC_PATHS.some((p) => path === p || path.startsWith(p)) ||
+    PUBLIC_SURFACE_PATHS.some((p) => path === p || path.startsWith(p))
+  );
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Short-circuit static + Next internals: no auth, no rate limit, no headers needed.
+  // Static assets pass through.
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
@@ -70,7 +87,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rate limit early for abusive endpoints
+  const surface = getSurface(request.headers.get("host"));
+
+  // ---- Domain routing ----
+  if (surface === "admin") {
+    // Admin host serving a public-only path → redirect to public host.
+    if (isPublicRoute(pathname) && !isSharedRoute(pathname)) {
+      const publicHost = process.env.PUBLIC_HOST!;
+      const proto = publicHost === "localhost" ? "http" : "https";
+      const redirectUrl = new URL(
+        pathname + request.nextUrl.search,
+        `${proto}://${publicHost}`,
+      );
+      const res = NextResponse.redirect(redirectUrl);
+      securityHeaders(res);
+      return res;
+    }
+  } else if (surface === "public") {
+    // Public host serving an admin-only path → redirect to admin host.
+    if (isAdminRoute(pathname) && !isSharedRoute(pathname)) {
+      const adminHost = process.env.ADMIN_HOST!;
+      const proto = adminHost === "localhost" ? "http" : "https";
+      const redirectUrl = new URL(
+        pathname + request.nextUrl.search,
+        `${proto}://${adminHost}`,
+      );
+      const res = NextResponse.redirect(redirectUrl);
+      securityHeaders(res);
+      return res;
+    }
+  }
+
+  // ---- Rate limiting ----
   const rl = RATE_LIMITS.find((r) => pathname.startsWith(r.prefix));
   if (rl) {
     const ip =
@@ -95,13 +143,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Public routes: just attach security headers and pass through.
-  if (isPublic(pathname)) {
+  // ---- Auth-less public routes ----
+  if (isPublicAuthSkip(pathname)) {
     const res = NextResponse.next();
     securityHeaders(res);
     return res;
   }
 
+  // ---- Supabase auth for admin surface ----
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {

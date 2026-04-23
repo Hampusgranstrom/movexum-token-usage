@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ModuleWizard } from "./module-wizard";
 import { ModuleChat } from "./module-chat";
+import { ModuleQuiz } from "./module-quiz";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { BrandSettings } from "@/lib/brand";
 
@@ -12,7 +13,7 @@ type PublicModule = {
   slug: string;
   name: string;
   description: string | null;
-  flow_type: "wizard" | "chat" | "hybrid";
+  flow_type: "wizard" | "chat" | "hybrid" | "quiz";
   welcome_title: string | null;
   welcome_body: string | null;
   consent_text: string;
@@ -204,6 +205,12 @@ export function ModuleIntake({
           slug={slug}
           sessionId={sessionId}
           productName={brand.productName}
+        />
+      ) : mod.flow_type === "quiz" ? (
+        <ModuleQuiz
+          slug={slug}
+          sessionId={sessionId}
+          questions={config.questions}
         />
       ) : (
         <ModuleWizard

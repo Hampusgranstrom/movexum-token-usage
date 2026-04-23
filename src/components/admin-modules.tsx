@@ -22,7 +22,7 @@ export function AdminModules() {
   const [creating, setCreating] = useState(false);
   const [slug, setSlug] = useState("");
   const [name, setName] = useState("");
-  const [flow, setFlow] = useState<"wizard" | "chat">("wizard");
+  const [flow, setFlow] = useState<"wizard" | "chat" | "quiz">("wizard");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -114,11 +114,12 @@ export function AdminModules() {
             </label>
             <select
               value={flow}
-              onChange={(e) => setFlow(e.target.value as "wizard" | "chat")}
+              onChange={(e) => setFlow(e.target.value as "wizard" | "chat" | "quiz")}
               className="input"
             >
               <option value="wizard">Formulär (wizard)</option>
               <option value="chat">AI-chatt</option>
+              <option value="quiz">Quiz med scoring</option>
             </select>
           </div>
           <button

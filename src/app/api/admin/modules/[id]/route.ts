@@ -23,6 +23,7 @@ const ALLOWED_FIELDS = new Set([
   "is_active",
   "require_email",
   "require_phone",
+  "result_buckets",
 ]);
 
 export async function GET(_req: Request, ctx: Ctx) {

@@ -65,6 +65,7 @@ export async function POST(req: Request) {
     is_active: body.is_active === false ? false : true,
     require_email: body.require_email === false ? false : true,
     require_phone: !!body.require_phone,
+    result_buckets: Array.isArray(body.result_buckets) ? body.result_buckets : [],
     created_by: guard.user.id,
   };
 

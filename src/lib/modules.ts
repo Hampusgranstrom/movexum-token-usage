@@ -1,12 +1,21 @@
 import { getSupabaseAdmin } from "./supabase";
 
+export type ResultBucket = {
+  key: string;
+  title: string;
+  description: string;
+  tips: string[];
+  cta_label: string;
+  cta_url: string;
+};
+
 export type Module = {
   id: string;
   slug: string;
   name: string;
   description: string | null;
   target_audience: string | null;
-  flow_type: "wizard" | "chat" | "hybrid";
+  flow_type: "wizard" | "chat" | "hybrid" | "quiz";
   welcome_title: string | null;
   welcome_body: string | null;
   system_prompt: string | null;
@@ -18,6 +27,7 @@ export type Module = {
   is_active: boolean;
   require_email: boolean;
   require_phone: boolean;
+  result_buckets: ResultBucket[];
   created_at: string;
   updated_at: string;
 };
