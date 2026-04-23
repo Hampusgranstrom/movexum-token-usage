@@ -50,16 +50,31 @@ export async function extractLeadData(
   }
 }
 
+// Whitelist merge — only keeps fields that are in the ExtractedLeadData
+// contract, and never overwrites a present value with an empty one. This
+// also keeps the conversations.extracted_data JSONB from accruing stray
+// fields if Claude ever invents new ones.
+const ALLOWED_KEYS: ReadonlyArray<keyof ExtractedLeadData> = [
+  "name",
+  "email",
+  "phone",
+  "organization",
+  "idea_summary",
+  "idea_category",
+];
+
 function mergeExtracted(
   existing: ExtractedLeadData,
   incoming: Partial<ExtractedLeadData>,
 ): ExtractedLeadData {
-  const merged = { ...existing };
+  const merged: ExtractedLeadData = { ...existing };
 
-  for (const [key, value] of Object.entries(incoming)) {
-    if (value === undefined || value === null || value === "") continue;
-    if (Array.isArray(value) && value.length === 0) continue;
-    (merged as Record<string, unknown>)[key] = value;
+  for (const key of ALLOWED_KEYS) {
+    const value = incoming[key];
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed.length === 0) continue;
+    merged[key] = trimmed;
   }
 
   return merged;
