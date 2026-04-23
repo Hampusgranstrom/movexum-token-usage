@@ -17,6 +17,7 @@ const BASE_ITEMS = [
 
 const ADMIN_ITEMS = [
   { href: "/admin/users", label: "Användare" },
+  { href: "/admin/partners", label: "Partners" },
   { href: "/admin/brand", label: "Varumärke" },
 ];
 

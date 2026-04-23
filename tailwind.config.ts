@@ -32,6 +32,15 @@ const config: Config = {
         xl: "16px",
         "2xl": "22px",
       },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translate3d(0, 0, 0)" },
+          "100%": { transform: "translate3d(-50%, 0, 0)" },
+        },
+      },
+      animation: {
+        marquee: "marquee var(--marquee-duration, 40s) linear infinite",
+      },
     },
   },
   plugins: [],
