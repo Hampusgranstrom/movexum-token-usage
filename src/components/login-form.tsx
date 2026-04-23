@@ -2,16 +2,26 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Compass } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
-export function LoginForm() {
+export function LoginForm({
+  productName,
+  logoUrl,
+}: {
+  productName: string;
+  logoUrl: string | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
+  const initialError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    initialError === "not_invited"
+      ? "Ditt konto är inte registrerat i systemet. Be superadmin bjuda in dig."
+      : null,
+  );
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,9 +37,11 @@ export function LoginForm() {
       });
 
       if (authError) {
-        setError(authError.message === "Invalid login credentials"
-          ? "Felaktiga inloggningsuppgifter"
-          : authError.message);
+        setError(
+          authError.message === "Invalid login credentials"
+            ? "Felaktiga inloggningsuppgifter"
+            : authError.message,
+        );
         return;
       }
 
@@ -41,20 +53,27 @@ export function LoginForm() {
   };
 
   return (
-    <div className="mx-auto max-w-sm space-y-8">
+    <div className="mx-auto w-full max-w-sm space-y-8">
       <div className="text-center">
-        <Compass className="mx-auto h-12 w-12 text-accent-leads" />
-        <h1 className="mt-4 text-2xl font-semibold text-text-primary">
-          Startupkompass
-        </h1>
-        <p className="mt-2 text-sm text-text-secondary">
-          Logga in för att hantera leads
-        </p>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={productName}
+            className="mx-auto h-12 w-auto max-w-[160px] object-contain"
+          />
+        ) : (
+          <h1 className="text-2xl font-semibold tracking-tight">{productName}</h1>
+        )}
+        <p className="mt-3 text-sm text-muted">Logga in för att hantera leads</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="card space-y-4 p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-2xl bg-surface p-6 shadow-card"
+      >
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-text-secondary">
+          <label className="mb-1.5 block text-xs font-medium text-muted">
             E-post
           </label>
           <input
@@ -63,13 +82,13 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoFocus
-            className="w-full rounded-lg border border-bg-border bg-bg-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-leads focus:outline-none"
+            className="input"
             placeholder="namn@movexum.se"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-text-secondary">
+          <label className="mb-1.5 block text-xs font-medium text-muted">
             Lösenord
           </label>
           <input
@@ -77,20 +96,14 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-lg border border-bg-border bg-bg-base px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-leads focus:outline-none"
+            className="input"
             placeholder="Lösenord"
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-accent-danger">{error}</p>
-        )}
+        {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-accent-leads px-4 py-2.5 text-sm font-semibold text-bg-base hover:bg-accent-leads/90 disabled:opacity-50 transition-colors"
-        >
+        <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "Loggar in..." : "Logga in"}
         </button>
       </form>

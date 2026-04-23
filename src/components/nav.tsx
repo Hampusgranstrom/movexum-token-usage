@@ -1,19 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Compass, LayoutDashboard, Users, MessageSquare, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-import { useRouter } from "next/navigation";
+import type { AppRole } from "@/lib/auth";
+import type { BrandSettings } from "@/lib/brand";
 
-const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/leads", label: "Leads", icon: Users },
-  { href: "/chat", label: "AI-intag", icon: MessageSquare },
+type NavUser = { email: string; role: AppRole } | null;
+
+const BASE_ITEMS = [
+  { href: "/", label: "Dashboard" },
+  { href: "/leads", label: "Leads" },
+  { href: "/chat", label: "AI-intag" },
 ];
 
-export function Nav({ showAuth = true }: { showAuth?: boolean }) {
+const ADMIN_ITEMS = [
+  { href: "/admin/users", label: "Användare" },
+  { href: "/admin/brand", label: "Varumärke" },
+];
+
+export function Nav({
+  user,
+  brand,
+}: {
+  user: NavUser;
+  brand: BrandSettings;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -21,20 +35,34 @@ export function Nav({ showAuth = true }: { showAuth?: boolean }) {
     const supabase = getSupabaseBrowser();
     await supabase.auth.signOut();
     router.push("/login");
+    router.refresh();
   };
 
+  const items = [
+    ...BASE_ITEMS,
+    ...(user?.role === "superadmin" ? ADMIN_ITEMS : []),
+  ];
+
   return (
-    <nav className="border-b border-bg-border bg-bg-card/60 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Compass className="h-6 w-6 text-accent-leads" />
-          <span className="text-lg font-semibold text-text-primary">
-            Startupkompass
-          </span>
+    <nav className="bg-surface shadow-soft">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-3">
+          {brand.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={brand.logoUrl}
+              alt={brand.productName}
+              className="h-7 w-auto max-w-[120px] object-contain"
+            />
+          ) : (
+            <span className="text-base font-semibold tracking-tight">
+              {brand.productName}
+            </span>
+          )}
         </Link>
 
         <div className="flex items-center gap-1">
-          {NAV_ITEMS.map((item) => {
+          {items.map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
@@ -44,26 +72,34 @@ export function Nav({ showAuth = true }: { showAuth?: boolean }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-bg-base text-text-primary"
-                    : "text-text-secondary hover:text-text-primary",
+                    ? "bg-bg text-fg"
+                    : "text-muted hover:text-fg",
                 )}
               >
-                <item.icon className="h-4 w-4" />
                 {item.label}
               </Link>
             );
           })}
 
-          {showAuth && (
-            <button
-              onClick={handleLogout}
-              className="ml-2 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary"
-            >
-              <LogOut className="h-4 w-4" />
-              Logga ut
-            </button>
+          {user && (
+            <div className="ml-3 flex items-center gap-3 border-l border-border pl-3">
+              <div className="hidden text-right sm:block">
+                <div className="text-xs font-medium text-fg">{user.email}</div>
+                <div className="text-[10px] uppercase tracking-[0.12em] text-muted">
+                  {user.role === "superadmin" ? "Superadmin" : "Admin"}
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="btn-ghost"
+                aria-label="Logga ut"
+                title="Logga ut"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>

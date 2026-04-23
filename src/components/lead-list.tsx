@@ -6,7 +6,6 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { cn, formatDate } from "@/lib/utils";
 import type { Lead, LeadStatus, LeadListResponse } from "@/lib/types";
-import { STATUS_CONFIG } from "@/lib/types";
 
 const TABS: Array<{ key: LeadStatus | "alla"; label: string }> = [
   { key: "alla", label: "Alla" },
@@ -67,31 +66,30 @@ export function LeadList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-text-primary">Leads</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Leads</h1>
 
         <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Sök namn, e-post, idé..."
-            className="rounded-lg border border-bg-border bg-bg-card pl-10 pr-4 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-leads focus:outline-none"
+            className="input pl-10 sm:w-72"
           />
         </form>
       </div>
 
-      {/* Status tabs */}
-      <div className="flex flex-wrap gap-1 rounded-lg border border-bg-border bg-bg-card/40 p-1">
+      <div className="flex flex-wrap gap-1 rounded-xl bg-surface p-1 shadow-soft">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleStatusChange(tab.key)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
               status === tab.key
-                ? "bg-bg-base text-text-primary"
-                : "text-text-secondary hover:text-text-primary",
+                ? "bg-bg text-fg"
+                : "text-muted hover:text-fg",
             )}
           >
             {tab.label}
@@ -99,49 +97,45 @@ export function LeadList() {
         ))}
       </div>
 
-      {/* Table */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-bg-border text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+              <tr className="text-left">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Namn
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Idé
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Källa
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Status
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Poäng
                 </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-muted">
                   Skapad
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-bg-border">
+            <tbody className="divide-y divide-border">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
                     {Array.from({ length: 6 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 w-20 animate-pulse rounded bg-bg-border" />
+                      <td key={j} className="px-5 py-4">
+                        <div className="h-4 w-20 animate-pulse rounded bg-bg" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : data?.leads.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-text-muted"
-                  >
+                  <td colSpan={6} className="px-5 py-12 text-center text-muted">
                     Inga leads hittades
                   </td>
                 </tr>
@@ -158,27 +152,26 @@ export function LeadList() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-bg-border px-4 py-3">
-            <span className="text-xs text-text-muted">
+          <div className="flex items-center justify-between border-t border-border px-5 py-3">
+            <span className="text-xs text-muted">
               {data?.total ?? 0} leads totalt
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="rounded p-1 text-text-secondary hover:text-text-primary disabled:opacity-30"
+                className="rounded p-1 text-muted hover:text-fg disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-xs text-text-secondary">
+              <span className="text-xs text-muted">
                 {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="rounded p-1 text-text-secondary hover:text-text-primary disabled:opacity-30"
+                className="rounded p-1 text-muted hover:text-fg disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -194,31 +187,27 @@ function LeadRow({ lead, onClick }: { lead: Lead; onClick: () => void }) {
   return (
     <tr
       onClick={onClick}
-      className="cursor-pointer transition-colors hover:bg-bg-cardHover"
+      className="cursor-pointer transition-colors hover:bg-bg"
     >
-      <td className="px-4 py-3">
-        <div className="font-medium text-text-primary">{lead.name}</div>
-        {lead.email && (
-          <div className="text-xs text-text-muted">{lead.email}</div>
-        )}
+      <td className="px-5 py-4">
+        <div className="font-medium text-fg">{lead.name}</div>
+        {lead.email && <div className="text-xs text-muted">{lead.email}</div>}
       </td>
-      <td className="max-w-[200px] truncate px-4 py-3 text-text-secondary">
+      <td className="max-w-[240px] truncate px-5 py-4 text-muted">
         {lead.idea_summary ?? "-"}
       </td>
-      <td className="px-4 py-3 text-text-secondary">{lead.source_id}</td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-4 text-muted">{lead.source_id}</td>
+      <td className="px-5 py-4">
         <StatusBadge status={lead.status} />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-4">
         {lead.score != null ? (
-          <span className="font-mono text-text-primary">{lead.score}</span>
+          <span className="font-mono text-fg">{lead.score}</span>
         ) : (
-          <span className="text-text-muted">-</span>
+          <span className="text-subtle">-</span>
         )}
       </td>
-      <td className="px-4 py-3 text-text-secondary">
-        {formatDate(lead.created_at)}
-      </td>
+      <td className="px-5 py-4 text-muted">{formatDate(lead.created_at)}</td>
     </tr>
   );
 }
