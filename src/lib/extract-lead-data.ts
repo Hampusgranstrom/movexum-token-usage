@@ -18,9 +18,16 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med dessa f
   "phone": "telefonnummer",
   "municipality": "kommun där personen verkar",
   "organization": "företag eller organisation",
-  "idea_summary": "kort sammanfattning av startup-idén (max 2 meningar)",
+  "idea_summary": "utförlig sammanfattning av idén (2-4 meningar) med nuläge, osäkerheter och rekommenderat nästa steg",
   "idea_category": "en av: tech, social-impact, cleantech, health, education, fintech, food, other"
 }
+
+Regler för idea_summary:
+- Skriv på svenska i tredje person: "entreprenören ...".
+- Beskriv vad idén är och vilket problem den försöker lösa.
+- Nämn osäkerheter eller luckor i resonemanget om de framgår.
+- Avsluta med en kort rekommendation om vad som bör utvecklas vidare.
+- Undvik fluff och överdrivet positivt språk.
 
 Svara ENBART med JSON-objektet.`;
 
