@@ -12,12 +12,21 @@ type AdminUser = {
   last_sign_in_at: string | null;
 };
 
+type InviteResponse = {
+  ok?: boolean;
+  email_sent?: boolean;
+  invite_url?: string;
+  warning?: string;
+  error?: string;
+};
+
 export function AdminUsers({ currentUserId }: { currentUserId: string }) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "superadmin">("admin");
   const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteFallbackUrl, setInviteFallbackUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
@@ -43,18 +52,32 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
     e.preventDefault();
     setInviteBusy(true);
     setStatus(null);
+    setInviteFallbackUrl(null);
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
       });
-      const data = await res.json();
+      const data = (await res.json().catch(() => ({}))) as InviteResponse;
       if (!res.ok) {
-        setStatus({ kind: "err", text: data.error ?? "Kunde inte skicka inbjudan" });
+        setStatus({
+          kind: "err",
+          text: data.error ?? `Kunde inte skicka inbjudan (status ${res.status})`,
+        });
         return;
       }
-      setStatus({ kind: "ok", text: `Inbjudan skickad till ${inviteEmail}` });
+
+      if (data.email_sent === false && data.invite_url) {
+        setInviteFallbackUrl(data.invite_url);
+        setStatus({
+          kind: "ok",
+          text: data.warning ?? `Mail kunde inte skickas. Reservlänk skapad för ${inviteEmail}.`,
+        });
+      } else {
+        setStatus({ kind: "ok", text: `Inbjudan skickad till ${inviteEmail}` });
+      }
+
       setInviteEmail("");
       setInviteRole("admin");
       await load();
@@ -160,6 +183,28 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
           >
             {status.text}
           </p>
+        )}
+
+        {inviteFallbackUrl && (
+          <div className="mt-4 rounded-2xl bg-bg p-4 shadow-soft">
+            <p className="text-sm font-medium text-fg-deep">Reservlänk</p>
+            <p className="mt-1 text-xs text-muted">
+              Skicka länken manuellt om inbjudningsmailet inte levereras.
+            </p>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input readOnly value={inviteFallbackUrl} className="input text-xs" />
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(inviteFallbackUrl);
+                  setStatus({ kind: "ok", text: "Reservlänken kopierad" });
+                }}
+                className="btn-secondary sm:w-44"
+              >
+                Kopiera länk
+              </button>
+            </div>
+          </div>
         )}
       </section>
 
