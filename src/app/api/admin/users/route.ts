@@ -69,14 +69,13 @@ export async function POST(req: Request) {
 
   const origin = getAdminOrigin(req);
 
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "invite",
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(
     email,
-    options: {
+    {
       data: { role, invited_by: guard.user.id },
       redirectTo: `${origin}/accept-invite`,
     },
-  });
+  );
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
@@ -84,17 +83,24 @@ export async function POST(req: Request) {
 
   // Trigger on auth.users creates the app_users row with default 'admin'.
   // If the superadmin requested a superadmin invite, upgrade it here.
-  if (role === "superadmin" && data.user) {
-    await admin
-      .from("app_users")
-      .update({ role: "superadmin" })
-      .eq("id", data.user.id);
+  if (role === "superadmin") {
+    if (data.user?.id) {
+      await admin
+        .from("app_users")
+        .update({ role: "superadmin" })
+        .eq("id", data.user.id);
+    } else {
+      await admin
+        .from("app_users")
+        .update({ role: "superadmin" })
+        .eq("email", email);
+    }
   }
 
   return NextResponse.json({
     ok: true,
     user_id: data.user?.id ?? null,
-    invite_url: data.properties?.action_link ?? null,
-    redirect_to: data.properties?.redirect_to ?? `${origin}/accept-invite`,
+    email_sent: true,
+    redirect_to: `${origin}/accept-invite`,
   });
 }

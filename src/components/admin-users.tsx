@@ -12,18 +12,12 @@ type AdminUser = {
   last_sign_in_at: string | null;
 };
 
-type InviteResult = {
-  email: string;
-  url: string;
-};
-
 export function AdminUsers({ currentUserId }: { currentUserId: string }) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "superadmin">("admin");
   const [inviteBusy, setInviteBusy] = useState(false);
-  const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
@@ -49,7 +43,6 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
     e.preventDefault();
     setInviteBusy(true);
     setStatus(null);
-    setInviteResult(null);
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -61,10 +54,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
         setStatus({ kind: "err", text: data.error ?? "Kunde inte skicka inbjudan" });
         return;
       }
-      setStatus({ kind: "ok", text: `Inbjudan skapad för ${inviteEmail}` });
-      if (typeof data.invite_url === "string" && data.invite_url.length > 0) {
-        setInviteResult({ email: inviteEmail, url: data.invite_url });
-      }
+      setStatus({ kind: "ok", text: `Inbjudan skickad till ${inviteEmail}` });
       setInviteEmail("");
       setInviteRole("admin");
       await load();
@@ -116,7 +106,8 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
           Bjud in admin
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Skapa en säker inbjudningslänk som du kan skicka direkt till personen. Det undviker problem med skräppost och felaktiga e-postlänkar.
+          Ett inbjudningsmail skickas till personen. De klickar länken i mailet,
+          väljer lösenord och loggar sedan in.
         </p>
         <form
           onSubmit={handleInvite}
@@ -156,7 +147,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
             className="btn-primary sm:w-52"
           >
             <ArrowRight className="h-4 w-4" />
-            {inviteBusy ? "Skapar..." : "Skapa inbjudan"}
+            {inviteBusy ? "Skickar..." : "Skicka inbjudan"}
           </button>
         </form>
 
@@ -169,34 +160,6 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
           >
             {status.text}
           </p>
-        )}
-
-        {inviteResult && (
-          <div className="mt-4 rounded-2xl bg-bg p-4 shadow-soft">
-            <p className="text-sm font-medium text-fg-deep">
-              Dela länken med {inviteResult.email}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              Använd den här länken direkt om e-post hamnar i skräppost eller inte levereras.
-            </p>
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <input
-                readOnly
-                value={inviteResult.url}
-                className="input text-xs"
-              />
-              <button
-                type="button"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(inviteResult.url);
-                  setStatus({ kind: "ok", text: "Inbjudningslänken kopierad" });
-                }}
-                className="btn-secondary sm:w-44"
-              >
-                Kopiera länk
-              </button>
-            </div>
-          </div>
         )}
       </section>
 
