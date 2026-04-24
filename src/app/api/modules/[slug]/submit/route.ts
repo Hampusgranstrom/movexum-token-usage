@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { hasConsent } from "@/lib/consent";
 import { getModuleBySlug } from "@/lib/modules";
+import { logAnalyticsEvent } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -106,6 +107,28 @@ export async function POST(req: Request, ctx: Ctx) {
       .update({ lead_id: lead.id, completed_at: new Date().toISOString() })
       .eq("module_id", mod.id)
       .eq("session_id", body.sessionId),
+  ]);
+
+  await Promise.all([
+    logAnalyticsEvent({
+      eventType: "flow_completed",
+      leadId: lead.id,
+      metadata: {
+        module_id: mod.id,
+        module_slug: mod.slug,
+        session_id: body.sessionId,
+      },
+    }),
+    logAnalyticsEvent({
+      eventType: "lead_created",
+      leadId: lead.id,
+      metadata: {
+        source: mod.lead_source_id ?? "web",
+        module_id: mod.id,
+        module_slug: mod.slug,
+        session_id: body.sessionId,
+      },
+    }),
   ]);
 
   return NextResponse.json({ ok: true, leadId: lead.id });

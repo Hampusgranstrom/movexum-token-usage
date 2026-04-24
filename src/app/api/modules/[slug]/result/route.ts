@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getModuleBySlug } from "@/lib/modules";
 import { hasConsent } from "@/lib/consent";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { logAnalyticsEvent } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,16 @@ export async function POST(req: Request, ctx: Ctx) {
       best = s;
     }
   }
+
+  await logAnalyticsEvent({
+    eventType: "quiz_result_viewed",
+    metadata: {
+      module_id: mod.id,
+      module_slug: mod.slug,
+      session_id: sessionId,
+      bucket_key: winner.key,
+    },
+  });
 
   return NextResponse.json({
     bucket: winner,

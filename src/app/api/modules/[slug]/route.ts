@@ -4,6 +4,7 @@ import { getQuestionsForSession } from "@/lib/questions";
 import { getBrandSettings } from "@/lib/brand";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { hashIp, getClientIp, sha256 } from "@/lib/pii";
+import { logAnalyticsEvent } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,31 +34,46 @@ export async function GET(req: Request, ctx: Ctx) {
 
   const questions = await getQuestionsForSession(mod.id, sessionId);
 
-  // Upsert module_session
+  // Ensure module_session exists (idempotent) and log session start once.
   const admin = getSupabaseAdmin();
   if (admin) {
-    const ip = getClientIp(req.headers);
-    const ip_hash = await hashIp(ip);
-    const ua = req.headers.get("user-agent") ?? "";
-    const user_agent_hash = ua ? await sha256(`${ua}|mvx-v1`) : "";
-
-    await admin
+    const { data: existing } = await admin
       .from("module_sessions")
-      .upsert(
-        {
+      .select("id")
+      .eq("module_id", mod.id)
+      .eq("session_id", sessionId)
+      .maybeSingle();
+
+    if (!existing) {
+      const ip = getClientIp(req.headers);
+      const ip_hash = await hashIp(ip);
+      const ua = req.headers.get("user-agent") ?? "";
+      const user_agent_hash = ua ? await sha256(`${ua}|mvx-v1`) : "";
+
+      await admin.from("module_sessions").insert({
+        module_id: mod.id,
+        session_id: sessionId,
+        ip_hash,
+        user_agent_hash,
+        utm_source: url.searchParams.get("utm_source"),
+        utm_medium: url.searchParams.get("utm_medium"),
+        utm_campaign: url.searchParams.get("utm_campaign"),
+        referer: req.headers.get("referer"),
+        locale: req.headers.get("accept-language")?.slice(0, 5) ?? null,
+      });
+
+      await logAnalyticsEvent({
+        eventType: "session_started",
+        metadata: {
           module_id: mod.id,
-          session_id: sessionId,
-          ip_hash,
-          user_agent_hash,
+          module_slug: mod.slug,
+          flow_type: mod.flow_type,
           utm_source: url.searchParams.get("utm_source"),
           utm_medium: url.searchParams.get("utm_medium"),
           utm_campaign: url.searchParams.get("utm_campaign"),
-          referer: req.headers.get("referer"),
-          locale: req.headers.get("accept-language")?.slice(0, 5) ?? null,
         },
-        { onConflict: "module_id,session_id", ignoreDuplicates: true },
-      )
-      .select();
+      });
+    }
   }
 
   // Never expose system_prompt to public — it could leak adversarial tricks

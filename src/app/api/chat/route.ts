@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { INTAKE_SYSTEM_PROMPT } from "@/config/system-prompt";
 import { getModuleBySlug } from "@/lib/modules";
 import { hasConsent } from "@/lib/consent";
+import { logAnalyticsEvent } from "@/lib/analytics";
 import type { ChatRequestBody, ExtractedLeadData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -140,7 +141,18 @@ export async function POST(request: Request) {
           .insert({ session_id: sessionId, module_id: moduleId })
           .select("id")
           .single();
-        if (!convErr && conv) convId = conv.id;
+        if (!convErr && conv) {
+          convId = conv.id;
+          await logAnalyticsEvent({
+            eventType: "chat_started",
+            metadata: {
+              conversation_id: conv.id,
+              session_id: sessionId,
+              module_id: moduleId,
+              module_slug: mod?.slug ?? null,
+            },
+          });
+        }
       }
 
       if (convId) {
@@ -169,6 +181,17 @@ export async function POST(request: Request) {
             total_output_tokens: result.usage.outputTokens,
           })
           .eq("id", convId);
+
+        await logAnalyticsEvent({
+          eventType: "chat_exchange",
+          metadata: {
+            conversation_id: convId,
+            session_id: sessionId,
+            module_id: moduleId,
+            input_tokens: result.usage.inputTokens,
+            output_tokens: result.usage.outputTokens,
+          },
+        });
       }
 
       try {

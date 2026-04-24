@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getModuleBySlug } from "@/lib/modules";
 import { recordConsent } from "@/lib/consent";
+import { logAnalyticsEvent } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -33,5 +34,16 @@ export async function POST(req: Request, ctx: Ctx) {
   if (!ok) {
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
+
+  await logAnalyticsEvent({
+    eventType: "consent_given",
+    metadata: {
+      module_id: mod.id,
+      module_slug: mod.slug,
+      session_id: sessionId,
+      consent_version: mod.consent_version,
+    },
+  });
+
   return NextResponse.json({ ok: true });
 }

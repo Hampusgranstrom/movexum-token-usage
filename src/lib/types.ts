@@ -107,50 +107,100 @@ export type DashboardSummary = {
 export type AnalysisSummary = {
   periodDays: number;
   generatedAt: string;
-  kpis: {
-    leadsPeriod: number;
-    conversationsPeriod: number;
-    messagesPeriod: number;
-    leadToAcceptedRate: number;
-    leadCaptureRate: number;
+  overview: {
+    users: number;
+    sessions: number;
+    engagedSessions: number;
+    bounceRate: number;
+    leads: number;
+    acceptedLeads: number;
+    leadConversionRate: number;
     avgScore: number;
-    avgOutputTokensPerAssistantMessage: number;
+    avgAssistantOutputTokens: number;
   };
-  series: {
+  trend: {
+    sessionsPerDay: Array<{ date: string; count: number }>;
     leadsPerDay: Array<{ date: string; count: number }>;
-    conversationsPerDay: Array<{ date: string; count: number }>;
-    tokensPerDay: Array<{ date: string; input: number; output: number }>;
+    messagesPerDay: Array<{ date: string; count: number }>;
   };
-  sourcePerformance: Array<{
-    source_id: string;
-    label: string;
-    total: number;
-    accepted: number;
-    acceptedRate: number;
-  }>;
-  modulePerformance: Array<{
-    module_id: string;
-    slug: string;
-    name: string;
-    started: number;
-    completed: number;
-    leadsCreated: number;
-    completionRate: number;
-    leadRate: number;
-  }>;
-  statusBreakdown: Array<{
-    status: LeadStatus;
-    label: string;
-    count: number;
-  }>;
-  topMunicipalities: Array<{
-    municipality: string;
-    count: number;
-  }>;
-  eventCounts: Array<{
-    eventType: string;
-    count: number;
-  }>;
+  acquisition: {
+    channels: Array<{
+      channel: string;
+      medium: string;
+      sessions: number;
+      engagedSessions: number;
+      leads: number;
+      conversionRate: number;
+    }>;
+    campaigns: Array<{
+      campaign: string;
+      sessions: number;
+      leads: number;
+    }>;
+    referrers: Array<{
+      referrer: string;
+      sessions: number;
+    }>;
+    locales: Array<{
+      locale: string;
+      sessions: number;
+    }>;
+  };
+  engagement: {
+    avgMessagesPerConversation: number;
+    avgQuestionsAnsweredPerSession: number;
+    avgResponseTimeMs: number;
+    events: Array<{
+      eventType: string;
+      count: number;
+    }>;
+    moduleEngagement: Array<{
+      module_id: string;
+      slug: string;
+      name: string;
+      sessions: number;
+      engagedSessions: number;
+      completionRate: number;
+      leadRate: number;
+      avgResponsesPerSession: number;
+    }>;
+  };
+  conversion: {
+    steps: Array<{
+      step: string;
+      count: number;
+      rateFromPrevious: number;
+    }>;
+    moduleFunnel: Array<{
+      module_id: string;
+      slug: string;
+      name: string;
+      started: number;
+      completed: number;
+      leads: number;
+      accepted: number;
+    }>;
+  };
+  geography: {
+    municipalities: Array<{
+      municipality: string;
+      count: number;
+    }>;
+  };
+  quality: {
+    statusBreakdown: Array<{
+      status: LeadStatus;
+      label: string;
+      count: number;
+    }>;
+    sourcePerformance: Array<{
+      source_id: string;
+      label: string;
+      total: number;
+      accepted: number;
+      acceptedRate: number;
+    }>;
+  };
 };
 
 // --- Lead list API ---
