@@ -68,7 +68,7 @@ export function LeadList() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl sm:text-5xl">
-            <span className="text-accent">Inflöde</span> av idéer
+            Inflöde av idéer
           </h1>
           <p className="mt-2 text-sm text-muted">
             Alla leads som kommit in via chatt, event och formulär
