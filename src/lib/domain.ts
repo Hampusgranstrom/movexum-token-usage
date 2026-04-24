@@ -48,13 +48,15 @@ export function getPublicOrigin(req: Request): string {
 export function isAdminRoute(path: string): boolean {
   return (
     path.startsWith("/dashboard") ||
+    path.startsWith("/analysis") ||
     path.startsWith("/admin") ||
     path.startsWith("/leads") ||
     path.startsWith("/login") ||
     path.startsWith("/accept-invite") ||
     path.startsWith("/api/admin") ||
     path.startsWith("/api/leads") ||
-    path.startsWith("/api/dashboard")
+    path.startsWith("/api/dashboard") ||
+    path.startsWith("/api/analysis")
   );
 }
 

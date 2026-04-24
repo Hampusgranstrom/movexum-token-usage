@@ -14,6 +14,13 @@ type QuizResult = {
   all_buckets: ResultBucket[];
 };
 
+type QuizContact = {
+  name: string;
+  email: string;
+  phone: string;
+  municipality: string;
+};
+
 export function ModuleQuiz({
   slug,
   sessionId,
@@ -31,6 +38,15 @@ export function ModuleQuiz({
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<QuizResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [contact, setContact] = useState<QuizContact>({
+    name: "",
+    email: "",
+    phone: "",
+    municipality: "",
+  });
+  const [sendingLead, setSendingLead] = useState(false);
+  const [leadSent, setLeadSent] = useState(false);
+  const [leadError, setLeadError] = useState<string | null>(null);
   const startRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -48,7 +64,59 @@ export function ModuleQuiz({
   }
 
   if (result) {
-    return <QuizResultView result={result} onRestart={() => location.reload()} />;
+    return (
+      <QuizResultView
+        result={result}
+        contact={contact}
+        sendingLead={sendingLead}
+        leadSent={leadSent}
+        leadError={leadError}
+        onContactChange={setContact}
+        onSubmitLead={async () => {
+          const name = contact.name.trim();
+          const email = contact.email.trim();
+          const phone = contact.phone.trim();
+          if (!name || (!email && !phone)) {
+            setLeadError("Fyll i namn och minst e-post eller telefon.");
+            return;
+          }
+
+          setSendingLead(true);
+          setLeadError(null);
+          try {
+            const res = await fetch(`/api/modules/${slug}/submit`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sessionId,
+                answers: {
+                  name,
+                  email: email || null,
+                  phone: phone || null,
+                  municipality: contact.municipality.trim() || null,
+                  idea_summary: `Quizresultat (${result.bucket.title}): ${result.bucket.description}`,
+                  idea_category: result.bucket.key,
+                },
+              }),
+            });
+            const data = (await res.json()) as { error?: string };
+            if (!res.ok) {
+              throw new Error(data.error ?? "Kunde inte spara kontaktuppgifter");
+            }
+            setLeadSent(true);
+          } catch (err) {
+            setLeadError(
+              err instanceof Error
+                ? err.message
+                : "Kunde inte spara kontaktuppgifter",
+            );
+          } finally {
+            setSendingLead(false);
+          }
+        }}
+        onRestart={() => location.reload()}
+      />
+    );
   }
 
   const q = active[idx];
@@ -200,9 +268,21 @@ export function ModuleQuiz({
 
 function QuizResultView({
   result,
+  contact,
+  sendingLead,
+  leadSent,
+  leadError,
+  onContactChange,
+  onSubmitLead,
   onRestart,
 }: {
   result: QuizResult;
+  contact: QuizContact;
+  sendingLead: boolean;
+  leadSent: boolean;
+  leadError: string | null;
+  onContactChange: (next: QuizContact) => void;
+  onSubmitLead: () => Promise<void>;
   onRestart: () => void;
 }) {
   const { bucket, scores, all_buckets } = result;
@@ -303,6 +383,91 @@ function QuizResultView({
           Gör om testet
         </button>
       </div>
+
+      <section className="card p-6">
+        <span className="eyebrow">Kontaktuppgifter</span>
+        <h3 className="mt-2 text-2xl">Vill du att Movexum återkopplar?</h3>
+        <p className="mt-2 text-sm text-muted">
+          Lämna namn och minst en kontaktväg. Lägg gärna till kommun.
+        </p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Namn *
+            </span>
+            <input
+              type="text"
+              className="input"
+              value={contact.name}
+              onChange={(e) =>
+                onContactChange({ ...contact, name: e.target.value })
+              }
+              autoComplete="name"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              E-post
+            </span>
+            <input
+              type="email"
+              className="input"
+              value={contact.email}
+              onChange={(e) =>
+                onContactChange({ ...contact, email: e.target.value })
+              }
+              autoComplete="email"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Telefon
+            </span>
+            <input
+              type="tel"
+              className="input"
+              value={contact.phone}
+              onChange={(e) =>
+                onContactChange({ ...contact, phone: e.target.value })
+              }
+              autoComplete="tel"
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Kommun
+            </span>
+            <input
+              type="text"
+              className="input"
+              value={contact.municipality}
+              onChange={(e) =>
+                onContactChange({ ...contact, municipality: e.target.value })
+              }
+              autoComplete="address-level2"
+            />
+          </label>
+        </div>
+
+        {leadError && <p className="mt-3 text-sm text-danger">{leadError}</p>}
+
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={() => void onSubmitLead()}
+            disabled={sendingLead || leadSent}
+            className="btn-primary"
+          >
+            <ArrowRight className="h-4 w-4" />
+            {leadSent
+              ? "Tack! Vi återkopplar"
+              : sendingLead
+                ? "Sparar..."
+                : "Skicka till Movexum"}
+          </button>
+        </div>
+      </section>
     </motion.div>
   );
 }

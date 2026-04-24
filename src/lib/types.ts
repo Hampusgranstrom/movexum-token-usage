@@ -36,6 +36,7 @@ export type Lead = {
   name: string;
   email: string | null;
   phone: string | null;
+  municipality: string | null;
   organization: string | null;
   idea_summary: string | null;
   idea_category: string | null;
@@ -55,6 +56,7 @@ export type ExtractedLeadData = {
   name?: string;
   email?: string;
   phone?: string;
+  municipality?: string;
   organization?: string;
   idea_summary?: string;
   idea_category?: string;
@@ -96,6 +98,57 @@ export type DashboardSummary = {
   funnel: Array<{
     status: LeadStatus;
     label: string;
+    count: number;
+  }>;
+};
+
+// --- Analysis API ---
+
+export type AnalysisSummary = {
+  periodDays: number;
+  generatedAt: string;
+  kpis: {
+    leadsPeriod: number;
+    conversationsPeriod: number;
+    messagesPeriod: number;
+    leadToAcceptedRate: number;
+    leadCaptureRate: number;
+    avgScore: number;
+    avgOutputTokensPerAssistantMessage: number;
+  };
+  series: {
+    leadsPerDay: Array<{ date: string; count: number }>;
+    conversationsPerDay: Array<{ date: string; count: number }>;
+    tokensPerDay: Array<{ date: string; input: number; output: number }>;
+  };
+  sourcePerformance: Array<{
+    source_id: string;
+    label: string;
+    total: number;
+    accepted: number;
+    acceptedRate: number;
+  }>;
+  modulePerformance: Array<{
+    module_id: string;
+    slug: string;
+    name: string;
+    started: number;
+    completed: number;
+    leadsCreated: number;
+    completionRate: number;
+    leadRate: number;
+  }>;
+  statusBreakdown: Array<{
+    status: LeadStatus;
+    label: string;
+    count: number;
+  }>;
+  topMunicipalities: Array<{
+    municipality: string;
+    count: number;
+  }>;
+  eventCounts: Array<{
+    eventType: string;
     count: number;
   }>;
 };

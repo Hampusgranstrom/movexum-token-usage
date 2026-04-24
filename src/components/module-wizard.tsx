@@ -7,6 +7,12 @@ import type { QuestionWithVariant } from "@/lib/questions";
 import { cn } from "@/lib/utils";
 
 type AnswerMap = Record<string, unknown>;
+type ContactAnswers = {
+  name: string;
+  email: string;
+  phone: string;
+  municipality: string;
+};
 
 export function ModuleWizard({
   slug,
@@ -27,6 +33,12 @@ export function ModuleWizard({
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contact, setContact] = useState<ContactAnswers>({
+    name: "",
+    email: "",
+    phone: "",
+    municipality: "",
+  });
   const questionStartRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -43,13 +55,25 @@ export function ModuleWizard({
     );
   }
 
-  const q = activeQuestions[idx];
-  const value = answers[q.key];
-  const isLast = idx === activeQuestions.length - 1;
+  const totalSteps = activeQuestions.length + 1;
+  const isContactStep = idx === activeQuestions.length;
+  const q = isContactStep ? null : activeQuestions[idx];
+  const value = q ? answers[q.key] : undefined;
+  const isLast = idx === totalSteps - 1;
 
-  const setValue = (v: unknown) => setAnswers({ ...answers, [q.key]: v });
+  const setValue = (v: unknown) => {
+    if (!q) return;
+    setAnswers({ ...answers, [q.key]: v });
+  };
 
   const canAdvance = (() => {
+    if (isContactStep) {
+      if (!contact.name.trim()) return false;
+      if (requireEmail && !contact.email.trim()) return false;
+      if (requirePhone && !contact.phone.trim()) return false;
+      return true;
+    }
+    if (!q) return false;
     if (!q.required) return true;
     if (q.type === "multi_choice") {
       return Array.isArray(value) && value.length > 0;
@@ -62,6 +86,7 @@ export function ModuleWizard({
 
   const logAnswer = async (skipped: boolean) => {
     const responseTimeMs = Date.now() - questionStartRef.current;
+    if (!q) return;
     await fetch(`/api/modules/${slug}/answer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,15 +104,26 @@ export function ModuleWizard({
   };
 
   const next = async () => {
-    await logAnswer(false);
-    if (isLast) {
+    if (!isContactStep) {
+      await logAnswer(false);
+    }
+    if (isLast || isContactStep) {
       setSubmitting(true);
       setError(null);
       try {
         const res = await fetch(`/api/modules/${slug}/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, answers }),
+          body: JSON.stringify({
+            sessionId,
+            answers: {
+              ...answers,
+              name: contact.name,
+              email: contact.email,
+              phone: contact.phone,
+              municipality: contact.municipality,
+            },
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -104,6 +140,7 @@ export function ModuleWizard({
   };
 
   const skip = async () => {
+    if (isContactStep || !q) return;
     await logAnswer(true);
     if (isLast) {
       setSubmitting(true);
@@ -143,7 +180,7 @@ export function ModuleWizard({
     );
   }
 
-  const progress = ((idx + 1) / activeQuestions.length) * 100;
+  const progress = ((idx + 1) / totalSteps) * 100;
 
   return (
     <div className="rounded-2xl bg-surface p-8 shadow-card">
@@ -162,38 +199,114 @@ export function ModuleWizard({
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={q.id}
+          key={isContactStep ? "contact-step" : q?.id}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
         >
-          <label
-            htmlFor={`q-${q.id}`}
-            className="block text-xl font-medium text-fg-deep sm:text-2xl"
-          >
-            {q.text}
-            {q.required && (
-              <span className="ml-1 text-accent" aria-hidden>
-                *
-              </span>
-            )}
-          </label>
-          {q.help && (
-            <p className="mt-2 text-sm text-muted" id={`q-${q.id}-help`}>
-              {q.help}
-            </p>
-          )}
+          {isContactStep ? (
+            <div>
+              <h2 className="text-xl font-medium text-fg-deep sm:text-2xl">
+                Sista steget: kontaktuppgifter
+              </h2>
+              <p className="mt-2 text-sm text-muted">
+                Fyll i dina uppgifter så att vi kan återkoppla kring idén.
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                    Namn *
+                  </span>
+                  <input
+                    type="text"
+                    value={contact.name}
+                    onChange={(e) =>
+                      setContact((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    className="input"
+                    autoComplete="name"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                    E-post{requireEmail ? " *" : ""}
+                  </span>
+                  <input
+                    type="email"
+                    value={contact.email}
+                    onChange={(e) =>
+                      setContact((prev) => ({ ...prev, email: e.target.value }))
+                    }
+                    className="input"
+                    autoComplete="email"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                    Telefon{requirePhone ? " *" : ""}
+                  </span>
+                  <input
+                    type="tel"
+                    value={contact.phone}
+                    onChange={(e) =>
+                      setContact((prev) => ({ ...prev, phone: e.target.value }))
+                    }
+                    className="input"
+                    autoComplete="tel"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                    Kommun
+                  </span>
+                  <input
+                    type="text"
+                    value={contact.municipality}
+                    onChange={(e) =>
+                      setContact((prev) => ({
+                        ...prev,
+                        municipality: e.target.value,
+                      }))
+                    }
+                    className="input"
+                    autoComplete="address-level2"
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
+            <>
+              <label
+                htmlFor={`q-${q?.id}`}
+                className="block text-xl font-medium text-fg-deep sm:text-2xl"
+              >
+                {q?.text}
+                {q?.required && (
+                  <span className="ml-1 text-accent" aria-hidden>
+                    *
+                  </span>
+                )}
+              </label>
+              {q?.help && (
+                <p className="mt-2 text-sm text-muted" id={`q-${q.id}-help`}>
+                  {q.help}
+                </p>
+              )}
 
-          <div className="mt-6">
-            <QuestionInput
-              question={q}
-              value={value}
-              onChange={setValue}
-              requireEmail={requireEmail}
-              requirePhone={requirePhone}
-            />
-          </div>
+              <div className="mt-6">
+                {q && (
+                  <QuestionInput
+                    question={q}
+                    value={value}
+                    onChange={setValue}
+                    requireEmail={requireEmail}
+                    requirePhone={requirePhone}
+                  />
+                )}
+              </div>
+            </>
+          )}
 
           {error && <p className="mt-4 text-sm text-danger">{error}</p>}
 
@@ -208,7 +321,7 @@ export function ModuleWizard({
               Tillbaka
             </button>
             <div className="flex items-center gap-2">
-              {!q.required && (
+              {!isContactStep && q && !q.required && (
                 <button
                   type="button"
                   onClick={skip}
