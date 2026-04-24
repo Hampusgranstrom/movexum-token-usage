@@ -18,15 +18,28 @@ export function SecurityEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [savingPolicy, setSavingPolicy] = useState(false);
+  const [declinedMonths, setDeclinedMonths] = useState(12);
+  const [inactiveMonths, setInactiveMonths] = useState(24);
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/security-events?limit=200");
-      if (res.ok) {
-        const d = await res.json();
+      const [eventsRes, retentionRes] = await Promise.all([
+        fetch("/api/admin/security-events?limit=200"),
+        fetch("/api/admin/retention"),
+      ]);
+
+      if (eventsRes.ok) {
+        const d = await eventsRes.json();
         setEvents(d.events ?? []);
+      }
+
+      if (retentionRes.ok) {
+        const d = await retentionRes.json();
+        setDeclinedMonths(d.config?.declinedMonths ?? 12);
+        setInactiveMonths(d.config?.inactiveMonths ?? 24);
       }
     } finally {
       setLoading(false);
@@ -54,6 +67,26 @@ export function SecurityEvents() {
     }
   };
 
+  const savePolicy = async () => {
+    setSavingPolicy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/retention", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ declinedMonths, inactiveMonths }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMsg(`Fel: ${data.error ?? "okänt"}`);
+        return;
+      }
+      setMsg("Retention-policy uppdaterad");
+    } finally {
+      setSavingPolicy(false);
+    }
+  };
+
   return (
     <div className="space-y-10">
       <header className="max-w-2xl space-y-3">
@@ -70,10 +103,42 @@ export function SecurityEvents() {
       <section className="card p-6">
         <h2 className="eyebrow">Retention</h2>
         <p className="mt-3 text-sm text-muted">
-          Anonymiserar avvisade leads äldre än 12 månader och inaktiva leads
-          äldre än 24 månader. Idempotent.
+          Ställ in anonymiseringspolicy och kör retention manuellt vid behov. För autonom körning kan en scheduler anropa samma endpoint med x-retention-token (RETENTION_CRON_SECRET).
         </p>
-        <div className="mt-4 flex items-center gap-3">
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Declined anonymiseras efter (mån)
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              className="input"
+              value={declinedMonths}
+              onChange={(e) => setDeclinedMonths(Number(e.target.value))}
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Övriga anonymiseras efter (mån)
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              className="input"
+              value={inactiveMonths}
+              onChange={(e) => setInactiveMonths(Number(e.target.value))}
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button onClick={savePolicy} disabled={savingPolicy} className="btn-secondary">
+            {savingPolicy ? "Sparar..." : "Spara policy"}
+          </button>
           <button onClick={runRetention} disabled={running} className="btn-primary">
             <Play className="h-4 w-4" />
             {running ? "Kör..." : "Kör retention nu"}

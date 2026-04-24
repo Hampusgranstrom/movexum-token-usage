@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { DEFAULT_SOURCES } from "@/config/lead-sources";
 import { isValidUuid, sanitizeLeadPatch } from "@/lib/validation";
-import type { Lead } from "@/lib/types";
+import type { Lead, LeadQuestionResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,7 +42,30 @@ export async function GET(_request: Request, context: RouteContext) {
     .eq("lead_id", id)
     .order("created_at", { ascending: false });
 
-  return NextResponse.json({ lead: lead as Lead, conversations: conversations ?? [] });
+  const { data: responses } = await supabase
+    .from("question_responses")
+    .select(
+      "id, created_at, skipped, response_time_ms, answer, question:questions(key), variant:question_variants(label,text)",
+    )
+    .eq("lead_id", id)
+    .order("created_at", { ascending: true });
+
+  const mappedResponses: LeadQuestionResponse[] = (responses ?? []).map((r: any) => ({
+    id: r.id,
+    created_at: r.created_at,
+    skipped: !!r.skipped,
+    response_time_ms: r.response_time_ms ?? null,
+    answer: r.answer,
+    question_key: r.question?.key ?? "unknown",
+    question_text: r.variant?.text ?? null,
+    variant_label: r.variant?.label ?? null,
+  }));
+
+  return NextResponse.json({
+    lead: lead as Lead,
+    conversations: conversations ?? [],
+    responses: mappedResponses,
+  });
 }
 
 export async function PATCH(request: Request, context: RouteContext) {

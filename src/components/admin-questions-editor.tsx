@@ -62,6 +62,7 @@ export function QuestionsEditor({
   const [newText, setNewText] = useState("");
   const [newType, setNewType] = useState<QType>("short_text");
   const [newRequired, setNewRequired] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,6 +72,9 @@ export function QuestionsEditor({
         const d = await res.json();
         setQuestions(d.questions ?? []);
         setVariants(d.variants ?? []);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Kunde inte ladda frågor");
       }
     } finally {
       setLoading(false);
@@ -84,12 +88,14 @@ export function QuestionsEditor({
   const addQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdding(true);
+    setError(null);
     try {
+      const normalizedKey = newKey.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
       const res = await fetch(`/api/admin/modules/${moduleId}/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          key: newKey,
+          key: normalizedKey,
           text: newText,
           type: newType,
           required: newRequired,
@@ -101,6 +107,9 @@ export function QuestionsEditor({
         setNewType("short_text");
         setNewRequired(false);
         await load();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Kunde inte lägga till fråga");
       }
     } finally {
       setAdding(false);
@@ -150,6 +159,7 @@ export function QuestionsEditor({
       <section className="card p-6">
         <h2 className="eyebrow">Ny fråga</h2>
         <form onSubmit={addQuestion} className="mt-4 space-y-3">
+          {error && <p className="text-sm text-danger">{error}</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <input
               required
