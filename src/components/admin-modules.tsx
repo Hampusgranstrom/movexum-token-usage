@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { DataFilters } from "./data-filters";
 import { QrDownloadButton } from "@/components/qr-download-button";
 
 type Module = {
@@ -25,6 +26,9 @@ export function AdminModules() {
   const [name, setName] = useState("");
   const [flow, setFlow] = useState<"wizard" | "chat" | "quiz">("wizard");
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [flowFilter, setFlowFilter] = useState<"alla" | "wizard" | "chat" | "hybrid" | "quiz">("alla");
+  const [activeFilter, setActiveFilter] = useState<"alla" | "active" | "inactive">("alla");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +80,29 @@ export function AdminModules() {
       setCreating(false);
     }
   };
+
+  const filteredModules = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return modules.filter((m) => {
+      const searchOk =
+        q.length === 0
+          ? true
+          : m.name.toLowerCase().includes(q) ||
+            m.slug.toLowerCase().includes(q) ||
+            (m.description ?? "").toLowerCase().includes(q);
+
+      const flowOk = flowFilter === "alla" ? true : m.flow_type === flowFilter;
+      const activeOk =
+        activeFilter === "alla"
+          ? true
+          : activeFilter === "active"
+            ? m.is_active
+            : !m.is_active;
+
+      return searchOk && flowOk && activeOk;
+    });
+  }, [modules, search, flowFilter, activeFilter]);
 
   return (
     <div className="space-y-10">
@@ -145,6 +172,44 @@ export function AdminModules() {
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       </section>
 
+      <DataFilters
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Filtrera modulnamn, slug eller beskrivning..."
+        selects={[
+          {
+            key: "flow",
+            label: "Flöde",
+            value: flowFilter,
+            onChange: (value) =>
+              setFlowFilter(value as "alla" | "wizard" | "chat" | "hybrid" | "quiz"),
+            options: [
+              { value: "alla", label: "Alla" },
+              { value: "wizard", label: "Wizard" },
+              { value: "chat", label: "Chat" },
+              { value: "hybrid", label: "Hybrid" },
+              { value: "quiz", label: "Quiz" },
+            ],
+          },
+          {
+            key: "active",
+            label: "Status",
+            value: activeFilter,
+            onChange: (value) => setActiveFilter(value as "alla" | "active" | "inactive"),
+            options: [
+              { value: "alla", label: "Alla" },
+              { value: "active", label: "Aktiva" },
+              { value: "inactive", label: "Inaktiva" },
+            ],
+          },
+        ]}
+        onClear={() => {
+          setSearch("");
+          setFlowFilter("alla");
+          setActiveFilter("alla");
+        }}
+      />
+
       <section className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -165,14 +230,14 @@ export function AdminModules() {
                     Laddar...
                   </td>
                 </tr>
-              ) : modules.length === 0 ? (
+              ) : filteredModules.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-muted">
                     Inga moduler än. Skapa en ovan.
                   </td>
                 </tr>
               ) : (
-                modules.map((m) => (
+                filteredModules.map((m) => (
                   <tr key={m.id}>
                     <td className="px-6 py-4">
                       <Link

@@ -2,26 +2,18 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DataFilters } from "./data-filters";
 import { StatusBadge } from "./status-badge";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import type { Lead, LeadStatus, LeadListResponse } from "@/lib/types";
-
-const TABS: Array<{ key: LeadStatus | "alla"; label: string }> = [
-  { key: "alla", label: "Alla" },
-  { key: "new", label: "Ny" },
-  { key: "contacted", label: "Kontaktad" },
-  { key: "meeting-booked", label: "Möte bokat" },
-  { key: "evaluating", label: "Utvärderas" },
-  { key: "accepted", label: "Antagen" },
-  { key: "declined", label: "Avböjd" },
-];
 
 export function LeadList() {
   const router = useRouter();
   const [data, setData] = useState<LeadListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<LeadStatus | "alla">("alla");
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -50,15 +42,9 @@ export function LeadList() {
     fetchLeads();
   }, [fetchLeads]);
 
-  const handleStatusChange = (s: LeadStatus | "alla") => {
-    setStatus(s);
+  const applyFilters = () => {
     setPage(1);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    fetchLeads();
+    setSearch(searchInput.trim());
   };
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
@@ -75,34 +61,41 @@ export function LeadList() {
           </p>
         </div>
 
-        <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Sök namn, e-post, idé..."
-            className="input pl-11 sm:w-80"
-          />
-        </form>
+        <p className="text-xs text-muted">{data?.total ?? 0} matchande leads</p>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleStatusChange(tab.key)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-xs font-medium transition",
-              status === tab.key
-                ? "bg-fg text-white shadow-soft"
-                : "bg-surface text-muted shadow-soft hover:text-fg",
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <DataFilters
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onSearchSubmit={applyFilters}
+        searchPlaceholder="Sök namn, e-post, idé eller kommun..."
+        selects={[
+          {
+            key: "status",
+            label: "Status",
+            value: status,
+            onChange: (value) => {
+              setStatus(value as LeadStatus | "alla");
+              setPage(1);
+            },
+            options: [
+              { value: "alla", label: "Alla" },
+              { value: "new", label: "Ny" },
+              { value: "contacted", label: "Kontaktad" },
+              { value: "meeting-booked", label: "Möte bokat" },
+              { value: "evaluating", label: "Utvärderas" },
+              { value: "accepted", label: "Antagen" },
+              { value: "declined", label: "Avböjd" },
+            ],
+          },
+        ]}
+        onClear={() => {
+          setSearchInput("");
+          setSearch("");
+          setStatus("alla");
+          setPage(1);
+        }}
+      />
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">

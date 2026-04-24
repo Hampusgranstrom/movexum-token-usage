@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import { DataFilters } from "./data-filters";
 import { KpiCard } from "./kpi-card";
 import type { DashboardSummary } from "@/lib/types";
 
@@ -19,7 +21,29 @@ const FunnelChart = dynamic(
 );
 
 export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
-  const data = initialData;
+  const [days, setDays] = useState("30");
+  const [data, setData] = useState<DashboardSummary>(initialData);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/dashboard?days=${days}`);
+        if (!res.ok) return;
+        const next = (await res.json()) as DashboardSummary;
+        if (alive) setData(next);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [days]);
 
   const { kpis, leadsPerDay, leadsPerSource, funnel } = data;
 
@@ -31,9 +55,30 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           Översikt över inflödet
         </h1>
         <p className="mt-3 text-base text-muted">
-          Senaste 30 dagarna · AI-scoring, källor och konverteringstratt
+          Senaste {days} dagarna · AI-scoring, källor och konverteringstratt
         </p>
       </header>
+
+      <DataFilters
+        selects={[
+          {
+            key: "period",
+            label: "Period",
+            value: days,
+            onChange: setDays,
+            options: [
+              { value: "7", label: "7 dagar" },
+              { value: "30", label: "30 dagar" },
+              { value: "60", label: "60 dagar" },
+              { value: "90", label: "90 dagar" },
+            ],
+          },
+        ]}
+      />
+
+      {loading ? (
+        <p className="text-sm text-muted">Uppdaterar data...</p>
+      ) : null}
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -42,6 +87,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="st"
           delta={kpis.leadsDelta}
           formula={`Totalt ${kpis.totalLeads} leads`}
+          info="Antal nya leads under vald period. Visar hur stort inflode ni har just nu."
           index={0}
         />
         <KpiCard
@@ -50,6 +96,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="%"
           delta={kpis.conversionDelta}
           formula="Antagna / totalt antal leads"
+          info="Andelen leads som blir antagna. Hogre andel betyder att fler passar erbjudandet."
           decimals={0}
           index={1}
         />
@@ -59,6 +106,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="st"
           delta={kpis.pipelineDelta}
           formula="Leads i aktiva steg"
+          info="Leads som fortfarande handlaggs och inte ar avslutade."
           index={2}
         />
         <KpiCard
@@ -67,6 +115,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="/ 100"
           delta={kpis.scoreDelta}
           formula="AI-baserad lead scoring"
+          info="Genomsnittligt matchningsbetyg for nya leads pa skalan 0 till 100."
           index={3}
         />
       </div>
@@ -81,7 +130,9 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           <h3 className="eyebrow mb-4">
             Leads per dag
           </h3>
-          <LeadsChart data={leadsPerDay} />
+          <div className="min-h-[320px]">
+            <LeadsChart data={leadsPerDay} />
+          </div>
         </motion.div>
 
         <motion.div
@@ -93,7 +144,9 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           <h3 className="eyebrow mb-4">
             Leads per källa
           </h3>
-          <SourceChart data={leadsPerSource} />
+          <div className="min-h-[320px]">
+            <SourceChart data={leadsPerSource} />
+          </div>
         </motion.div>
       </div>
 
@@ -104,7 +157,9 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
         className="card p-6"
       >
         <h3 className="eyebrow mb-4">Konverteringstratt</h3>
-        <FunnelChart data={funnel} />
+        <div className="min-h-[320px]">
+          <FunnelChart data={funnel} />
+        </div>
       </motion.div>
     </div>
   );

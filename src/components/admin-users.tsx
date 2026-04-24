@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Trash2, ShieldCheck, Shield, ArrowRight } from "lucide-react";
+import { DataFilters } from "./data-filters";
 import { cn, formatDate } from "@/lib/utils";
 
 type AdminUser = {
@@ -30,6 +31,8 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"alla" | "admin" | "superadmin">("alla");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,6 +114,15 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
     setStatus({ kind: "ok", text: `${email} borttagen` });
     await load();
   };
+
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      const roleOk = roleFilter === "alla" ? true : u.role === roleFilter;
+      const searchOk = q.length === 0 ? true : u.email.toLowerCase().includes(q);
+      return roleOk && searchOk;
+    });
+  }, [users, search, roleFilter]);
 
   return (
     <div className="space-y-10">
@@ -208,6 +220,29 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
         )}
       </section>
 
+      <DataFilters
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Filtrera e-post..."
+        selects={[
+          {
+            key: "role",
+            label: "Roll",
+            value: roleFilter,
+            onChange: (value) => setRoleFilter(value as "alla" | "admin" | "superadmin"),
+            options: [
+              { value: "alla", label: "Alla" },
+              { value: "admin", label: "Admin" },
+              { value: "superadmin", label: "Superadmin" },
+            ],
+          },
+        ]}
+        onClear={() => {
+          setSearch("");
+          setRoleFilter("alla");
+        }}
+      />
+
       <section className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -227,14 +262,14 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
                     Laddar...
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-10 text-center text-muted">
                     Inga användare än
                   </td>
                 </tr>
               ) : (
-                users.map((u) => {
+                filteredUsers.map((u) => {
                   const isSelf = u.id === currentUserId;
                   return (
                     <tr key={u.id}>
