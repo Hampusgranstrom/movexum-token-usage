@@ -22,7 +22,6 @@ type Partner = {
 };
 
 export function PartnerCarousel({ partners }: { partners: Partner[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
   const visiblePartners = partners
@@ -43,18 +42,17 @@ export function PartnerCarousel({ partners }: { partners: Partner[] }) {
 
       {/* Overflow mask */}
       <div
-        className="relative overflow-hidden"
+        className="relative overflow-hidden py-1"
         style={{
           maskImage:
-            "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+            "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
           WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
+            "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
         }}
       >
         <div
-          ref={trackRef}
           className={cn(
-            "flex w-max gap-8",
+            "flex w-max gap-5 sm:gap-8",
             ready && "animate-marquee",
           )}
           aria-hidden="true"
@@ -75,12 +73,12 @@ function PartnerItem({ partner }: { partner: Partner }) {
     <img
       src={partner.logoUrl}
       alt={partner.name}
-      className="h-7 w-auto max-w-[132px] object-contain opacity-75 grayscale transition hover:opacity-100 hover:grayscale-0"
+      className="h-6 w-auto max-w-[110px] object-contain opacity-75 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-7 sm:max-w-[132px]"
     />
   );
 
   return (
-    <div className="flex h-10 min-w-[160px] items-center justify-center px-2">
+    <div className="flex h-9 min-w-[120px] items-center justify-center px-1.5 sm:h-10 sm:min-w-[160px] sm:px-2">
       {partner.websiteUrl ? (
         <a href={partner.websiteUrl} target="_blank" rel="noreferrer" aria-label={partner.name}>
           {inner}
