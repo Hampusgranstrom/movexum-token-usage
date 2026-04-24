@@ -53,7 +53,7 @@ export function LoginForm({
 
   return (
     <div className="mx-auto w-full max-w-md space-y-8">
-      <div className="text-center">
+      <div className="space-y-3 text-center">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -70,9 +70,10 @@ export function LoginForm({
             {productName.toLowerCase()}
           </span>
         )}
+        <p className="text-sm text-muted">Logga in för att fortsätta till adminplattformen.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-surface/80 p-6 shadow-soft sm:p-7">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted">
             E-post
@@ -84,7 +85,7 @@ export function LoginForm({
             required
             autoFocus
             autoComplete="email"
-            className="input"
+            className="w-full rounded-xl border border-border bg-white/70 px-4 py-3 text-sm text-fg shadow-none outline-none transition placeholder:text-subtle focus:border-accent focus:ring-2 focus:ring-accent/25"
             placeholder="namn@movexum.se"
           />
         </div>
@@ -99,7 +100,7 @@ export function LoginForm({
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="input"
+            className="w-full rounded-xl border border-border bg-white/70 px-4 py-3 text-sm text-fg shadow-none outline-none transition placeholder:text-subtle focus:border-accent focus:ring-2 focus:ring-accent/25"
             placeholder="Lösenord"
           />
         </div>
