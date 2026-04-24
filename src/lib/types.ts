@@ -237,4 +237,8 @@ export type ChatResponse = {
   extractedData: ExtractedLeadData | null;
   leadCreated: boolean;
   leadId: string | null;
+  report?: {
+    fileName: string;
+    content: string;
+  } | null;
 };

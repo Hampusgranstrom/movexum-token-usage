@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { hasConsent } from "@/lib/consent";
 import { getModuleBySlug } from "@/lib/modules";
 import { logAnalyticsEvent } from "@/lib/analytics";
+import { buildLeadReport } from "@/lib/intake-report";
 
 export const runtime = "nodejs";
 
@@ -131,5 +132,19 @@ export async function POST(req: Request, ctx: Ctx) {
     }),
   ]);
 
-  return NextResponse.json({ ok: true, leadId: lead.id });
+  const report = buildLeadReport({
+    source: mod.flow_type === "quiz" ? "quiz" : "form",
+    moduleName: mod.name,
+    data: {
+      name,
+      email: email ?? undefined,
+      phone: phone ?? undefined,
+      municipality: municipality ?? undefined,
+      organization: organization ?? undefined,
+      idea_summary: idea_summary ?? undefined,
+      idea_category: idea_category ?? undefined,
+    },
+  });
+
+  return NextResponse.json({ ok: true, leadId: lead.id, report });
 }
