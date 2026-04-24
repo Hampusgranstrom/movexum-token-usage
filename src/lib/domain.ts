@@ -27,9 +27,20 @@ export function getAdminOrigin(req: Request): string {
     const proto = adminHost === "localhost" ? "http" : "https";
     return `${proto}://${adminHost}`;
   }
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  // SITE_URL is a server-only alias; NEXT_PUBLIC_SITE_URL works in both
+  const fromEnv =
+    process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   if (fromEnv) return fromEnv.replace(/\/$/, "");
-  return new URL(req.url).origin;
+  // Last resort: derive from incoming request — may be localhost in some
+  // hosting setups even for production traffic. Prefer setting SITE_URL.
+  const reqOrigin = new URL(req.url).origin;
+  // Never return localhost as a redirect target for invite links in prod
+  if (reqOrigin.includes("localhost") || reqOrigin.includes("127.0.0.1")) {
+    console.warn(
+      "[getAdminOrigin] Falling back to localhost — set SITE_URL or ADMIN_HOST env var"
+    );
+  }
+  return reqOrigin;
 }
 
 export function getPublicOrigin(req: Request): string {
