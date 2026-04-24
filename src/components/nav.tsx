@@ -1,10 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { LogOut, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { NavLinks } from "@/components/nav-links";
 import type { AppRole } from "@/lib/auth";
 import type { BrandSettings } from "@/lib/brand";
 
@@ -30,16 +26,7 @@ export function Nav({
   user: NavUser;
   brand: BrandSettings;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
   const publicSiteHref = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "/";
-
-  const handleLogout = async () => {
-    const supabase = getSupabaseBrowser();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
 
   const items = [
     ...BASE_ITEMS,
@@ -55,6 +42,10 @@ export function Nav({
             <img
               src={brand.logoUrl}
               alt={brand.productName}
+              width="140"
+              height="28"
+              decoding="async"
+              fetchPriority="high"
               className="h-7 w-auto max-w-[140px] object-contain"
             />
           ) : (
@@ -65,24 +56,7 @@ export function Nav({
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
-          {items.map((item) => {
-            const active =
-              pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition",
-                  active
-                    ? "text-fg-deep"
-                    : "text-muted hover:text-fg",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+          <NavLinks items={items} />
 
           <a
             href={publicSiteHref}
@@ -103,36 +77,23 @@ export function Nav({
                 {user.role === "superadmin" ? "Superadmin" : "Admin"}
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="icon-btn"
-              aria-label="Logga ut"
-              title="Logga ut"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <form action="/api/auth/logout" method="post">
+              <button
+                type="submit"
+                className="icon-btn"
+                aria-label="Logga ut"
+                title="Logga ut"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
           </div>
         ) : null}
       </div>
 
       {/* mobile items */}
       <div className="flex flex-wrap items-center gap-2 px-6 pb-4 md:hidden">
-        {items.map((item) => {
-          const active =
-            pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-sm transition",
-                active ? "bg-surface text-fg-deep shadow-soft" : "text-muted",
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+        <NavLinks items={items} mobile />
         <a
           href={publicSiteHref}
           target="_blank"

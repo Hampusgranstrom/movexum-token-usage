@@ -212,6 +212,25 @@ export type AnalysisSummary = {
       acceptedRate: number;
     }>;
   };
+  performance: {
+    webVitals: Array<{
+      metric: "CLS" | "INP" | "LCP" | "FCP" | "TTFB";
+      samples: number;
+      avg: number;
+      p75: number;
+      prevP75: number;
+      p75Delta: number;
+      poorRate: number;
+      rating: "good" | "needs-improvement" | "poor";
+    }>;
+    slowPaths: Array<{
+      path: string;
+      metric: "CLS" | "INP" | "LCP" | "FCP" | "TTFB";
+      samples: number;
+      p75: number;
+      poorRate: number;
+    }>;
+  };
 };
 
 // --- Lead list API ---
@@ -229,6 +248,7 @@ export type ChatRequestBody = {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
   sessionId: string;
   conversationId?: string;
+  language?: "sv" | "en" | "sv-easy";
 };
 
 export type ChatResponse = {

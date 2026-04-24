@@ -73,6 +73,10 @@ function PartnerItem({ partner }: { partner: Partner }) {
     <img
       src={partner.logoUrl}
       alt={partner.name}
+      width="220"
+      height="48"
+      decoding="async"
+      loading="lazy"
       className="h-10 w-auto max-w-[190px] object-contain opacity-95 transition hover:opacity-100 sm:h-12 sm:max-w-[220px]"
     />
   );

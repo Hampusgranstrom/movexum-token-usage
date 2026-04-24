@@ -4,6 +4,7 @@ import { hasConsent } from "@/lib/consent";
 import { getModuleBySlug } from "@/lib/modules";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildLeadReport } from "@/lib/intake-report";
+import { resolveFounderLanguage, sendFounderInboxEmail } from "@/lib/founder-inbox";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const body = (await req.json().catch(() => null)) as {
     sessionId?: string;
     answers?: Record<string, unknown>;
+    language?: "sv" | "en" | "sv-easy";
   } | null;
 
   if (!body?.sessionId || !body.answers) {
@@ -145,6 +147,28 @@ export async function POST(req: Request, ctx: Ctx) {
       idea_category: idea_category ?? undefined,
     },
   });
+
+  if (email) {
+    const language = resolveFounderLanguage(body.language, req.headers.get("accept-language"));
+    sendFounderInboxEmail({
+      toEmail: email,
+      founderName: name,
+      moduleName: mod.name,
+      source: mod.flow_type === "quiz" ? "quiz" : "form",
+      language,
+      data: {
+        name,
+        email,
+        phone: phone ?? undefined,
+        municipality: municipality ?? undefined,
+        organization: organization ?? undefined,
+        idea_summary: idea_summary ?? undefined,
+        idea_category: idea_category ?? undefined,
+      },
+    }).catch(() => {
+      /* founder inbox is best-effort */
+    });
+  }
 
   return NextResponse.json({ ok: true, leadId: lead.id, report });
 }

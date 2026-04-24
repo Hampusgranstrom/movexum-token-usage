@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, Download } from "lucide-react";
 import type { QuestionWithVariant } from "@/lib/questions";
+import type { FounderLanguage } from "@/lib/founder-inbox";
 import { cn } from "@/lib/utils";
 import { downloadTextReport } from "@/lib/report-download";
 
@@ -15,18 +16,60 @@ type ContactAnswers = {
   municipality: string;
 };
 
+function wizardCopy(language: FounderLanguage) {
+  if (language === "en") {
+    return {
+      contactTitle: "Final step: contact details",
+      contactLead: "Add your details so we can follow up on your idea.",
+      doneTitle: "Thanks for your idea",
+      doneLead: "We sent a founder inbox email with summary, next steps, and a document checklist.",
+      progressTitle: "You are here -> next steps",
+      step1: "1. Submitted (done)",
+      step2: "2. Initial review by Movexum",
+      step3: "3. Personal feedback and suggested next meeting",
+      report: "Download my mini report",
+    };
+  }
+  if (language === "sv-easy") {
+    return {
+      contactTitle: "Sista steget: kontaktuppgifter",
+      contactLead: "Fyll i dina uppgifter sa att vi kan svara dig.",
+      doneTitle: "Tack for din ide",
+      doneLead: "Vi har skickat ett founder inbox-mail med sammanfattning, nasta steg och dokumentchecklista.",
+      progressTitle: "Du ar har -> nasta steg",
+      step1: "1. Inskickat (klart)",
+      step2: "2. Movexum gor en forsta genomgang",
+      step3: "3. Du far personlig aterkoppling",
+      report: "Ladda ned min minirapport",
+    };
+  }
+  return {
+    contactTitle: "Sista steget: kontaktuppgifter",
+    contactLead: "Fyll i dina uppgifter sa att vi kan aterkoppla kring iden.",
+    doneTitle: "Tack for din ide",
+    doneLead: "Vi har skickat en founder inbox till din e-post med sammanfattning, nasta steg och dokumentchecklista.",
+    progressTitle: "Du ar har -> nasta steg",
+    step1: "1. Inskickat (klart)",
+    step2: "2. Forsta genomgang hos Movexum",
+    step3: "3. Personlig aterkoppling och forslag pa nasta mote",
+    report: "Ladda ned min minirapport",
+  };
+}
+
 export function ModuleWizard({
   slug,
   sessionId,
   questions,
   requireEmail,
   requirePhone,
+  language,
 }: {
   slug: string;
   sessionId: string;
   questions: QuestionWithVariant[];
   requireEmail: boolean;
   requirePhone: boolean;
+  language: FounderLanguage;
 }) {
   const activeQuestions = questions.filter((q) => q.is_active);
   const [idx, setIdx] = useState(0);
@@ -44,6 +87,7 @@ export function ModuleWizard({
     municipality: "",
   });
   const questionStartRef = useRef<number>(Date.now());
+  const copy = wizardCopy(language);
 
   useEffect(() => {
     questionStartRef.current = Date.now();
@@ -127,6 +171,7 @@ export function ModuleWizard({
               phone: contact.phone,
               municipality: contact.municipality,
             },
+            language,
           }),
         });
         const data = await res.json();
@@ -153,7 +198,7 @@ export function ModuleWizard({
         await fetch(`/api/modules/${slug}/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, answers }),
+          body: JSON.stringify({ sessionId, answers, language }),
         });
         setDone(true);
       } finally {
@@ -176,18 +221,23 @@ export function ModuleWizard({
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-fg-deep">
           <CheckCircle className="h-7 w-7" />
         </div>
-        <h2 className="mt-6 text-3xl">Tack för din idé</h2>
+        <h2 className="mt-6 text-3xl">{copy.doneTitle}</h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-muted">
-          Vi återkommer inom några arbetsdagar. Om du vill att vi glömmer dina
-          uppgifter — svara bara &quot;radera&quot; på vårt kontaktmail.
+          {copy.doneLead}
         </p>
+        <div className="mx-auto mt-4 max-w-md rounded-2xl bg-bg p-4 text-left text-xs text-fg-deep">
+          <p className="font-medium">{copy.progressTitle}</p>
+          <p className="mt-1">{copy.step1}</p>
+          <p>{copy.step2}</p>
+          <p>{copy.step3}</p>
+        </div>
         {report && (
           <button
             onClick={() => downloadTextReport(report.fileName, report.content)}
             className="btn-secondary mx-auto mt-6"
           >
             <Download className="h-4 w-4" />
-            Ladda ned min minirapport
+            {copy.report}
           </button>
         )}
       </motion.div>
@@ -222,10 +272,10 @@ export function ModuleWizard({
           {isContactStep ? (
             <div>
               <h2 className="text-xl font-medium text-fg-deep sm:text-2xl">
-                Sista steget: kontaktuppgifter
+                {copy.contactTitle}
               </h2>
               <p className="mt-2 text-sm text-muted">
-                Fyll i dina uppgifter så att vi kan återkoppla kring idén.
+                {copy.contactLead}
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">

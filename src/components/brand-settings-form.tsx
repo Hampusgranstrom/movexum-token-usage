@@ -252,6 +252,9 @@ export function BrandSettingsForm({
               <img
                 src={logoUrl}
                 alt="Logotyp"
+                width="80"
+                height="80"
+                decoding="async"
                 className="max-h-20 max-w-20 object-contain"
               />
             ) : (
@@ -417,6 +420,10 @@ export function BrandSettingsForm({
                     <img
                       src={p.logo_url}
                       alt={p.name}
+                      width="130"
+                      height="28"
+                      decoding="async"
+                      loading="lazy"
                       className="h-7 w-auto max-w-[130px] object-contain"
                     />
                   </div>

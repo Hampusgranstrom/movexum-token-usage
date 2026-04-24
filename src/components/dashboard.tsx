@@ -1,50 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { KpiCard } from "./kpi-card";
-import { LeadsChart } from "./leads-chart";
-import { SourceChart } from "./source-chart";
-import { FunnelChart } from "./funnel-chart";
 import type { DashboardSummary } from "@/lib/types";
 
-export function Dashboard() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+const LeadsChart = dynamic(
+  () => import("./leads-chart").then((m) => m.LeadsChart),
+  { ssr: false },
+);
+const SourceChart = dynamic(
+  () => import("./source-chart").then((m) => m.SourceChart),
+  { ssr: false },
+);
+const FunnelChart = dynamic(
+  () => import("./funnel-chart").then((m) => m.FunnelChart),
+  { ssr: false },
+);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/dashboard?days=30");
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error ?? `HTTP ${res.status}`);
-        }
-        setData(await res.json());
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Okänt fel");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
-
-  if (loading) return <SkeletonDashboard />;
-
-  if (error) {
-    return (
-      <div className="card mx-auto max-w-xl p-8 text-center">
-        <h2 className="text-lg font-semibold text-danger">
-          Kunde inte ladda data
-        </h2>
-        <p className="mt-2 text-sm text-muted">{error}</p>
-      </div>
-    );
-  }
-
-  if (!data) return null;
+export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
+  const data = initialData;
 
   const { kpis, leadsPerDay, leadsPerSource, funnel } = data;
 
@@ -131,30 +106,6 @@ export function Dashboard() {
         <h3 className="eyebrow mb-4">Konverteringstratt</h3>
         <FunnelChart data={funnel} />
       </motion.div>
-    </div>
-  );
-}
-
-function SkeletonDashboard() {
-  return (
-    <div className="space-y-10">
-      <div className="space-y-3">
-        <div className="h-4 w-20 animate-pulse rounded-full bg-bg-deep" />
-        <div className="h-12 w-96 max-w-full animate-pulse rounded-full bg-bg-deep" />
-      </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="card h-40 animate-pulse p-6">
-            <div className="h-3 w-24 rounded-full bg-bg-deep" />
-            <div className="mt-6 h-10 w-32 rounded-full bg-bg-deep" />
-          </div>
-        ))}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="card h-80 animate-pulse" />
-        <div className="card h-80 animate-pulse" />
-      </div>
-      <div className="card h-64 animate-pulse" />
     </div>
   );
 }
