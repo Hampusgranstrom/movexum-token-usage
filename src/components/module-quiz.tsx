@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Download } from "lucide-react";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { ResultBucket } from "@/lib/modules";
 import { cn } from "@/lib/utils";
+import { downloadTextReport } from "@/lib/report-download";
 
 type QuizResult = {
   bucket: ResultBucket;
@@ -47,6 +48,9 @@ export function ModuleQuiz({
   const [sendingLead, setSendingLead] = useState(false);
   const [leadSent, setLeadSent] = useState(false);
   const [leadError, setLeadError] = useState<string | null>(null);
+  const [report, setReport] = useState<{ fileName: string; content: string } | null>(
+    null,
+  );
   const startRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -71,6 +75,7 @@ export function ModuleQuiz({
         sendingLead={sendingLead}
         leadSent={leadSent}
         leadError={leadError}
+        report={report}
         onContactChange={setContact}
         onSubmitLead={async () => {
           const name = contact.name.trim();
@@ -99,10 +104,14 @@ export function ModuleQuiz({
                 },
               }),
             });
-            const data = (await res.json()) as { error?: string };
+            const data = (await res.json()) as {
+              error?: string;
+              report?: { fileName: string; content: string };
+            };
             if (!res.ok) {
               throw new Error(data.error ?? "Kunde inte spara kontaktuppgifter");
             }
+            if (data.report) setReport(data.report);
             setLeadSent(true);
           } catch (err) {
             setLeadError(
@@ -272,6 +281,7 @@ function QuizResultView({
   sendingLead,
   leadSent,
   leadError,
+  report,
   onContactChange,
   onSubmitLead,
   onRestart,
@@ -281,6 +291,7 @@ function QuizResultView({
   sendingLead: boolean;
   leadSent: boolean;
   leadError: string | null;
+  report: { fileName: string; content: string } | null;
   onContactChange: (next: QuizContact) => void;
   onSubmitLead: () => Promise<void>;
   onRestart: () => void;
@@ -382,6 +393,15 @@ function QuizResultView({
         <button onClick={onRestart} className="btn-ghost">
           Gör om testet
         </button>
+        {report && (
+          <button
+            onClick={() => downloadTextReport(report.fileName, report.content)}
+            className="btn-secondary"
+          >
+            <Download className="h-4 w-4" />
+            Ladda ned min minirapport
+          </button>
+        )}
       </div>
 
       <section className="card p-6">

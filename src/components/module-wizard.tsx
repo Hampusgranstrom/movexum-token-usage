@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Download } from "lucide-react";
 import type { QuestionWithVariant } from "@/lib/questions";
 import { cn } from "@/lib/utils";
+import { downloadTextReport } from "@/lib/report-download";
 
 type AnswerMap = Record<string, unknown>;
 type ContactAnswers = {
@@ -32,6 +33,9 @@ export function ModuleWizard({
   const [answers, setAnswers] = useState<AnswerMap>({});
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [report, setReport] = useState<{ fileName: string; content: string } | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [contact, setContact] = useState<ContactAnswers>({
     name: "",
@@ -130,6 +134,7 @@ export function ModuleWizard({
           setError(data.error ?? "Kunde inte skicka in svaren");
           return;
         }
+        if (data.report) setReport(data.report);
         setDone(true);
       } finally {
         setSubmitting(false);
@@ -176,6 +181,15 @@ export function ModuleWizard({
           Vi återkommer inom några arbetsdagar. Om du vill att vi glömmer dina
           uppgifter — svara bara &quot;radera&quot; på vårt kontaktmail.
         </p>
+        {report && (
+          <button
+            onClick={() => downloadTextReport(report.fileName, report.content)}
+            className="btn-secondary mx-auto mt-6"
+          >
+            <Download className="h-4 w-4" />
+            Ladda ned min minirapport
+          </button>
+        )}
       </motion.div>
     );
   }

@@ -7,6 +7,7 @@ import { INTAKE_SYSTEM_PROMPT } from "@/config/system-prompt";
 import { getModuleBySlug } from "@/lib/modules";
 import { hasConsent } from "@/lib/consent";
 import { logAnalyticsEvent } from "@/lib/analytics";
+import { buildLeadReport } from "@/lib/intake-report";
 import type { ChatRequestBody, ExtractedLeadData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
     let extractedData: ExtractedLeadData | null = null;
     let leadCreated = false;
     let leadId: string | null = null;
+    let report: { fileName: string; content: string } | null = null;
 
     if (supabase) {
       if (!convId) {
@@ -318,6 +320,14 @@ export async function POST(request: Request) {
       } catch {
         /* extraction is best-effort */
       }
+
+      if (extractedData && shouldUpsertLead(extractedData)) {
+        report = buildLeadReport({
+          source: "chat",
+          moduleName: mod?.name ?? "Fri chatt",
+          data: extractedData,
+        });
+      }
     }
 
     return NextResponse.json({
@@ -326,6 +336,7 @@ export async function POST(request: Request) {
       extractedData,
       leadCreated,
       leadId,
+      report,
     });
   } catch (err) {
     // Log the real error but return a generic message to the client so we

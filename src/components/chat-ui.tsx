@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User2, Sparkles, AlertTriangle, CheckCircle } from "lucide-react";
+import { Send, User2, Sparkles, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { downloadTextReport } from "@/lib/report-download";
 import type { ExtractedLeadData, ChatResponse } from "@/lib/types";
 
 type Role = "user" | "assistant";
@@ -28,6 +29,9 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [leadCreated, setLeadCreated] = useState(false);
   const [, setExtractedData] = useState<ExtractedLeadData | null>(null);
+  const [report, setReport] = useState<{ fileName: string; content: string } | null>(
+    null,
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -89,6 +93,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
       if (data.conversationId) setConversationId(data.conversationId);
       if (data.extractedData) setExtractedData(data.extractedData);
       if (data.leadCreated) setLeadCreated(true);
+      if (data.report) setReport(data.report);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -139,12 +144,23 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-2 rounded-2xl bg-accent-soft p-4 text-xs text-fg-deep"
+              className="rounded-2xl bg-accent-soft p-4 text-xs text-fg-deep"
             >
-              <CheckCircle className="mt-0.5 h-4 w-4 flex-none" />
-              <span>
-                Tack! Vi har noterat dina uppgifter. Någon från Movexum hör av sig.
-              </span>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="mt-0.5 h-4 w-4 flex-none" />
+                <span>
+                  Tack! Vi har noterat dina uppgifter. Någon från Movexum hör av sig.
+                </span>
+              </div>
+              {report && (
+                <button
+                  onClick={() => downloadTextReport(report.fileName, report.content)}
+                  className="btn-secondary mt-3"
+                >
+                  <Download className="h-4 w-4" />
+                  Ladda ned min minirapport
+                </button>
+              )}
             </motion.div>
           )}
         </div>
