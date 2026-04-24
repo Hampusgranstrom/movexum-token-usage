@@ -68,39 +68,68 @@ export async function POST(req: Request) {
   }
 
   const origin = getAdminOrigin(req);
+  const redirectTo = `${origin}/accept-invite`;
+
+  const promoteIfNeeded = async (idOrEmail: { id?: string | null; email: string }) => {
+    if (role !== "superadmin") return;
+    if (idOrEmail.id) {
+      await admin
+        .from("app_users")
+        .update({ role: "superadmin" })
+        .eq("id", idOrEmail.id);
+      return;
+    }
+
+    await admin
+      .from("app_users")
+      .update({ role: "superadmin" })
+      .eq("email", idOrEmail.email);
+  };
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(
     email,
     {
       data: { role, invited_by: guard.user.id },
-      redirectTo: `${origin}/accept-invite`,
+      redirectTo,
     },
   );
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    // Fallback: still provide a secure invite link if SMTP/provider rejects the send.
+    const fallback = await admin.auth.admin.generateLink({
+      type: "invite",
+      email,
+      options: {
+        data: { role, invited_by: guard.user.id },
+        redirectTo,
+      },
+    });
+
+    if (fallback.error || !fallback.data.properties?.action_link) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    await promoteIfNeeded({ id: fallback.data.user?.id ?? null, email });
+
+    return NextResponse.json({
+      ok: true,
+      user_id: fallback.data.user?.id ?? null,
+      email_sent: false,
+      invite_url: fallback.data.properties.action_link,
+      warning:
+        "Inbjudningsmail kunde inte skickas automatiskt. Dela reservlänken manuellt.",
+      redirect_to: fallback.data.properties.redirect_to ?? redirectTo,
+    });
   }
 
   // Trigger on auth.users creates the app_users row with default 'admin'.
   // If the superadmin requested a superadmin invite, upgrade it here.
-  if (role === "superadmin") {
-    if (data.user?.id) {
-      await admin
-        .from("app_users")
-        .update({ role: "superadmin" })
-        .eq("id", data.user.id);
-    } else {
-      await admin
-        .from("app_users")
-        .update({ role: "superadmin" })
-        .eq("email", email);
-    }
-  }
+  await promoteIfNeeded({ id: data.user?.id ?? null, email });
 
   return NextResponse.json({
     ok: true,
     user_id: data.user?.id ?? null,
     email_sent: true,
-    redirect_to: `${origin}/accept-invite`,
+    redirect_to: redirectTo,
   });
 }
