@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Bot, Compass, Lightbulb } from "lucide-react";
+import { PartnerCarousel } from "@/components/partner-carousel";
 import { getBrandSettings } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +109,8 @@ export default async function HomePage() {
             </article>
           </div>
         </div>
+
+        <PartnerCarousel />
       </section>
     </main>
   );
