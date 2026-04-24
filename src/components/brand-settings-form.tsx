@@ -33,6 +33,8 @@ export function BrandSettingsForm({
   const [partnerWebsite, setPartnerWebsite] = useState("");
   const [partnerLogoUrl, setPartnerLogoUrl] = useState("");
   const [partnerFile, setPartnerFile] = useState<File | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   const upload = async (file: File) => {
     setBusy(true);
@@ -184,6 +186,18 @@ export function BrandSettingsForm({
     const temp = next[index];
     next[index] = next[target];
     next[target] = temp;
+    setPartners(next.map((p, idx) => ({ ...p, sort_order: idx })));
+  };
+
+  const movePartnerById = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    const next = partners.slice();
+    const sourceIndex = next.findIndex((p) => p.id === sourceId);
+    const targetIndex = next.findIndex((p) => p.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const [moved] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, moved);
     setPartners(next.map((p, idx) => ({ ...p, sort_order: idx })));
   };
 
@@ -340,8 +354,39 @@ export function BrandSettingsForm({
         ) : (
           <div className="space-y-3">
             {partners.map((p, idx) => (
-              <div key={p.id} className="rounded-2xl bg-bg p-4">
+              <div
+                key={p.id}
+                draggable
+                onDragStart={() => {
+                  setDraggedId(p.id);
+                  setDragOverId(p.id);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverId !== p.id) setDragOverId(p.id);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedId) {
+                    movePartnerById(draggedId, p.id);
+                  }
+                  setDraggedId(null);
+                  setDragOverId(null);
+                }}
+                onDragEnd={() => {
+                  setDraggedId(null);
+                  setDragOverId(null);
+                }}
+                className={cn(
+                  "rounded-2xl bg-bg p-4 transition",
+                  draggedId === p.id && "opacity-60",
+                  dragOverId === p.id && draggedId !== p.id && "ring-2 ring-fg/25",
+                )}
+              >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="cursor-grab select-none rounded-full bg-white px-3 py-2 text-xs font-medium text-muted shadow-soft active:cursor-grabbing">
+                    Dra
+                  </div>
                   <div className="flex h-12 w-40 items-center justify-center rounded-xl bg-white px-2 shadow-soft">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
