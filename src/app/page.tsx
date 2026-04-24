@@ -15,25 +15,6 @@ export default async function HomePage() {
       <div className="absolute bottom-[-7rem] right-[-5rem] -z-10 h-72 w-72 rounded-full bg-fg/10 blur-3xl" />
 
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-12">
-        <header className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {brand.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={brand.logoUrl}
-                alt={brand.productName}
-                className="h-8 w-auto max-w-[180px] object-contain"
-              />
-            ) : (
-              <span className="text-xl font-semibold tracking-tight text-fg-deep">
-                {brand.productName.toLowerCase()}
-              </span>
-            )}
-          </div>
-
-
-        </header>
-
         <PartnerCarousel partners={brand.partnerLogos} />
 
         <div className="space-y-8 pt-2">
