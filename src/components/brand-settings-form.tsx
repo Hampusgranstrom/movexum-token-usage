@@ -209,7 +209,7 @@ export function BrandSettingsForm({
     <div className="space-y-10">
       <header className="max-w-2xl space-y-3">
         <span className="eyebrow">Superadmin</span>
-        <h1 className="text-4xl sm:text-5xl">
+        <h1 className="text-4xl text-fg-deep sm:text-5xl">
           Ert varumärke
         </h1>
         <p className="text-base text-muted">
