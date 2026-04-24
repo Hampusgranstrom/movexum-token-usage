@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Building, Sparkles, Download, Trash2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building, MapPin, Sparkles, Download, Trash2 } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { cn, formatDate } from "@/lib/utils";
 import type { Lead, LeadStatus, Conversation } from "@/lib/types";
@@ -132,7 +132,13 @@ export function LeadDetail({
                   <span>{lead.organization}</span>
                 </div>
               )}
-              {!lead.email && !lead.phone && !lead.organization && (
+              {lead.municipality && (
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 text-subtle" />
+                  <span>{lead.municipality}</span>
+                </div>
+              )}
+              {!lead.email && !lead.phone && !lead.organization && !lead.municipality && (
                 <p className="text-sm text-muted">
                   Ingen kontaktinfo registrerad
                 </p>

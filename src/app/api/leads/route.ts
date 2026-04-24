@@ -52,6 +52,7 @@ export async function GET(request: Request) {
       [
         `name.ilike.${pattern}`,
         `email.ilike.${pattern}`,
+        `municipality.ilike.${pattern}`,
         `idea_summary.ilike.${pattern}`,
         `organization.ilike.${pattern}`,
       ].join(","),
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
     name: name.slice(0, 200),
     email: optionalString(body.email, 254),
     phone: optionalString(body.phone, 40),
+    municipality: optionalString(body.municipality, 120),
     organization: optionalString(body.organization, 200),
     idea_summary: optionalString(body.idea_summary),
     idea_category: optionalString(body.idea_category, 100),

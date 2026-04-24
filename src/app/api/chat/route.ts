@@ -19,6 +19,29 @@ const MAX_TOTAL_CHARS = 40_000;
 
 type ChatBody = ChatRequestBody & { moduleSlug?: string };
 
+function hasStringValue(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function shouldUpsertLead(data: ExtractedLeadData | null): data is ExtractedLeadData {
+  if (!data) return false;
+  return [
+    data.name,
+    data.email,
+    data.phone,
+    data.municipality,
+    data.organization,
+    data.idea_summary,
+  ].some((v) => hasStringValue(v));
+}
+
+function buildLeadName(data: ExtractedLeadData, sessionId: string): string {
+  if (hasStringValue(data.name)) return data.name.trim();
+  if (hasStringValue(data.email)) return data.email.split("@")[0];
+  if (hasStringValue(data.organization)) return data.organization.trim();
+  return `Kontakt från chatt ${sessionId.slice(0, 8)}`;
+}
+
 export async function POST(request: Request) {
   let body: ChatBody;
   try {
@@ -170,7 +193,7 @@ export async function POST(request: Request) {
             .eq("id", convId);
         }
 
-        if (convId && extractedData?.name) {
+        if (convId && shouldUpsertLead(extractedData)) {
           const { data: existingConv } = await supabase
             .from("conversations")
             .select("lead_id")
@@ -178,12 +201,14 @@ export async function POST(request: Request) {
             .single();
 
           if (!existingConv?.lead_id) {
+            const leadName = buildLeadName(extractedData, sessionId);
             const { data: newLead, error: leadErr } = await supabase
               .from("leads")
               .insert({
-                name: extractedData.name,
+                name: leadName,
                 email: extractedData.email ?? null,
                 phone: extractedData.phone ?? null,
+                municipality: extractedData.municipality ?? null,
                 organization: extractedData.organization ?? null,
                 idea_summary: extractedData.idea_summary ?? null,
                 idea_category: extractedData.idea_category ?? null,
@@ -247,8 +272,11 @@ export async function POST(request: Request) {
           } else {
             leadId = existingConv.lead_id;
             const updateFields: Record<string, unknown> = {};
+            if (extractedData.name) updateFields.name = extractedData.name;
             if (extractedData.email) updateFields.email = extractedData.email;
             if (extractedData.phone) updateFields.phone = extractedData.phone;
+            if (extractedData.municipality)
+              updateFields.municipality = extractedData.municipality;
             if (extractedData.organization)
               updateFields.organization = extractedData.organization;
             if (extractedData.idea_summary)

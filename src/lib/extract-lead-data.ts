@@ -16,6 +16,7 @@ Returnera ENBART ett JSON-objekt (ingen markdown, ingen förklaring) med dessa f
   "name": "personens namn",
   "email": "e-postadress",
   "phone": "telefonnummer",
+  "municipality": "kommun där personen verkar",
   "organization": "företag eller organisation",
   "idea_summary": "kort sammanfattning av startup-idén (max 2 meningar)",
   "idea_category": "en av: tech, social-impact, cleantech, health, education, fintech, food, other"
@@ -58,6 +59,7 @@ const ALLOWED_KEYS: ReadonlyArray<keyof ExtractedLeadData> = [
   "name",
   "email",
   "phone",
+  "municipality",
   "organization",
   "idea_summary",
   "idea_category",

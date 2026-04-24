@@ -12,8 +12,8 @@ type NavUser = { email: string; role: AppRole } | null;
 
 const BASE_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/analysis", label: "Analys" },
   { href: "/leads", label: "Leads" },
-  { href: "/m/founders", label: "Intag" },
 ];
 
 const ADMIN_ITEMS = [
@@ -32,6 +32,7 @@ export function Nav({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const publicSiteHref = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "/";
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowser();
@@ -83,10 +84,15 @@ export function Nav({
             );
           })}
 
-          <Link href="/m/founders" className="btn-primary ml-1">
+          <a
+            href={publicSiteHref}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="btn-primary ml-1"
+          >
             <ArrowRight className="h-4 w-4" />
-            Öppna intag
-          </Link>
+            Publik webb
+          </a>
         </div>
 
         {user ? (
@@ -127,10 +133,15 @@ export function Nav({
             </Link>
           );
         })}
-        <Link href="/m/founders" className="btn-primary py-1.5 text-xs">
+        <a
+          href={publicSiteHref}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="btn-primary py-1.5 text-xs"
+        >
           <ArrowRight className="h-3.5 w-3.5" />
-          Öppna intag
-        </Link>
+          Publik webb
+        </a>
       </div>
     </nav>
   );

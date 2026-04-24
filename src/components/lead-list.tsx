@@ -186,7 +186,15 @@ function LeadRow({ lead, onClick }: { lead: Lead; onClick: () => void }) {
     >
       <td className="px-6 py-4">
         <div className="font-medium text-fg-deep">{lead.name}</div>
-        {lead.email && <div className="text-xs text-muted">{lead.email}</div>}
+        {lead.email && (
+          <div className="text-xs text-muted">
+            {lead.email}
+            {lead.municipality ? ` · ${lead.municipality}` : ""}
+          </div>
+        )}
+        {!lead.email && lead.municipality && (
+          <div className="text-xs text-muted">{lead.municipality}</div>
+        )}
       </td>
       <td className="max-w-[260px] truncate px-6 py-4 text-muted">
         {lead.idea_summary ?? "-"}

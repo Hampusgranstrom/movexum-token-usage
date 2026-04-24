@@ -41,18 +41,23 @@ export async function POST(req: Request, ctx: Ctx) {
   }
 
   const a = body.answers;
-  const name = typeof a.name === "string" ? a.name.trim() : "";
-  if (!name) {
-    return NextResponse.json({ error: "name required" }, { status: 400 });
-  }
+  const fallbackName = `Kontakt ${body.sessionId.slice(0, 8)}`;
+  const rawName = typeof a.name === "string" ? a.name.trim() : "";
   const email = typeof a.email === "string" ? a.email.trim() : null;
   const phone = typeof a.phone === "string" ? a.phone.trim() : null;
+  const municipality =
+    typeof a.municipality === "string" ? a.municipality.trim() : null;
   const organization =
     typeof a.organization === "string" ? a.organization.trim() : null;
   const idea_summary =
     typeof a.idea_summary === "string" ? a.idea_summary.trim() : null;
   const idea_category =
     typeof a.idea_category === "string" ? a.idea_category.trim() : null;
+  const name =
+    rawName ||
+    (email ? email.split("@")[0] : "") ||
+    organization ||
+    fallbackName;
 
   if (mod.require_email && !email) {
     return NextResponse.json({ error: "email required" }, { status: 400 });
@@ -67,6 +72,7 @@ export async function POST(req: Request, ctx: Ctx) {
       name,
       email,
       phone,
+      municipality,
       organization,
       idea_summary,
       idea_category,

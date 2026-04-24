@@ -72,7 +72,7 @@ export function sanitizeLeadPatch(
       out.phone = body.phone.trim();
     }
   }
-  for (const field of ["organization", "idea_summary", "idea_category", "source_detail", "score_reasoning", "assigned_to", "notes"] as const) {
+  for (const field of ["organization", "municipality", "idea_summary", "idea_category", "source_detail", "score_reasoning", "assigned_to", "notes"] as const) {
     if (field in body) {
       const v = body[field];
       if (v === null || v === "") {
