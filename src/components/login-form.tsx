@@ -66,18 +66,9 @@ export function LoginForm({
             {productName.toLowerCase()}
           </span>
         )}
-        <h1 className="mt-8 text-4xl leading-tight sm:text-5xl">
-          Adminplattform för <span className="text-accent">Startupkompassen</span>
-        </h1>
-        <p className="mt-4 text-base text-muted">
-          Logga in för att hantera moduler, frågor, leads och varumärke
-        </p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl bg-surface p-8 shadow-card"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-surface/80 p-6 shadow-soft sm:p-7">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted">
             E-post
