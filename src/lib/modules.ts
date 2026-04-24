@@ -27,6 +27,9 @@ export type Module = {
   is_active: boolean;
   require_email: boolean;
   require_phone: boolean;
+  require_organization: boolean;
+  chat_persona: string | null;
+  max_exchanges: number;
   result_buckets: ResultBucket[];
   created_at: string;
   updated_at: string;

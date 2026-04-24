@@ -39,6 +39,9 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
           is_active: mod.is_active,
           require_email: mod.require_email,
           require_phone: mod.require_phone,
+          require_organization: mod.require_organization,
+          chat_persona: mod.chat_persona,
+          max_exchanges: mod.max_exchanges,
           result_buckets: mod.result_buckets,
         }),
       });
@@ -170,18 +173,48 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
         </Field>
       </section>
 
-      {mod.flow_type === "chat" && (
+      {(mod.flow_type === "chat" || mod.flow_type === "hybrid") && (
         <section className="card space-y-5 p-6">
-          <h2 className="eyebrow">System-prompt (AI)</h2>
+          <h2 className="eyebrow">AI-chatt — konfigurering</h2>
           <p className="text-sm text-muted">
-            Styr hur assistenten agerar. Visas aldrig publikt.
+            Styr hur assistenten presenterar sig och hur länge samtalet pågår.
+            System-prompten visas aldrig publikt.
           </p>
-          <textarea
-            className="textarea font-mono text-xs"
-            rows={10}
-            value={mod.system_prompt ?? ""}
-            onChange={(e) => patch("system_prompt", e.target.value)}
-          />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Assistent-namn (visas för besökaren)">
+              <input
+                className="input"
+                placeholder="t.ex. Movexum AI"
+                value={mod.chat_persona ?? ""}
+                onChange={(e) => patch("chat_persona", e.target.value || null)}
+              />
+            </Field>
+            <Field label="Max utbyten (4–60)">
+              <input
+                type="number"
+                min={4}
+                max={60}
+                className="input"
+                value={mod.max_exchanges ?? 20}
+                onChange={(e) => patch("max_exchanges", Number(e.target.value))}
+              />
+            </Field>
+          </div>
+          <Field label="System-prompt">
+            <textarea
+              className="textarea font-mono text-xs"
+              rows={14}
+              value={mod.system_prompt ?? ""}
+              onChange={(e) => patch("system_prompt", e.target.value)}
+              placeholder={`Du är en vänlig AI-assistent för Movexum inkubator i Gävleborg.\n\nDitt uppdrag:\n1. Lyssna in idén och ställ 3–4 fördjupande följdfrågor om problem, kund och potential.\n2. Avsluta med att be om: namn, e-post, telefon (valfritt) och organisation (valfritt).\n3. Bekräfta att teamet återkommer inom 2–3 arbetsdagar.\n\nTon: nyfiken, professionell, kortfattad. Svara alltid på svenska om inte besökaren skriver på annat språk.`}
+            />
+          </Field>
+          <p className="rounded-xl bg-bg p-3 text-xs text-muted">
+            <strong>Tips för inflöde:</strong> be alltid om kontaktuppgifter
+            mot slutet av samtalet, efter idén är beskriven. Avsluta med en
+            bekräftelse att leads granskas av teamet — aldrig ett automatiskt
+            beslut.
+          </p>
         </section>
       )}
 
@@ -237,6 +270,11 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
             label="Telefon obligatoriskt"
             checked={mod.require_phone}
             onChange={(v) => patch("require_phone", v)}
+          />
+          <Toggle
+            label="Organisation obligatoriskt"
+            checked={mod.require_organization ?? false}
+            onChange={(v) => patch("require_organization", v)}
           />
         </div>
       </section>

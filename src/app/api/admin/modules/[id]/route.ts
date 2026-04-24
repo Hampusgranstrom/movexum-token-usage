@@ -23,6 +23,9 @@ const ALLOWED_FIELDS = new Set([
   "is_active",
   "require_email",
   "require_phone",
+  "require_organization",
+  "chat_persona",
+  "max_exchanges",
   "result_buckets",
 ]);
 

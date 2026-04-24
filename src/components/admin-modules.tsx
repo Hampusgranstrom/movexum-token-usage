@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 type Module = {
@@ -42,8 +42,18 @@ export function AdminModules() {
     load();
   }, [load]);
 
-  const create = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const deleteModule = async (id: string, name: string) => {
+    if (!confirm(`Ta bort modulen "${name}"? Åtgärden kan inte ångras.`)) return;
+    const res = await fetch(`/api/admin/modules/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      await load();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error ?? "Kunde inte ta bort modulen");
+    }
+  };
+
+  const create = async (e: React.FormEvent) => {    e.preventDefault();
     setCreating(true);
     setError(null);
     try {
@@ -196,14 +206,31 @@ export function AdminModules() {
                       {formatDate(m.created_at)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/m/${m.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-ghost"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/modules/${m.id}`}
+                          className="btn-ghost"
+                          title="Redigera"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                        <Link
+                          href={`/m/${m.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-ghost"
+                          title="Öppna publik sida"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                        <button
+                          onClick={() => deleteModule(m.id, m.name)}
+                          className="btn-ghost text-danger"
+                          title="Ta bort"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -70,6 +70,9 @@ export async function POST(req: Request) {
     is_active: body.is_active === false ? false : true,
     require_email: body.require_email === false ? false : true,
     require_phone: !!body.require_phone,
+    require_organization: !!body.require_organization,
+    chat_persona: typeof body.chat_persona === "string" ? body.chat_persona : null,
+    max_exchanges: typeof body.max_exchanges === "number" ? body.max_exchanges : 20,
     result_buckets: Array.isArray(body.result_buckets) ? body.result_buckets : [],
     created_by: guard.user.id,
   };
