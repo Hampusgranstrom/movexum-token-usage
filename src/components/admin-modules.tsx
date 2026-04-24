@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { QrDownloadButton } from "@/components/qr-download-button";
 
 type Module = {
   id: string;
@@ -223,6 +224,11 @@ export function AdminModules() {
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Link>
+                        <QrDownloadButton
+                          url={`${typeof window !== "undefined" ? window.location.origin : ""}/m/${m.slug}`}
+                          filename={`qr-${m.slug}.png`}
+                          title="Ladda ned QR-kod som PNG"
+                        />
                         <button
                           onClick={() => deleteModule(m.id, m.name)}
                           className="btn-ghost text-danger"

@@ -208,6 +208,70 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ ok: true, partners: normalized.map((p) => withPublicUrl(admin, p)) });
 }
 
+export async function PUT(req: Request) {
+  const guard = await requireRole("superadmin");
+  if ("error" in guard) return guard.error;
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
+
+  const form = await req.formData().catch(() => null);
+  const id = typeof form?.get("id") === "string" ? String(form.get("id")).trim() : "";
+  const file = form?.get("file");
+
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  if (!(file instanceof File) || file.size === 0) {
+    return NextResponse.json({ error: "file required" }, { status: 400 });
+  }
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: "invalid file type" }, { status: 400 });
+  }
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json({ error: "file too large" }, { status: 400 });
+  }
+
+  const partners = await readPartners(admin);
+  const target = partners.find((p) => p.id === id);
+  if (!target) return NextResponse.json({ error: "not found" }, { status: 404 });
+
+  const bucket = getBrandBucketName();
+  const { data: existing } = await admin.storage.getBucket(bucket);
+  if (!existing) {
+    await admin.storage.createBucket(bucket, { public: true });
+  }
+
+  const ext =
+    file.type === "image/svg+xml"
+      ? "svg"
+      : file.type === "image/png"
+        ? "png"
+        : file.type === "image/webp"
+          ? "webp"
+          : "jpg";
+  const logoPath = `partners/${crypto.randomUUID()}-${Date.now()}.${ext}`;
+  const bytes = await file.arrayBuffer();
+  const { error: uploadErr } = await admin.storage
+    .from(bucket)
+    .upload(logoPath, bytes, { contentType: file.type, upsert: true });
+  if (uploadErr) {
+    return NextResponse.json({ error: uploadErr.message }, { status: 500 });
+  }
+
+  // Remove old stored file if any
+  if (target.logo_path) {
+    await admin.storage.from(bucket).remove([target.logo_path]);
+  }
+
+  const updatedTarget = { ...target, logo_path: logoPath, logo_url: null };
+  const next = partners.map((p) => (p.id === id ? updatedTarget : p));
+  const writeErr = await writePartners(admin, guard.user.id, next);
+  if (writeErr) {
+    return NextResponse.json({ error: writeErr.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, partner: withPublicUrl(admin, updatedTarget) });
+}
+
 export async function DELETE(req: Request) {
   const guard = await requireRole("superadmin");
   if ("error" in guard) return guard.error;

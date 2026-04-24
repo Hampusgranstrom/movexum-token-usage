@@ -205,6 +205,31 @@ export function BrandSettingsForm({
     setPartners((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   };
 
+  const replacePartnerLogo = async (id: string, file: File) => {
+    setPartnersBusy(true);
+    setStatus(null);
+    try {
+      const form = new FormData();
+      form.append("id", id);
+      form.append("file", file);
+      const res = await fetch("/api/admin/partners", { method: "PUT", body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setStatus({ kind: "err", text: data.error ?? "Kunde inte byta logga" });
+        return;
+      }
+      setPartners((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, logo_url: data.partner.logo_url, logo_path: data.partner.logo_path } : p,
+        ),
+      );
+      setStatus({ kind: "ok", text: "Logga uppdaterad" });
+      router.refresh();
+    } finally {
+      setPartnersBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-10">
       <header className="max-w-2xl space-y-3">
@@ -395,6 +420,26 @@ export function BrandSettingsForm({
                       className="h-7 w-auto max-w-[130px] object-contain"
                     />
                   </div>
+                  <label
+                    className={cn(
+                      "btn-ghost inline-flex cursor-pointer items-center gap-1 text-xs",
+                      partnersBusy && "pointer-events-none opacity-60",
+                    )}
+                    title="Byt logga"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Byt logga
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) replacePartnerLogo(p.id, f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
 
                   <div className="grid flex-1 gap-2 sm:grid-cols-2">
                     <input
