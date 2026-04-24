@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { DataFilters } from "./data-filters";
+import { MetricInfo } from "./metric-info";
 import { cn } from "@/lib/utils";
 
 type Funnel = {
@@ -47,6 +49,7 @@ export function ModuleStats({
   const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  const [questionSearch, setQuestionSearch] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -55,6 +58,13 @@ export function ModuleStats({
       .then((d) => setData(d))
       .finally(() => setLoading(false));
   }, [moduleId, days]);
+
+  const filteredQuestions = useMemo(() => {
+    if (!data) return [];
+    const q = questionSearch.trim().toLowerCase();
+    if (!q) return data.questions;
+    return data.questions.filter((question) => question.question_key.toLowerCase().includes(q));
+  }, [data, questionSearch]);
 
   return (
     <div className="space-y-10">
@@ -71,47 +81,92 @@ export function ModuleStats({
             Funnel, per-fråge-completion och Bayesiansk A/B-analys.
           </p>
         </div>
-        <select
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          className="input sm:w-40"
-        >
-          <option value={7}>7 dagar</option>
-          <option value={30}>30 dagar</option>
-          <option value={90}>90 dagar</option>
-          <option value={365}>1 år</option>
-        </select>
       </div>
+
+      <DataFilters
+        searchValue={questionSearch}
+        onSearchChange={setQuestionSearch}
+        searchPlaceholder="Filtrera frågenyckel..."
+        selects={[
+          {
+            key: "days",
+            label: "Period",
+            value: String(days),
+            onChange: (value) => setDays(Number(value)),
+            options: [
+              { value: "7", label: "7 dagar" },
+              { value: "30", label: "30 dagar" },
+              { value: "90", label: "90 dagar" },
+              { value: "365", label: "1 år" },
+            ],
+          },
+        ]}
+        onClear={() => {
+          setDays(30);
+          setQuestionSearch("");
+        }}
+      />
 
       {loading || !data ? (
         <p className="text-sm text-muted">Laddar...</p>
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-4">
-            <Kpi label="Startade" value={data.funnel.started} />
-            <Kpi label="Slutförda" value={data.funnel.completed} />
+            <Kpi
+              label="Startade"
+              info="Antal personer som borjade detta flode i vald period."
+              value={data.funnel.started}
+            />
+            <Kpi
+              label="Slutförda"
+              info="Antal personer som tog sig igenom hela flodet."
+              value={data.funnel.completed}
+            />
             <Kpi
               label="Completion"
+              info="Andel av startade som slutför hela flodet."
               value={`${Math.round(data.funnel.completion_rate * 100)} %`}
             />
-            <Kpi label="Avbrutna" value={data.funnel.abandoned} />
+            <Kpi
+              label="Avbrutna"
+              info="Antal personer som lamnade innan flodet var klart."
+              value={data.funnel.abandoned}
+            />
           </section>
 
           <section className="card overflow-hidden">
             <div className="border-b border-border px-6 py-4">
-              <h2 className="eyebrow">Per fråga</h2>
+              <h2 className="eyebrow inline-flex items-center gap-1.5">
+                Per fråga
+                <MetricInfo text="Visar hur varje fraga presterar i svarsfrekvens och tidsatgang." />
+              </h2>
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-muted">
                   <th className="px-6 py-3">Fråga</th>
-                  <th className="px-6 py-3">Besvarade</th>
-                  <th className="px-6 py-3">Hoppade</th>
-                  <th className="px-6 py-3">Snittid</th>
+                  <th className="px-6 py-3">
+                    <span className="inline-flex items-center gap-1">
+                      Besvarade
+                      <MetricInfo text="Hur manga ganger fragan har besvarats." />
+                    </span>
+                  </th>
+                  <th className="px-6 py-3">
+                    <span className="inline-flex items-center gap-1">
+                      Hoppade
+                      <MetricInfo text="Hur manga ganger fragan hoppades over." />
+                    </span>
+                  </th>
+                  <th className="px-6 py-3">
+                    <span className="inline-flex items-center gap-1">
+                      Snittid
+                      <MetricInfo text="Genomsnittlig tid att besvara fragan." />
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {data.questions.map((q) => (
+                {filteredQuestions.map((q) => (
                   <tr key={q.question_id}>
                     <td className="px-6 py-3">
                       <code className="rounded-full bg-bg px-2 py-0.5 text-xs text-fg">
@@ -125,10 +180,10 @@ export function ModuleStats({
                     </td>
                   </tr>
                 ))}
-                {data.questions.length === 0 && (
+                {filteredQuestions.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-muted">
-                      Inga frågor registrerade.
+                      Inga frågor matchar filtret.
                     </td>
                   </tr>
                 )}
@@ -137,8 +192,11 @@ export function ModuleStats({
           </section>
 
           <section className="space-y-4">
-            <h2 className="eyebrow">A/B-analys per fråga</h2>
-            {data.questions.map((q) => {
+            <h2 className="eyebrow inline-flex items-center gap-1.5">
+              A/B-analys per fråga
+              <MetricInfo text="Jämfor varianter och visar sannolik vinnare for varje fraga." />
+            </h2>
+            {filteredQuestions.map((q) => {
               const ab = data.ab_analysis[q.question_id];
               if (!ab || ab.length === 0) return null;
               return (
@@ -167,13 +225,26 @@ export function ModuleStats({
                             {v.label}
                           </span>
                           <span className="flex-1 text-muted">
-                            {v.shown} visn. · {v.converted} svar
+                            {v.shown} visn.
+                            <span className="ml-1 inline-flex align-middle">
+                              <MetricInfo text="Antal ganger varianten visats for besokare." />
+                            </span>
+                            {" "}· {v.converted} svar
+                            <span className="ml-1 inline-flex align-middle">
+                              <MetricInfo text="Antal svar eller konverteringar som varianten gav." />
+                            </span>
                           </span>
                           <span className="font-mono text-fg-deep">
                             {(v.rate * 100).toFixed(1)} %
+                            <span className="ml-1 inline-flex align-middle">
+                              <MetricInfo text="Konverteringsgrad for varianten." />
+                            </span>
                           </span>
                           <span className="w-28 text-right text-xs text-muted">
                             {(v.probBest * 100).toFixed(0)} % sannolik bäst
+                            <span className="ml-1 inline-flex align-middle">
+                              <MetricInfo text="Sannolikhet att varianten ar bast givet observerad data." />
+                            </span>
                           </span>
                           {v.upliftVsControl != null &&
                             v.upliftVsControl !== 0 && (
@@ -187,6 +258,9 @@ export function ModuleStats({
                               >
                                 {v.upliftVsControl > 0 ? "+" : ""}
                                 {(v.upliftVsControl * 100).toFixed(1)} %
+                                <span className="ml-1 inline-flex align-middle">
+                                  <MetricInfo text="Skillnad mot kontrollvarianten i procentenheter." />
+                                </span>
                               </span>
                             )}
                         </div>
@@ -203,10 +277,21 @@ export function ModuleStats({
   );
 }
 
-function Kpi({ label, value }: { label: string; value: number | string }) {
+function Kpi({
+  label,
+  value,
+  info,
+}: {
+  label: string;
+  value: number | string;
+  info?: string;
+}) {
   return (
     <div className="card p-5">
-      <div className="eyebrow">{label}</div>
+      <div className="eyebrow inline-flex items-center gap-1.5">
+        {label}
+        {info ? <MetricInfo text={info} /> : null}
+      </div>
       <div className="mt-3 text-3xl font-semibold tracking-tight text-fg-deep">
         {value}
       </div>

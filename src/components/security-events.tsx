@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Play } from "lucide-react";
+import { DataFilters } from "./data-filters";
 import { cn, formatDate } from "@/lib/utils";
 
 type Event = {
@@ -22,6 +23,8 @@ export function SecurityEvents() {
   const [declinedMonths, setDeclinedMonths] = useState(12);
   const [inactiveMonths, setInactiveMonths] = useState(24);
   const [msg, setMsg] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [eventTypeFilter, setEventTypeFilter] = useState("alla");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +90,31 @@ export function SecurityEvents() {
     }
   };
 
+  const eventTypeOptions = useMemo(() => {
+    const types = Array.from(new Set(events.map((event) => event.event_type))).sort();
+    return [{ value: "alla", label: "Alla" }, ...types.map((type) => ({ value: type, label: type }))];
+  }, [events]);
+
+  const filteredEvents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return events.filter((event) => {
+      const typeOk = eventTypeFilter === "alla" ? true : event.event_type === eventTypeFilter;
+      const searchOk =
+        q.length === 0
+          ? true
+          : [
+              event.actor_email ?? "",
+              event.event_type,
+              event.target_id ?? "",
+              JSON.stringify(event.metadata ?? {}),
+            ]
+              .join(" ")
+              .toLowerCase()
+              .includes(q);
+      return typeOk && searchOk;
+    });
+  }, [events, search, eventTypeFilter]);
+
   return (
     <div className="space-y-10">
       <header className="max-w-2xl space-y-3">
@@ -147,6 +175,25 @@ export function SecurityEvents() {
         </div>
       </section>
 
+      <DataFilters
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Filtrera aktör, händelse, mål eller metadata..."
+        selects={[
+          {
+            key: "eventType",
+            label: "Händelsetyp",
+            value: eventTypeFilter,
+            onChange: setEventTypeFilter,
+            options: eventTypeOptions,
+          },
+        ]}
+        onClear={() => {
+          setSearch("");
+          setEventTypeFilter("alla");
+        }}
+      />
+
       <section className="card overflow-hidden">
         <div className="border-b border-border px-6 py-4">
           <h2 className="eyebrow">Senaste händelser</h2>
@@ -169,14 +216,14 @@ export function SecurityEvents() {
                     Laddar...
                   </td>
                 </tr>
-              ) : events.length === 0 ? (
+              ) : filteredEvents.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-muted">
                     Inga händelser loggade än.
                   </td>
                 </tr>
               ) : (
-                events.map((e) => (
+                filteredEvents.map((e) => (
                   <tr key={e.id}>
                     <td className="px-6 py-3 text-muted">{formatDate(e.created_at)}</td>
                     <td className="px-6 py-3">{e.actor_email ?? "—"}</td>

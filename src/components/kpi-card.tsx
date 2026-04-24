@@ -3,14 +3,17 @@
 import { motion } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { CountUp } from "./count-up";
+import { MetricInfo } from "./metric-info";
 import { cn, formatPercent } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 type Props = {
-  label: string;
+  label: ReactNode;
   value: number;
   unit: string;
   delta: number;
   formula: string;
+  info?: string;
   decimals?: number;
   index?: number;
 };
@@ -21,6 +24,7 @@ export function KpiCard({
   unit,
   delta,
   formula,
+  info,
   decimals = 0,
   index = 0,
 }: Props) {
@@ -39,7 +43,10 @@ export function KpiCard({
       className="card p-6"
     >
       <div className="flex items-center justify-between">
-        <span className="eyebrow">{label}</span>
+        <span className="eyebrow inline-flex items-center gap-1.5">
+          {label}
+          {info ? <MetricInfo text={info} /> : null}
+        </span>
         <DeltaPill
           delta={delta}
           positive={deltaPositive}
