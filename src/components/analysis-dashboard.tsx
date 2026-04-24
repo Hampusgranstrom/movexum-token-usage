@@ -93,7 +93,7 @@ export function AnalysisDashboard() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="eyebrow">Analys</span>
-          <h1 className="mt-2 text-4xl sm:text-5xl">GA-stil för intakeflödet</h1>
+          <h1 className="mt-2 text-4xl sm:text-5xl">Statistik &amp; analys</h1>
           <p className="mt-2 text-sm text-muted">
             {data.periodDays} dagar · uppdaterad {new Date(data.generatedAt).toLocaleString("sv-SE")}
           </p>
