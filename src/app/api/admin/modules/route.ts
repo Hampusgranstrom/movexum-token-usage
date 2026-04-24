@@ -50,7 +50,12 @@ export async function POST(req: Request) {
     name,
     description: body.description ?? null,
     target_audience: body.target_audience ?? null,
-    flow_type: body.flow_type === "chat" || body.flow_type === "hybrid" ? body.flow_type : "wizard",
+    flow_type:
+      body.flow_type === "chat" ||
+      body.flow_type === "hybrid" ||
+      body.flow_type === "quiz"
+        ? body.flow_type
+        : "wizard",
     welcome_title: body.welcome_title ?? null,
     welcome_body: body.welcome_body ?? null,
     system_prompt: body.system_prompt ?? null,

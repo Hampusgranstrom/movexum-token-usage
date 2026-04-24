@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Building, MapPin, Sparkles, Download, Trash2 } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { cn, formatDate } from "@/lib/utils";
-import type { Lead, LeadStatus, Conversation } from "@/lib/types";
+import type { Lead, LeadStatus, Conversation, LeadQuestionResponse } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/types";
 
 const STATUS_OPTIONS: LeadStatus[] = [
@@ -22,6 +22,7 @@ export function LeadDetail({
   const router = useRouter();
   const [lead, setLead] = useState<Lead | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [responses, setResponses] = useState<LeadQuestionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notes, setNotes] = useState("");
@@ -37,6 +38,7 @@ export function LeadDetail({
         const data = await res.json();
         setLead(data.lead);
         setConversations(data.conversations ?? []);
+        setResponses(data.responses ?? []);
         setNotes(data.lead.notes ?? "");
       } finally {
         setLoading(false);
@@ -166,6 +168,32 @@ export function LeadDetail({
                 AI-bedömning
               </h3>
               <p className="text-muted">{lead.score_reasoning}</p>
+            </div>
+          )}
+
+          {responses.length > 0 && (
+            <div className="card p-6">
+              <h3 className="eyebrow mb-4">Respondentens svar</h3>
+              <div className="space-y-2">
+                {responses.map((r) => (
+                  <div key={r.id} className="rounded-2xl bg-bg px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-muted">{r.question_key}</span>
+                      {r.variant_label && (
+                        <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] text-muted">
+                          {r.variant_label}
+                        </span>
+                      )}
+                    </div>
+                    {r.question_text && (
+                      <p className="mt-1 text-sm text-fg-deep">{r.question_text}</p>
+                    )}
+                    <p className="mt-1 text-sm text-muted">
+                      {r.skipped ? "(hoppad)" : formatAnswer(r.answer)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -304,4 +332,20 @@ export function LeadDetail({
       </div>
     </div>
   );
+}
+
+function formatAnswer(value: unknown): string {
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => formatAnswer(v)).join(", ");
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[okänt svar]";
+  }
 }

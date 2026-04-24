@@ -74,6 +74,17 @@ export type Conversation = {
   total_output_tokens: number;
 };
 
+export type LeadQuestionResponse = {
+  id: string;
+  created_at: string;
+  skipped: boolean;
+  response_time_ms: number | null;
+  answer: unknown;
+  question_key: string;
+  question_text: string | null;
+  variant_label: string | null;
+};
+
 // --- Dashboard API ---
 
 export type DashboardSummary = {
