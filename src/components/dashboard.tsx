@@ -53,7 +53,7 @@ export function Dashboard() {
       <header className="max-w-3xl">
         <span className="eyebrow">Dashboard</span>
         <h1 className="mt-3 text-4xl sm:text-5xl">
-          Översikt över <span className="text-accent">inflödet</span>
+          Översikt över inflödet
         </h1>
         <p className="mt-3 text-base text-muted">
           Senaste 30 dagarna · AI-scoring, källor och konverteringstratt

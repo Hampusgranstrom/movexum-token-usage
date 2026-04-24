@@ -145,7 +145,7 @@ export function QuestionsEditor({
         <div className="flex-1">
           <span className="eyebrow">Frågor</span>
           <h1 className="mt-1 text-3xl">
-            <span className="text-accent">{moduleName}</span>
+            {moduleName}
           </h1>
           <p className="mt-1 text-sm text-muted">
             Dynamiska frågor med varianter för A/B-test. URL:{" "}

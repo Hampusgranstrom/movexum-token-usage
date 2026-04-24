@@ -71,7 +71,7 @@ export function AdminModules() {
       <header className="max-w-2xl space-y-3">
         <span className="eyebrow">Superadmin</span>
         <h1 className="text-4xl sm:text-5xl">
-          <span className="text-accent">Moduler</span> per målgrupp
+          Moduler per målgrupp
         </h1>
         <p className="text-base text-muted">
           Varje modul har egen URL, egen välkomst, egna frågor och egen

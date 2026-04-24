@@ -92,7 +92,7 @@ export function SecurityEvents() {
       <header className="max-w-2xl space-y-3">
         <span className="eyebrow">Superadmin</span>
         <h1 className="text-4xl sm:text-5xl">
-          <span className="text-accent">Säkerhet</span> och granskning
+          Säkerhet och granskning
         </h1>
         <p className="text-base text-muted">
           Alla admin-åtgärder loggas här. Kör också retention-jobbet manuellt

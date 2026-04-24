@@ -104,7 +104,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
       <header className="max-w-2xl space-y-3">
         <span className="eyebrow">Superadmin</span>
         <h1 className="text-4xl sm:text-5xl">
-          <span className="text-accent">Teamet</span> som bygger verktyget
+          Teamet som bygger verktyget
         </h1>
         <p className="text-base text-muted">
           Bjud in och hantera personer som har tillgång till Startupkompass.
