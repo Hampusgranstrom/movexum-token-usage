@@ -7,10 +7,6 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const brand = await getBrandSettings();
-  const adminHost = process.env.ADMIN_HOST;
-  const adminLoginHref = adminHost
-    ? `${adminHost === "localhost" ? "http" : "https"}://${adminHost}/login`
-    : "/login";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-bg px-6 py-8 sm:px-10 sm:py-12">
@@ -38,7 +34,9 @@ export default async function HomePage() {
 
         </header>
 
-        <div className="space-y-8 pt-6">
+        <PartnerCarousel partners={brand.partnerLogos} />
+
+        <div className="space-y-8 pt-2">
           <div className="space-y-4">
             <span className="eyebrow inline-flex rounded-full bg-white/80 px-3 py-1 shadow-soft">
               Startupkompassen
@@ -104,8 +102,6 @@ export default async function HomePage() {
             </article>
           </div>
         </div>
-
-        <PartnerCarousel />
       </section>
     </main>
   );

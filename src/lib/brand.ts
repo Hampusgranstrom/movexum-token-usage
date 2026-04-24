@@ -3,6 +3,14 @@ import { getSupabaseAdmin } from "./supabase";
 export type BrandSettings = {
   logoUrl: string | null;
   productName: string;
+  partnerLogos: Array<{
+    id: string;
+    name: string;
+    logoUrl: string;
+    websiteUrl: string | null;
+    isActive: boolean;
+    sortOrder: number;
+  }>;
 };
 
 const BRAND_BUCKET = "brand";
@@ -22,6 +30,7 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const defaults: BrandSettings = {
     logoUrl: null,
     productName: "Startupkompass",
+    partnerLogos: [],
   };
 
   const admin = getSupabaseAdmin();
@@ -30,7 +39,7 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const { data } = await admin
     .from("brand_settings")
     .select("key, value")
-    .in("key", ["logo_path", "product_name"]);
+    .in("key", ["logo_path", "product_name", "partner_logos"]);
 
   if (!data) return defaults;
 
@@ -45,8 +54,65 @@ export async function getBrandSettings(): Promise<BrandSettings> {
     logoUrl = pub.publicUrl ?? null;
   }
 
+  const partnerLogos = parsePartnerLogos(admin, map.partner_logos);
+
   return {
     logoUrl,
     productName: map.product_name || defaults.productName,
+    partnerLogos,
   };
+}
+
+function parsePartnerLogos(
+  admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  raw: string | null | undefined,
+) {
+  if (!raw) return [] as BrandSettings["partnerLogos"];
+
+  try {
+    const parsed = JSON.parse(raw) as Array<{
+      id?: string;
+      name?: string;
+      logo_path?: string | null;
+      logo_url?: string | null;
+      website_url?: string | null;
+      is_active?: boolean;
+      sort_order?: number;
+    }>;
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map((item, idx) => {
+        const id = typeof item.id === "string" ? item.id.trim() : "";
+        const name = typeof item.name === "string" ? item.name.trim() : "";
+        if (!id || !name) return null;
+
+        let logoUrl =
+          typeof item.logo_url === "string" && item.logo_url.trim().length > 0
+            ? item.logo_url.trim()
+            : "";
+        if (typeof item.logo_path === "string" && item.logo_path.trim().length > 0) {
+          const { data } = admin.storage.from(BRAND_BUCKET).getPublicUrl(item.logo_path.trim());
+          logoUrl = data.publicUrl ?? logoUrl;
+        }
+        if (!logoUrl) return null;
+
+        return {
+          id,
+          name,
+          logoUrl,
+          websiteUrl:
+            typeof item.website_url === "string" && item.website_url.trim().length > 0
+              ? item.website_url.trim()
+              : null,
+          isActive: item.is_active !== false,
+          sortOrder: Number.isFinite(item.sort_order) ? Number(item.sort_order) : idx,
+        };
+      })
+      .filter((item): item is BrandSettings["partnerLogos"][number] => !!item)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  } catch {
+    return [];
+  }
 }

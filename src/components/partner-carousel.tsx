@@ -13,33 +13,31 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type Partner = {
+  id: string;
   name: string;
-  /** Valfri logotyp-URL. Om saknas visas textplatshållare. */
-  logoUrl?: string;
+  logoUrl: string;
+  websiteUrl: string | null;
+  isActive: boolean;
+  sortOrder: number;
 };
 
-const PARTNERS: Partner[] = [
-  { name: "Gävle kommun" },
-  { name: "Bollnäs kommun" },
-  { name: "Sandviken kommun" },
-  { name: "Hofors kommun" },
-  { name: "Ockelbo kommun" },
-  { name: "Nyföretagarcentrum" },
-  { name: "Region Gävleborg" },
-  { name: "Movexum" },
-];
-
-export function PartnerCarousel() {
+export function PartnerCarousel({ partners }: { partners: Partner[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+
+  const visiblePartners = partners
+    .filter((p) => p.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   useEffect(() => {
     setReady(true);
   }, []);
 
+  if (visiblePartners.length === 0) return null;
+
   return (
-    <div className="mt-4 space-y-4">
-      <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-muted">
+    <div className="space-y-3">
+      <p className="text-center text-[11px] font-medium uppercase tracking-[0.2em] text-fg/70">
         Del av ekosystemet
       </p>
 
@@ -56,14 +54,14 @@ export function PartnerCarousel() {
         <div
           ref={trackRef}
           className={cn(
-            "flex w-max gap-6",
+            "flex w-max gap-8",
             ready && "animate-marquee",
           )}
           aria-hidden="true"
         >
           {/* Duplicerade listor för sömlös loop */}
-          {[...PARTNERS, ...PARTNERS].map((p, i) => (
-            <PartnerItem key={i} partner={p} />
+          {[...visiblePartners, ...visiblePartners].map((p, i) => (
+            <PartnerItem key={`${p.id}-${i}`} partner={p} />
           ))}
         </div>
       </div>
@@ -72,19 +70,23 @@ export function PartnerCarousel() {
 }
 
 function PartnerItem({ partner }: { partner: Partner }) {
+  const inner = (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={partner.logoUrl}
+      alt={partner.name}
+      className="h-7 w-auto max-w-[132px] object-contain opacity-75 grayscale transition hover:opacity-100 hover:grayscale-0"
+    />
+  );
+
   return (
-    <div className="flex h-12 min-w-[160px] items-center justify-center rounded-xl border border-border bg-white/80 px-5 shadow-soft">
-      {partner.logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={partner.logoUrl}
-          alt={partner.name}
-          className="h-7 w-auto max-w-[130px] object-contain opacity-75 grayscale transition hover:opacity-100 hover:grayscale-0"
-        />
+    <div className="flex h-10 min-w-[160px] items-center justify-center px-2">
+      {partner.websiteUrl ? (
+        <a href={partner.websiteUrl} target="_blank" rel="noreferrer" aria-label={partner.name}>
+          {inner}
+        </a>
       ) : (
-        <span className="whitespace-nowrap text-xs font-medium text-muted">
-          {partner.name}
-        </span>
+        inner
       )}
     </div>
   );
