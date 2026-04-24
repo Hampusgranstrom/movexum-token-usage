@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Nunito_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const sans = DM_Sans({
+const sans = Nunito_Sans({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
