@@ -35,12 +35,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <Link
-            href={adminLoginHref}
-            className="rounded-full border border-border bg-white/80 px-4 py-2 text-sm font-medium text-fg-deep transition hover:bg-white"
-          >
-            Adminplattform
-          </Link>
+
         </header>
 
         <div className="space-y-8 pt-6">
@@ -49,7 +44,7 @@ export default async function HomePage() {
               Startupkompassen
             </span>
             <h1 className="max-w-4xl text-5xl leading-[1.02] text-fg-deep sm:text-6xl lg:text-7xl">
-              Välj spår och få nästa steg för din idé
+              Från idé till nästa steg — testa dig själv och din affärsidé
             </h1>
             <p className="max-w-2xl text-base leading-7 text-muted sm:text-lg">
               Börja med ett kort test om dig själv eller din idé. När du är klar kan du lämna kontaktuppgifter så att teamet återkopplar.
@@ -93,7 +88,7 @@ export default async function HomePage() {
 
             <article className="rounded-[2rem] border border-fg-deep/10 bg-fg-deep p-7 text-white shadow-card lg:col-span-1">
               <span className="eyebrow text-white/70">Öppen väg in</span>
-              <h2 className="mt-3 text-2xl">Vill du hellre börja i samtal?</h2>
+              <h2 className="mt-3 text-2xl text-white">Vill du hellre börja i samtal?</h2>
               <p className="mt-3 text-sm leading-6 text-white/75">
                 Använd fri AI-chatt och lämna kontaktuppgifter när du är klar.
               </p>
