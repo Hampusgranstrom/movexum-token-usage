@@ -1,5 +1,3 @@
-import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { rateLimit } from "./lib/rate-limit";
 import {
@@ -150,104 +148,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ---- Auth-less public routes ----
-  if (isPublicAuthSkip(pathname)) {
-    const res = NextResponse.next();
-    securityHeaders(res);
-    return res;
-  }
-
-  // ---- Supabase auth for admin surface ----
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) {
-    const res = NextResponse.next();
-    securityHeaders(res);
-    return res;
-  }
-
-  let response = NextResponse.next({ request: { headers: request.headers } });
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
-        for (const { name, value } of cookiesToSet) {
-          request.cookies.set(name, value);
-        }
-
-        response = NextResponse.next({ request: { headers: request.headers } });
-
-        for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
-        }
-      },
-    },
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    if (pathname.startsWith("/api/")) {
-      const res = NextResponse.json({ error: "unauthorized" }, { status: 401 });
-      securityHeaders(res);
-      return res;
-    }
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    const res = NextResponse.redirect(loginUrl);
-    securityHeaders(res);
-    return res;
-  }
-
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const serviceUrl = process.env.SUPABASE_URL ?? supabaseUrl;
-  let role: "admin" | "superadmin" | null = null;
-
-  if (serviceKey) {
-    const admin = createClient(serviceUrl, serviceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data: row } = await admin
-      .from("app_users")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-    role = (row?.role as "admin" | "superadmin" | undefined) ?? null;
-  }
-
-  if (!role) {
-    await supabase.auth.signOut();
-    if (pathname.startsWith("/api/")) {
-      const res = NextResponse.json({ error: "not_invited" }, { status: 401 });
-      securityHeaders(res);
-      return res;
-    }
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("error", "not_invited");
-    const res = NextResponse.redirect(loginUrl);
-    securityHeaders(res);
-    return res;
-  }
-
-  if (pathname.startsWith("/admin") && role !== "superadmin") {
-    if (pathname.startsWith("/api/")) {
-      const res = NextResponse.json({ error: "forbidden" }, { status: 403 });
-      securityHeaders(res);
-      return res;
-    }
-    const res = NextResponse.redirect(new URL("/dashboard", request.url));
-    securityHeaders(res);
-    return res;
-  }
-
-  response.headers.set("x-user-role", role);
-  securityHeaders(response);
-  return response;
+  // Auth and role enforcement now live in server components and API route
+  // guards (`getCurrentUser` / `requireRole`). Keeping middleware focused on
+  // fast edge-safe concerns lowers latency and bundle size.
+  const res = NextResponse.next();
+  securityHeaders(res);
+  return res;
 }
 
 export const config = {

@@ -85,7 +85,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="mt-2 rounded-3xl border border-white/80 bg-white/60 px-4 py-5 shadow-soft backdrop-blur-sm sm:px-6 sm:py-6">
+        <div className="mt-4 px-1 py-2 sm:px-2 sm:py-3">
           <PartnerCarousel partners={homepagePartners} />
         </div>
       </section>

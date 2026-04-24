@@ -24,7 +24,7 @@ export default async function Page({ params }: Props) {
   return (
     <>
       <Nav user={user} brand={brand} />
-      <main className="mx-auto min-h-screen max-w-5xl px-6 py-12 sm:px-10 sm:py-16">
+      <main className="mx-auto min-h-screen max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
         <ModuleStats moduleId={mod.id} moduleName={mod.name} />
       </main>
     </>

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export function LoginForm({
   productName,
@@ -30,6 +29,7 @@ export function LoginForm({
     setLoading(true);
 
     try {
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
       const supabase = getSupabaseBrowser();
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -59,6 +59,10 @@ export function LoginForm({
           <img
             src={logoUrl}
             alt={productName}
+            width="180"
+            height="40"
+            decoding="async"
+            fetchPriority="high"
             className="mx-auto h-10 w-auto max-w-[180px] object-contain"
           />
         ) : (

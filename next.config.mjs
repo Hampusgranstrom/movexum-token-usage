@@ -36,6 +36,9 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

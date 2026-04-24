@@ -8,6 +8,7 @@ import { getModuleBySlug } from "@/lib/modules";
 import { hasConsent } from "@/lib/consent";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { buildLeadReport } from "@/lib/intake-report";
+import { resolveFounderLanguage, sendFounderInboxEmail } from "@/lib/founder-inbox";
 import type { ChatRequestBody, ExtractedLeadData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     sessionId,
     conversationId,
     moduleSlug,
+    language,
   } = body;
 
   if (!sessionId || typeof sessionId !== "string" || sessionId.length > 128) {
@@ -123,11 +125,19 @@ export async function POST(request: Request) {
   }
 
   const systemPrompt = mod?.system_prompt || INTAKE_SYSTEM_PROMPT;
+  const preferredLanguage = resolveFounderLanguage(language, request.headers.get("accept-language"));
+  const languageInstruction =
+    preferredLanguage === "en"
+      ? "Reply in clear English."
+      : preferredLanguage === "sv-easy"
+        ? "Svara pa enkel svenska med korta meningar och enkla ord."
+        : "Svara pa svenska.";
+  const composedSystemPrompt = `${systemPrompt}\n\nLanguage rule: ${languageInstruction}`;
   const leadSourceId = mod?.lead_source_id ?? "ai-chat";
   const moduleId = mod?.id ?? null;
 
   try {
-    const result = await createChatCompletion(systemPrompt, clientMessages);
+    const result = await createChatCompletion(composedSystemPrompt, clientMessages);
 
     const supabase = getSupabaseAdmin();
     let convId = conversationId ?? null;
@@ -248,6 +258,19 @@ export async function POST(request: Request) {
             if (!leadErr && newLead) {
               leadId = newLead.id;
               leadCreated = true;
+
+              if (extractedData.email) {
+                sendFounderInboxEmail({
+                  toEmail: extractedData.email,
+                  founderName: leadName,
+                  moduleName: mod?.name ?? "Fri chatt",
+                  source: "chat",
+                  language: preferredLanguage,
+                  data: extractedData,
+                }).catch(() => {
+                  /* founder inbox is best-effort */
+                });
+              }
 
               await supabase
                 .from("conversations")

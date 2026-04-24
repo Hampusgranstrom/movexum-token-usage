@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle, Download } from "lucide-react";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { ResultBucket } from "@/lib/modules";
+import type { FounderLanguage } from "@/lib/founder-inbox";
 import { cn } from "@/lib/utils";
 import { downloadTextReport } from "@/lib/report-download";
 
@@ -26,10 +27,12 @@ export function ModuleQuiz({
   slug,
   sessionId,
   questions,
+  language,
 }: {
   slug: string;
   sessionId: string;
   questions: QuestionWithVariant[];
+  language: FounderLanguage;
 }) {
   const active = questions.filter(
     (q) => q.is_active && q.type === "single_choice",
@@ -102,6 +105,7 @@ export function ModuleQuiz({
                   idea_summary: `Quizresultat (${result.bucket.title}): ${result.bucket.description}`,
                   idea_category: result.bucket.key,
                 },
+                language,
               }),
             });
             const data = (await res.json()) as {
@@ -487,6 +491,15 @@ function QuizResultView({
                 : "Skicka till Movexum"}
           </button>
         </div>
+        {leadSent && (
+          <div className="mt-4 rounded-2xl bg-bg px-4 py-3 text-xs text-fg-deep">
+            <p className="font-medium">Founder inbox skickad</p>
+            <p className="mt-1">Du ar har {"->"} nasta steg</p>
+            <p>1. Inskickat (klart)</p>
+            <p>2. Forsta genomgang hos Movexum</p>
+            <p>3. Personlig aterkoppling</p>
+          </div>
+        )}
       </section>
     </motion.div>
   );

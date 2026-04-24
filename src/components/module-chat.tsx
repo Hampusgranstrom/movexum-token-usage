@@ -5,18 +5,58 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, User2, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { downloadTextReport } from "@/lib/report-download";
+import type { FounderLanguage } from "@/lib/founder-inbox";
 import type { ChatResponse } from "@/lib/types";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; content: string };
+
+function uiCopy(language: FounderLanguage) {
+  if (language === "en") {
+    return {
+      intro: "Start by sharing your idea. Ask follow-up questions if you want to learn more about Movexum.",
+      sent: "Thanks! We saved your details and sent a summary to your email.",
+      progress: "You are here -> next steps",
+      step1: "1. Submitted (done)",
+      step2: "2. Initial review by Movexum",
+      step3: "3. Personal feedback",
+      report: "Download my mini report",
+      placeholder: "Write your message...",
+    };
+  }
+  if (language === "sv-easy") {
+    return {
+      intro: "Beratta kort om din ide. Du kan stalla fragor till oss i chatten.",
+      sent: "Tack! Vi har sparat dina uppgifter och skickat en sammanfattning till din e-post.",
+      progress: "Du ar har -> nasta steg",
+      step1: "1. Inskickat (klart)",
+      step2: "2. Movexum gor en forsta genomgang",
+      step3: "3. Du far personlig aterkoppling",
+      report: "Ladda ned min minirapport",
+      placeholder: "Skriv ditt meddelande...",
+    };
+  }
+  return {
+    intro: "Borja med att beratta om din ide. Fraga vidare om du vill veta mer om Movexum eller vad vi letar efter.",
+    sent: "Tack! Vi har noterat dina uppgifter och skickar en sammanfattning till din mail.",
+    progress: "Du ar har -> nasta steg",
+    step1: "1. Inskickat (klart)",
+    step2: "2. Forsta genomgang hos Movexum",
+    step3: "3. Personlig aterkoppling",
+    report: "Ladda ned min minirapport",
+    placeholder: "Skriv ditt meddelande...",
+  };
+}
 
 export function ModuleChat({
   slug,
   sessionId,
   productName,
+  language,
 }: {
   slug: string;
   sessionId: string;
   productName: string;
+  language: FounderLanguage;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -27,6 +67,7 @@ export function ModuleChat({
   const [report, setReport] = useState<{ fileName: string; content: string } | null>(
     null,
   );
+  const copy = uiCopy(language);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,6 +104,7 @@ export function ModuleChat({
           sessionId,
           conversationId,
           moduleSlug: slug,
+          language,
         }),
       });
       const data = (await res.json()) as ChatResponse | { error: string };
@@ -106,8 +148,7 @@ export function ModuleChat({
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
             <span className="eyebrow">AI-chatt</span>
             <p className="max-w-md text-sm text-muted">
-              Börja med att berätta om din idé. Fråga vidare om du vill veta mer om
-              Movexum eller vad vi letar efter.
+              {copy.intro}
             </p>
           </div>
         )}
@@ -127,8 +168,14 @@ export function ModuleChat({
               <div className="flex items-start gap-2">
                 <CheckCircle className="mt-0.5 h-4 w-4 flex-none" />
                 <span>
-                  Tack! Vi har noterat dina uppgifter. Någon från Movexum hör av sig.
+                  {copy.sent}
                 </span>
+              </div>
+              <div className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-[11px]">
+                <p className="font-medium">{copy.progress}</p>
+                <p>{copy.step1}</p>
+                <p>{copy.step2}</p>
+                <p>{copy.step3}</p>
               </div>
               {report && (
                 <button
@@ -136,7 +183,7 @@ export function ModuleChat({
                   className="btn-secondary mt-3"
                 >
                   <Download className="h-4 w-4" />
-                  Ladda ned min minirapport
+                  {copy.report}
                 </button>
               )}
             </motion.div>
@@ -162,7 +209,7 @@ export function ModuleChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Skriv ditt meddelande..."
+            placeholder={copy.placeholder}
             rows={1}
             disabled={loading}
             aria-label="Meddelande till AI-assistenten"

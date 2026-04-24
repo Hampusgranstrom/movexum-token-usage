@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export function AcceptInviteForm() {
   const router = useRouter();
@@ -17,8 +16,9 @@ export function AcceptInviteForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowser();
     const check = async () => {
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = getSupabaseBrowser();
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
       const accessToken = hash.get("access_token");
       const refreshToken = hash.get("refresh_token");
@@ -60,6 +60,7 @@ export function AcceptInviteForm() {
 
     setLoading(true);
     try {
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
       const supabase = getSupabaseBrowser();
       const { error: updateError } = await supabase.auth.updateUser({
         password,

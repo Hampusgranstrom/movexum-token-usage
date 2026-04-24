@@ -18,7 +18,7 @@ export default async function AdminModulesPage() {
   return (
     <>
       <Nav user={user} brand={brand} />
-      <main className="mx-auto min-h-screen max-w-6xl px-6 py-12 sm:px-10 sm:py-16">
+      <main className="mx-auto min-h-screen max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
         <AdminModules />
       </main>
     </>

@@ -1,12 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
-import { ModuleWizard } from "./module-wizard";
-import { ModuleChat } from "./module-chat";
-import { ModuleQuiz } from "./module-quiz";
+import type { FounderLanguage } from "@/lib/founder-inbox";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { BrandSettings } from "@/lib/brand";
+
+const ModuleWizard = dynamic(
+  () => import("./module-wizard").then((m) => m.ModuleWizard),
+  { ssr: false },
+);
+const ModuleChat = dynamic(
+  () => import("./module-chat").then((m) => m.ModuleChat),
+  { ssr: false },
+);
+const ModuleQuiz = dynamic(
+  () => import("./module-quiz").then((m) => m.ModuleQuiz),
+  { ssr: false },
+);
 
 type PublicModule = {
   id: string;
@@ -54,10 +66,30 @@ export function ModuleIntake({
   const [error, setError] = useState<string | null>(null);
   const [consentGiven, setConsentGiven] = useState(false);
   const [consentSubmitting, setConsentSubmitting] = useState(false);
+  const [language, setLanguage] = useState<FounderLanguage>("sv");
 
   useEffect(() => {
     setSessionId(ensureSessionId(slug));
   }, [slug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const key = `mvx-language:${slug}`;
+    const stored = window.localStorage.getItem(key);
+    if (stored === "sv" || stored === "en" || stored === "sv-easy") {
+      setLanguage(stored);
+      return;
+    }
+    const browser = window.navigator.language.toLowerCase();
+    setLanguage(browser.startsWith("en") ? "en" : "sv");
+  }, [slug]);
+
+  const onLanguageChange = (next: FounderLanguage) => {
+    setLanguage(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(`mvx-language:${slug}`, next);
+    }
+  };
 
   useEffect(() => {
     if (!sessionId) return;
@@ -144,12 +176,17 @@ export function ModuleIntake({
   return (
     <div className="mx-auto w-full max-w-3xl space-y-10">
       <header className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
           {brand.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={brand.logoUrl}
               alt={brand.productName}
+              width="140"
+              height="28"
+              decoding="async"
+              fetchPriority="high"
               className="h-7 w-auto max-w-[140px] object-contain"
             />
           ) : (
@@ -160,6 +197,30 @@ export function ModuleIntake({
           <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-fg-deep">
             {mod.name}
           </span>
+          </div>
+          <div className="inline-flex rounded-full bg-surface p-1 shadow-soft">
+            <button
+              type="button"
+              onClick={() => onLanguageChange("sv")}
+              className={language === "sv" ? "rounded-full bg-fg px-3 py-1 text-xs text-white" : "rounded-full px-3 py-1 text-xs text-muted"}
+            >
+              Svenska
+            </button>
+            <button
+              type="button"
+              onClick={() => onLanguageChange("en")}
+              className={language === "en" ? "rounded-full bg-fg px-3 py-1 text-xs text-white" : "rounded-full px-3 py-1 text-xs text-muted"}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              onClick={() => onLanguageChange("sv-easy")}
+              className={language === "sv-easy" ? "rounded-full bg-fg px-3 py-1 text-xs text-white" : "rounded-full px-3 py-1 text-xs text-muted"}
+            >
+              Latt svenska
+            </button>
+          </div>
         </div>
 
         <div>
@@ -205,12 +266,14 @@ export function ModuleIntake({
           slug={slug}
           sessionId={sessionId}
           productName={brand.productName}
+          language={language}
         />
       ) : mod.flow_type === "quiz" ? (
         <ModuleQuiz
           slug={slug}
           sessionId={sessionId}
           questions={config.questions}
+          language={language}
         />
       ) : (
         <ModuleWizard
@@ -219,6 +282,7 @@ export function ModuleIntake({
           questions={config.questions}
           requireEmail={mod.require_email}
           requirePhone={mod.require_phone}
+          language={language}
         />
       )}
     </div>

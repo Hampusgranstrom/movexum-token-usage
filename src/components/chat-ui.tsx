@@ -114,7 +114,15 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
         <div className="flex items-center gap-3">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={productName} className="h-6 w-auto max-w-[140px] object-contain" />
+            <img
+              src={logoUrl}
+              alt={productName}
+              width="140"
+              height="24"
+              decoding="async"
+              fetchPriority="high"
+              className="h-6 w-auto max-w-[140px] object-contain"
+            />
           ) : (
             <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
               {productName}
