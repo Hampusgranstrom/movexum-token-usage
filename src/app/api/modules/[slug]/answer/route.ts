@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { hasConsent } from "@/lib/consent";
 import { getModuleBySlug } from "@/lib/modules";
+import { logAnalyticsEvent } from "@/lib/analytics";
 
 export const runtime = "nodejs";
 
@@ -55,5 +56,21 @@ export async function POST(req: Request, ctx: Ctx) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await logAnalyticsEvent({
+    eventType: body.skipped ? "question_skipped" : "question_answered",
+    metadata: {
+      module_id: mod.id,
+      module_slug: mod.slug,
+      session_id: body.sessionId,
+      question_id: body.questionId,
+      variant_id: body.variantId ?? null,
+      response_time_ms:
+        typeof body.responseTimeMs === "number"
+          ? Math.max(0, Math.round(body.responseTimeMs))
+          : null,
+    },
+  });
+
   return NextResponse.json({ ok: true });
 }
