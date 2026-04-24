@@ -9,7 +9,7 @@
  * Karusellen loopar sömlöst med ren CSS-animation, ingen JS-timer.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type Partner = {
@@ -52,7 +52,7 @@ export function PartnerCarousel({ partners }: { partners: Partner[] }) {
       >
         <div
           className={cn(
-            "flex w-max gap-5 sm:gap-8",
+            "flex w-max gap-8 sm:gap-12",
             ready && "animate-marquee",
           )}
           aria-hidden="true"
@@ -73,12 +73,12 @@ function PartnerItem({ partner }: { partner: Partner }) {
     <img
       src={partner.logoUrl}
       alt={partner.name}
-      className="h-6 w-auto max-w-[110px] object-contain opacity-75 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-7 sm:max-w-[132px]"
+      className="h-10 w-auto max-w-[190px] object-contain opacity-95 transition hover:opacity-100 sm:h-12 sm:max-w-[220px]"
     />
   );
 
   return (
-    <div className="flex h-9 min-w-[120px] items-center justify-center px-1.5 sm:h-10 sm:min-w-[160px] sm:px-2">
+    <div className="flex h-12 min-w-[180px] items-center justify-center px-2 sm:h-14 sm:min-w-[220px] sm:px-3">
       {partner.websiteUrl ? (
         <a href={partner.websiteUrl} target="_blank" rel="noreferrer" aria-label={partner.name}>
           {inner}
