@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, User2, Sparkles, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { downloadTextReport } from "@/lib/report-download";
+import { Halftone } from "@/components/halftone";
 import type { ExtractedLeadData, ChatResponse } from "@/lib/types";
 
 type Role = "user" | "assistant";
@@ -124,8 +125,11 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
               className="h-6 w-auto max-w-[140px] object-contain"
             />
           ) : (
-            <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
-              {productName}
+            <span className="flex items-center gap-2">
+              <Halftone size={24} color="#0A0A0A" bg="transparent" />
+              <span className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
+                {productName}
+              </span>
             </span>
           )}
         </div>

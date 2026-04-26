@@ -243,7 +243,7 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
               className="input"
               value={mod.accent_color ?? ""}
               onChange={(e) => patch("accent_color", e.target.value || null)}
-              placeholder="#38B4E3"
+              placeholder="#FF5A3C"
             />
           </Field>
           <Field label="Lead-källa">

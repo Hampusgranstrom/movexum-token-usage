@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
+import { Halftone } from "@/components/halftone";
 import type { FounderLanguage } from "@/lib/founder-inbox";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { BrandSettings } from "@/lib/brand";
@@ -190,8 +191,11 @@ export function ModuleIntake({
               className="h-7 w-auto max-w-[140px] object-contain"
             />
           ) : (
-            <span className="text-lg font-semibold tracking-tight text-fg-deep">
-              {brand.productName.toLowerCase()}
+            <span className="flex items-center gap-2.5">
+              <Halftone size={28} color="#0A0A0A" bg="transparent" />
+              <span className="text-lg font-semibold tracking-tight text-fg-deep">
+                {brand.productName.toLowerCase()}
+              </span>
             </span>
           )}
           <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-fg-deep">

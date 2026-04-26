@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { Nunito_Sans, JetBrains_Mono } from "next/font/google";
 import { WebVitalsLoader } from "@/components/web-vitals-loader";
-import { ThemeSurface } from "@/components/theme-surface";
 import { getBrandSettings } from "@/lib/brand";
+import { themeStyleVars } from "@/lib/themes";
 import "./globals.css";
 
 const sans = Nunito_Sans({
@@ -25,22 +26,22 @@ export const metadata: Metadata = {
     "AI-drivet verktyg för att hantera inflöde av idébärare till Movexums inkubator.",
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const brand = await getBrandSettings();
+  // CSS-variables for the active theme override the defaults set in
+  // globals.css for the entire app — including admin pages.
+  const themeStyle = themeStyleVars(brand.theme) as CSSProperties;
 
   return (
     <html
       lang="sv"
       className={`${sans.variable} ${mono.variable}`}
-      data-active-theme={brand.themeSettings.publicThemeId}
-      data-admin-theme={brand.themeSettings.adminThemeId}
-      data-public-theme={brand.themeSettings.publicThemeId}
+      style={themeStyle}
+      data-theme={brand.themeKey}
     >
       <body className="min-h-screen">
         <ThemeSurface

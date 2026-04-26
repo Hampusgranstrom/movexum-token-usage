@@ -13,7 +13,7 @@ export default async function LoginPage() {
   const brand = await getBrandSettings();
   return (
     <main className="relative min-h-screen overflow-hidden bg-bg px-6 py-12 text-fg-deep sm:px-10">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_16%,rgba(56,180,227,0.16),transparent_34%),radial-gradient(circle_at_82%_4%,rgba(14,63,82,0.12),transparent_30%),linear-gradient(180deg,#eef8fc_0%,#f7fbfd_52%,#ffffff_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_18%_18%,rgba(255,90,60,0.10),transparent_55%),radial-gradient(ellipse_70%_60%_at_84%_8%,rgba(10,10,10,0.08),transparent_55%),linear-gradient(180deg,#FFFFFF_0%,#FAFAFA_55%,#F2F2F2_100%)]" />
       <div className="mx-auto grid min-h-[calc(100vh-6rem)] w-full max-w-6xl gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <section className="space-y-7">
           <span className="inline-flex items-center gap-2 rounded-full border border-fg-deep/10 bg-white/65 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-fg-deep/75">

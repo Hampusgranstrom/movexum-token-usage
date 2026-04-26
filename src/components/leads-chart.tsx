@@ -29,24 +29,24 @@ export function LeadsChart({ data }: Props) {
       <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#38B4E3" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="#38B4E3" stopOpacity={0} />
+            <stop offset="0%" stopColor="#FF5A3C" stopOpacity={0.32} />
+            <stop offset="100%" stopColor="#FF5A3C" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid
           strokeDasharray="2 4"
-          stroke="#D4E7EF"
+          stroke="#E5E5E5"
           vertical={false}
         />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#9EB7C2", fontSize: 11 }}
+          tick={{ fill: "#A3A3A3", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: string) => v.slice(5)}
         />
         <YAxis
-          tick={{ fill: "#9EB7C2", fontSize: 11 }}
+          tick={{ fill: "#A3A3A3", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => formatCompact(v, 0)}
@@ -58,17 +58,17 @@ export function LeadsChart({ data }: Props) {
             border: "none",
             borderRadius: "14px",
             boxShadow:
-              "0 2px 4px 0 rgba(14,63,82,0.05), 0 12px 30px -10px rgba(14,63,82,0.18)",
-            color: "#0E3F52",
+              "0 2px 4px 0 rgba(10,10,10,0.05), 0 12px 30px -10px rgba(10,10,10,0.16)",
+            color: "#0A0A0A",
             fontSize: "0.8125rem",
           }}
-          labelStyle={{ color: "#5A7886" }}
+          labelStyle={{ color: "#737373" }}
           formatter={(value: number) => [value, "Leads"]}
         />
         <Area
           type="monotone"
           dataKey="count"
-          stroke="#0E3F52"
+          stroke="#0A0A0A"
           strokeWidth={2}
           fill="url(#leadsGradient)"
         />

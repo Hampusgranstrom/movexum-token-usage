@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { Halftone } from "@/components/halftone";
 
 export function LoginForm({
   productName,
@@ -66,8 +67,11 @@ export function LoginForm({
             className="mx-auto h-10 w-auto max-w-[180px] object-contain"
           />
         ) : (
-          <span className="text-2xl font-semibold tracking-tight text-fg-deep">
-            {productName.toLowerCase()}
+          <span className="inline-flex items-center justify-center gap-3">
+            <Halftone size={44} color="#0A0A0A" bg="transparent" />
+            <span className="text-2xl font-semibold tracking-tight text-fg-deep">
+              {productName.toLowerCase()}
+            </span>
           </span>
         )}
         <p className="text-sm text-muted">Logga in för att fortsätta till adminplattformen.</p>

@@ -23,9 +23,9 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {
-        soft: "0 1px 2px 0 rgba(14, 63, 82, 0.04), 0 4px 14px -4px rgba(14, 63, 82, 0.08)",
-        card: "0 2px 4px 0 rgba(14, 63, 82, 0.05), 0 12px 30px -10px rgba(14, 63, 82, 0.12)",
-        pop: "0 4px 12px -2px rgba(14, 63, 82, 0.08), 0 24px 48px -12px rgba(14, 63, 82, 0.18)",
+        soft: "0 1px 2px 0 rgba(10, 10, 10, 0.04), 0 4px 14px -4px rgba(10, 10, 10, 0.08)",
+        card: "0 2px 4px 0 rgba(10, 10, 10, 0.05), 0 12px 30px -10px rgba(10, 10, 10, 0.10)",
+        pop: "0 4px 12px -2px rgba(10, 10, 10, 0.08), 0 24px 48px -12px rgba(10, 10, 10, 0.16)",
       },
       borderRadius: {
         lg: "12px",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getBrandBucketName } from "@/lib/brand";
+import { isThemeKey } from "@/lib/themes";
 
 export const runtime = "nodejs";
 
@@ -91,6 +92,35 @@ export async function POST(req: Request) {
 
   const { data: pub } = admin.storage.from(bucket).getPublicUrl(path);
   return NextResponse.json({ ok: true, url: pub.publicUrl });
+}
+
+export async function PUT(req: Request) {
+  const guard = await requireRole("superadmin");
+  if ("error" in guard) return guard.error;
+
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const themeKey = body?.theme;
+  if (!isThemeKey(themeKey)) {
+    return NextResponse.json({ error: "invalid theme" }, { status: 400 });
+  }
+
+  const { error } = await admin
+    .from("brand_settings")
+    .upsert(
+      { key: "theme", value: themeKey, updated_by: guard.user.id },
+      { onConflict: "key" },
+    );
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, theme: themeKey });
 }
 
 export async function DELETE() {
