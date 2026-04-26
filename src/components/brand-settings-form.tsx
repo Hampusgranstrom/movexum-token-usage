@@ -24,7 +24,6 @@ export function BrandSettingsForm({
   initialThemeKey: ThemeKey;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"theme" | "brand">("theme");
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
@@ -284,42 +283,14 @@ export function BrandSettingsForm({
         <div className="inline-flex rounded-full bg-bg p-1 shadow-soft">
           <button
             type="button"
-            onClick={() => setTab("theme")}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm transition",
-              tab === "theme"
-                ? "bg-white text-fg-deep shadow-soft"
-                : "text-muted hover:text-fg",
-            )}
-          >
-            Tema
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("brand")}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm transition",
-              tab === "brand"
-                ? "bg-white text-fg-deep shadow-soft"
-                : "text-muted hover:text-fg",
-            )}
+            className="rounded-full px-4 py-1.5 text-sm bg-white text-fg-deep shadow-soft"
           >
             Varumärke
           </button>
         </div>
       </header>
 
-      {tab === "theme" ? (
-        <ThemeSettings
-          themes={initialThemeSettings.themes}
-          initialAdminThemeId={initialThemeSettings.adminThemeId}
-          initialPublicThemeId={initialThemeSettings.publicThemeId}
-          onSaved={() => router.refresh()}
-        />
-      ) : null}
-
-      {tab === "brand" ? (
-        <>
+      <>
       <section className="card p-8">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="eyebrow">Färgtema</h2>
@@ -653,8 +624,7 @@ export function BrandSettingsForm({
           </div>
         )}
       </section>
-        </>
-      ) : null}
+      </>
     </div>
   );
 }

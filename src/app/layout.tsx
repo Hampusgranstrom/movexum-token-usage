@@ -44,10 +44,7 @@ export default async function RootLayout({
       data-theme={brand.themeKey}
     >
       <body className="min-h-screen">
-        <ThemeSurface
-          adminThemeId={brand.themeSettings.adminThemeId}
-          publicThemeId={brand.themeSettings.publicThemeId}
-        />
+
         <WebVitalsLoader />
         {children}
       </body>
