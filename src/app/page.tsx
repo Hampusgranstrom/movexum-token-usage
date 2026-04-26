@@ -40,8 +40,10 @@ function Mono({ children, color = INK, size = 11, opacity = 0.55, ls = "0.16em",
 function TopNav() {
   return (
     <div className="lp-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "22px 0" }}>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
-        <Halftone size={36} color={INK} bg="transparent" />
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+        <span style={{ width: 28, height: 28, borderRadius: 6, background: INK, display: "grid", placeItems: "center" }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: ACCENT }} />
+        </span>
         <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 500, color: INK, letterSpacing: "-0.015em" }}>Startupkompassen</span>
       </span>
       <div className="lp-nav-links" style={{ display: "flex", gap: 30, fontFamily: SANS, fontSize: 14, color: INK_SOFT, alignItems: "center" }}>
@@ -82,8 +84,49 @@ function Hero() {
             </span>
           </div>
         </div>
-        <div className="lp-hero-mark" style={{ display: "grid", placeItems: "center" }}>
-          <Halftone size={460} color={INK} bg="transparent" />
+        <div className="lp-hero-mark" style={{ position: "relative", height: 460, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Bakgrundskort */}
+          <div style={{ position: "absolute", top: 40, right: 0, width: 320, background: "#FFFFFF", borderRadius: 18, padding: 24, boxShadow: "0 24px 60px -12px rgba(0,0,0,0.14), inset 0 0 0 1px rgba(0,0,0,0.06)", transform: "rotate(3deg)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#D4E8F0,#A8D0E6)" }} />
+              <div>
+                <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK }}>Lena · Sandviken</div>
+                <div style={{ fontFamily: SANS, fontSize: 11, color: INK_MUT }}>Hållbar textilproduktion</div>
+              </div>
+              <span style={{ marginLeft: "auto", padding: "3px 10px", background: "#E8F5EC", borderRadius: 999, fontFamily: SANS, fontSize: 10, fontWeight: 600, color: "#2A7A3B", letterSpacing: "0.04em" }}>MATCHAD</span>
+            </div>
+            <div style={{ fontFamily: SANS, fontSize: 13, color: INK_SOFT, lineHeight: 1.5 }}>Rekommenderas: <strong style={{ color: INK }}>Movexum</strong> + <strong style={{ color: INK }}>Almi</strong></div>
+            <div style={{ marginTop: 12, height: 4, borderRadius: 99, background: PAPER_DEEP, overflow: "hidden" }}>
+              <div style={{ width: "72%", height: "100%", borderRadius: 99, background: ACCENT }} />
+            </div>
+            <div style={{ marginTop: 6, display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontFamily: SANS, fontSize: 10, color: INK_MUT }}>Matchstyrka</span>
+              <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: INK }}>72 %</span>
+            </div>
+          </div>
+          {/* Huvudkort */}
+          <div style={{ position: "absolute", top: 80, left: 0, width: 310, background: "#FFFFFF", borderRadius: 18, padding: 24, boxShadow: "0 32px 70px -10px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: INK_MUT, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>Din resa</div>
+            {[
+              { l: "Idé inlämnad",     done: true  },
+              { l: "AI-analys klar",    done: true  },
+              { l: "Matchning skickad", done: true  },
+              { l: "Möte bokat",        done: false },
+            ].map((step) => (
+              <div key={step.l} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${LINE}` }}>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, background: step.done ? INK : "transparent", border: step.done ? "none" : `2px solid ${LINE}`, display: "grid", placeItems: "center" }}>
+                  {step.done && <span style={{ color: "#FFF", fontSize: 10, lineHeight: 1 }}>✓</span>}
+                </div>
+                <span style={{ fontFamily: SANS, fontSize: 13, color: step.done ? INK : INK_MUT, fontWeight: step.done ? 500 : 400 }}>{step.l}</span>
+              </div>
+            ))}
+          </div>
+          {/* Nedre chip */}
+          <div style={{ position: "absolute", bottom: 60, right: 20, background: INK, borderRadius: 14, padding: "14px 20px", boxShadow: "0 12px 30px -8px rgba(0,0,0,0.35)" }}>
+            <div style={{ fontFamily: SANS, fontSize: 12, color: "#A3A3A3", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Nästa steg</div>
+            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: "#FFF" }}>Samtal med Anna · Movexum</div>
+            <div style={{ marginTop: 4, fontFamily: SANS, fontSize: 12, color: "#A3A3A3" }}>Tisdag 09:30 · 30 min · video</div>
+          </div>
         </div>
       </div>
     </div>
