@@ -1,0 +1,20 @@
+DU HAR BLIVIT INBJUDEN
+
+Välkommen! Du har blivit inbjuden att bli administratör på Startupkompassen.
+Acceptera inbjudan genom att klicka på länken nedan för att komma igång.
+
+Acceptera inbjudan:
+{{ .ConfirmationURL }}
+
+---
+
+DIN LÄNK ÄR PRIVAT
+Denna länk är personlig för dig och giltig i 24 timmar. Dela den inte med andra.
+
+---
+
+Startupkompassen — Vi hjälper dig framåt
+Powered by Movexum
+
+Du får denna email för att du har blivit inbjuden som administratör.
+© 2026 Movexum. Alla rättigheter förbehållna.

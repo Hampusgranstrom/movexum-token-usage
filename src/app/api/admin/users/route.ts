@@ -68,8 +68,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
   }
 
-  const origin = getAdminOrigin(req);
-  const redirectTo = `${origin}/accept-invite`;
+  // For invite flow, always redirect to admin surface to ensure user lands on password setup page.
+  // getAdminOrigin returns the explicit admin domain if ADMIN_HOST is set, otherwise falls back.
+  const adminOrigin = getAdminOrigin(req);
+  const redirectTo = `${adminOrigin}/accept-invite`;
 
   const promoteIfNeeded = async (idOrEmail: { id?: string | null; email: string }) => {
     if (role !== "superadmin") return;

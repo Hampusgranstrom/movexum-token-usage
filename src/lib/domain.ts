@@ -23,21 +23,25 @@ export function getSurface(host: string | null | undefined): Surface {
 
 export function getAdminOrigin(req: Request): string {
   const adminHost = process.env.ADMIN_HOST;
+  const publicHost = process.env.PUBLIC_HOST;
+
+  // If explicit admin host is set, use it.
   if (adminHost) {
     const proto = adminHost === "localhost" ? "http" : "https";
     return `${proto}://${adminHost}`;
   }
-  // SITE_URL is a server-only alias; NEXT_PUBLIC_SITE_URL works in both
-  const fromEnv =
-    process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
-  // Last resort: derive from incoming request — may be localhost in some
-  // hosting setups even for production traffic. Prefer setting SITE_URL.
+
+  // In combined mode (no split hosts), use public host for admin routes too.
+  if (publicHost) {
+    const proto = publicHost === "localhost" ? "http" : "https";
+    return `${proto}://${publicHost}`;
+  }
+
+  // Last resort: derive from incoming request.
   const reqOrigin = new URL(req.url).origin;
-  // Never return localhost as a redirect target for invite links in prod
   if (reqOrigin.includes("localhost") || reqOrigin.includes("127.0.0.1")) {
     console.warn(
-      "[getAdminOrigin] Falling back to localhost — set SITE_URL or ADMIN_HOST env var"
+      "[getAdminOrigin] Falling back to localhost — set ADMIN_HOST or PUBLIC_HOST env var"
     );
   }
   return reqOrigin;
@@ -49,6 +53,7 @@ export function getPublicOrigin(req: Request): string {
     const proto = publicHost === "localhost" ? "http" : "https";
     return `${proto}://${publicHost}`;
   }
+  // Fallback to request origin in combined mode.
   return new URL(req.url).origin;
 }
 
