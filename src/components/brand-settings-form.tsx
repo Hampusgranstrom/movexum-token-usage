@@ -16,12 +16,26 @@ type PartnerLogo = {
   sort_order: number;
 };
 
+type AvailableModule = {
+  id: string;
+  name: string;
+  slug: string;
+  flowType: "wizard" | "chat" | "hybrid" | "quiz";
+  description: string | null;
+};
+
 export function BrandSettingsForm({
   initialLogoUrl,
   initialThemeKey,
+  initialLandingShowAiChat,
+  initialLandingVisibleModuleIds,
+  availableModules,
 }: {
   initialLogoUrl: string | null;
   initialThemeKey: ThemeKey;
+  initialLandingShowAiChat: boolean;
+  initialLandingVisibleModuleIds: string[];
+  availableModules: AvailableModule[];
 }) {
   const router = useRouter();
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
@@ -35,6 +49,49 @@ export function BrandSettingsForm({
     kind: "ok" | "err";
     text: string;
   } | null>(null);
+  const [landingShowAiChat, setLandingShowAiChat] = useState(initialLandingShowAiChat);
+  const [landingVisibleModuleIds, setLandingVisibleModuleIds] = useState<string[]>(
+    initialLandingVisibleModuleIds,
+  );
+  const [landingBusy, setLandingBusy] = useState(false);
+  const [landingStatus, setLandingStatus] = useState<{
+    kind: "ok" | "err";
+    text: string;
+  } | null>(null);
+
+  const toggleModuleVisibility = (id: string) => {
+    setLandingVisibleModuleIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const saveLanding = async () => {
+    setLandingBusy(true);
+    setLandingStatus(null);
+    try {
+      const res = await fetch("/api/admin/brand", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          landingShowAiChat,
+          landingVisibleModuleIds,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setLandingStatus({
+          kind: "err",
+          text: data.error ?? "Kunde inte spara intagsinställningar",
+        });
+        return;
+      }
+
+      setLandingStatus({ kind: "ok", text: "Intagsinställningar sparade" });
+      router.refresh();
+    } finally {
+      setLandingBusy(false);
+    }
+  };
 
   const saveTheme = async (next: ThemeKey) => {
     if (next === themeKey) return;
@@ -358,6 +415,96 @@ export function BrandSettingsForm({
               </button>
             );
           })}
+        </div>
+      </section>
+
+      <section className="card space-y-6 p-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <div>
+            <h2 className="eyebrow">Landningssidans intag</h2>
+            <p className="mt-2 text-sm text-muted">
+              Styr vad användaren ser efter klick på "Berätta om din idé".
+            </p>
+          </div>
+          {landingStatus ? (
+            <span
+              className={cn(
+                "text-xs",
+                landingStatus.kind === "ok" ? "text-success" : "text-danger",
+              )}
+            >
+              {landingStatus.text}
+            </span>
+          ) : null}
+        </div>
+
+        <label className="flex items-start gap-3 rounded-2xl border border-border bg-bg p-4">
+          <input
+            type="checkbox"
+            checked={landingShowAiChat}
+            onChange={(e) => setLandingShowAiChat(e.target.checked)}
+            className="mt-1 h-4 w-4"
+          />
+          <span>
+            <span className="block text-sm font-medium text-fg-deep">Visa AI-chatten som val</span>
+            <span className="mt-1 block text-xs text-muted">
+              Om avstängd visas bara formulär/tester på sidan.
+            </span>
+          </span>
+        </label>
+
+        <div className="space-y-3">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
+            Formulär/tester att visa
+          </p>
+          <p className="text-xs text-muted">
+            Om inget är valt visas alla aktiva formulär/tester automatiskt.
+          </p>
+
+          {availableModules.length === 0 ? (
+            <p className="rounded-xl border border-border bg-bg px-3 py-2 text-sm text-muted">
+              Inga aktiva moduler hittades.
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {availableModules.map((mod) => {
+                const checked = landingVisibleModuleIds.includes(mod.id);
+                return (
+                  <label
+                    key={mod.id}
+                    className={cn(
+                      "rounded-xl border p-3 transition",
+                      checked
+                        ? "border-fg-deep bg-surface"
+                        : "border-border bg-bg",
+                    )}
+                  >
+                    <span className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleModuleVisibility(mod.id)}
+                        className="mt-1 h-4 w-4"
+                      />
+                      <span>
+                        <span className="block text-sm font-medium text-fg-deep">{mod.name}</span>
+                        <span className="block text-xs text-muted">
+                          /m/{mod.slug} · {mod.flowType}
+                        </span>
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button onClick={saveLanding} disabled={landingBusy} className="btn-secondary">
+            <Save className="h-4 w-4" />
+            Spara intagsinställningar
+          </button>
         </div>
       </section>
 

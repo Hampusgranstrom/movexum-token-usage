@@ -12,6 +12,10 @@ export type BrandSettings = {
   productName: string;
   themeKey: ThemeKey;
   theme: ThemeDefinition;
+  landingEntry: {
+    showAiChat: boolean;
+    visibleModuleIds: string[];
+  };
   partnerLogos: Array<{
     id: string;
     name: string;
@@ -42,6 +46,10 @@ export const getBrandSettings = cache(async (): Promise<BrandSettings> => {
     productName: "Startupkompass",
     themeKey: DEFAULT_THEME,
     theme: defaultTheme,
+    landingEntry: {
+      showAiChat: true,
+      visibleModuleIds: [],
+    },
     partnerLogos: [],
   };
 
@@ -51,7 +59,14 @@ export const getBrandSettings = cache(async (): Promise<BrandSettings> => {
   const { data } = await admin
     .from("brand_settings")
     .select("key, value")
-    .in("key", ["logo_path", "product_name", "partner_logos", "theme"]);
+    .in("key", [
+      "logo_path",
+      "product_name",
+      "partner_logos",
+      "theme",
+      "landing_show_ai_chat",
+      "landing_visible_modules",
+    ]);
 
   if (!data) return defaults;
 
@@ -68,15 +83,46 @@ export const getBrandSettings = cache(async (): Promise<BrandSettings> => {
 
   const partnerLogos = parsePartnerLogos(admin, map.partner_logos);
   const theme = getTheme(map.theme);
+  const landingEntry = parseLandingEntrySettings(map);
 
   return {
     logoUrl,
     productName: map.product_name || defaults.productName,
     themeKey: theme.key,
     theme,
+    landingEntry,
     partnerLogos,
   };
 });
+
+function parseLandingEntrySettings(
+  map: Record<string, string | null | undefined>,
+): BrandSettings["landingEntry"] {
+  const showAiChatRaw = typeof map.landing_show_ai_chat === "string"
+    ? map.landing_show_ai_chat.trim().toLowerCase()
+    : "";
+  const showAiChat = showAiChatRaw ? showAiChatRaw !== "false" : true;
+
+  let visibleModuleIds: string[] = [];
+  if (typeof map.landing_visible_modules === "string") {
+    try {
+      const parsed = JSON.parse(map.landing_visible_modules) as unknown;
+      if (Array.isArray(parsed)) {
+        visibleModuleIds = parsed
+          .filter((id): id is string => typeof id === "string")
+          .map((id) => id.trim())
+          .filter((id) => id.length > 0);
+      }
+    } catch {
+      visibleModuleIds = [];
+    }
+  }
+
+  return {
+    showAiChat,
+    visibleModuleIds,
+  };
+}
 
 function parsePartnerLogos(
   admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
