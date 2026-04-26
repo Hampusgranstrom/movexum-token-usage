@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { Halftone } from "@/components/halftone";
 
 export function AcceptInviteForm() {
   const router = useRouter();
@@ -86,8 +87,8 @@ export function AcceptInviteForm() {
 
   if (status === "missing") {
     return (
-      <div className="mx-auto max-w-md space-y-4 rounded-2xl bg-surface p-8 shadow-card text-center">
-        <h1 className="text-3xl">Inbjudan saknas</h1>
+      <div className="mx-auto w-full max-w-md rounded-[2rem] border border-border/90 bg-surface/90 p-8 shadow-card text-center space-y-4">
+        <h1 className="text-2xl font-medium tracking-tight text-fg-deep">Inbjudan saknas</h1>
         <p className="text-sm text-muted">
           Länken ser ut att ha gått ut eller öppnats i fel webbläsare. Be din
           superadmin skicka en ny inbjudan.
@@ -97,58 +98,66 @@ export function AcceptInviteForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl leading-tight sm:text-5xl">
-          Välkommen <span className="text-accent">ombord</span>
+    <div className="mx-auto w-full max-w-md">
+      <div className="mb-8 space-y-4 text-center">
+        <span className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-deep/75">
+          <Halftone size={14} color="var(--color-fg-deep)" bg="transparent" aria-hidden />
+          Startupkompassen
+        </span>
+        <h1 className="text-4xl font-medium leading-tight tracking-tight text-fg-deep sm:text-5xl">
+          Välkommen
         </h1>
-        <p className="mt-4 text-sm text-muted">
-          Sätt ett lösenord för <span className="font-medium text-fg">{email}</span>.
+        <p className="text-sm text-muted">
+          Sätt ett lösenord för{" "}
+          <span className="font-medium text-fg">{email}</span>.
         </p>
       </div>
 
-      <form
-        onSubmit={submit}
-        className="space-y-4 rounded-2xl bg-surface p-8 shadow-card"
-      >
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted">
-            Nytt lösenord
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoFocus
-            minLength={8}
-            className="input"
-            placeholder="Minst 8 tecken"
-          />
-        </div>
+      <div className="rounded-[2rem] border border-border/90 bg-surface/90 p-7 shadow-card backdrop-blur sm:p-8">
+        <form onSubmit={submit} className="space-y-5">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Nytt lösenord
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoFocus
+              minLength={8}
+              className="w-full rounded-xl border border-border bg-bg/60 px-4 py-3 text-sm text-fg shadow-none outline-none transition placeholder:text-subtle focus:border-accent focus:ring-2 focus:ring-accent/25"
+              placeholder="Minst 8 tecken"
+            />
+          </div>
 
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted">
-            Bekräfta lösenord
-          </label>
-          <input
-            type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            minLength={8}
-            className="input"
-            placeholder="Upprepa lösenordet"
-          />
-        </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-muted">
+              Bekräfta lösenord
+            </label>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              minLength={8}
+              className="w-full rounded-xl border border-border bg-bg/60 px-4 py-3 text-sm text-fg shadow-none outline-none transition placeholder:text-subtle focus:border-accent focus:ring-2 focus:ring-accent/25"
+              placeholder="Upprepa lösenordet"
+            />
+          </div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
+          {error && (
+            <p className="rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {error}
+            </p>
+          )}
 
-        <button type="submit" disabled={loading} className="btn-primary w-full">
-          <ArrowRight className="h-4 w-4" />
-          {loading ? "Sparar..." : "Skapa konto"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading} className="btn-primary w-full text-[15px]">
+            <ArrowRight className="h-4 w-4" />
+            {loading ? "Sparar..." : "Skapa konto"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, LogIn } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Halftone } from "@/components/halftone";
 
 export function LoginForm({
   productName,
-  logoUrl,
 }: {
   productName: string;
   logoUrl: string | null;
@@ -57,29 +56,12 @@ export function LoginForm({
     <div className="mx-auto w-full max-w-md rounded-[2rem] border border-border/90 bg-surface/90 p-7 shadow-card backdrop-blur sm:p-8">
       <div className="space-y-4 text-center">
         <span className="mx-auto inline-flex items-center gap-2 rounded-full border border-border bg-bg px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-deep/75">
-          <LogIn className="h-3.5 w-3.5 text-accent" />
+          <Halftone size={14} color="var(--color-fg-deep)" bg="transparent" aria-hidden />
           Admininloggning
         </span>
-
-        {logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={logoUrl}
-            alt={productName}
-            width="180"
-            height="40"
-            decoding="async"
-            fetchPriority="high"
-            className="mx-auto h-10 w-auto max-w-[190px] object-contain"
-          />
-        ) : (
-          <span className="inline-flex items-center justify-center gap-3">
-            <Halftone size={44} color="var(--color-fg-deep)" bg="transparent" />
-            <span className="text-2xl font-semibold tracking-tight text-fg-deep">
-              {productName}
-            </span>
-          </span>
-        )}
+        <h1 className="text-4xl font-medium leading-tight tracking-tight text-fg-deep sm:text-5xl">
+          {productName}
+        </h1>
         <p className="text-sm text-muted">Logga in för att fortsätta till adminplattformen.</p>
       </div>
 
