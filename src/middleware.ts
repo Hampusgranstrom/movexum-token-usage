@@ -42,10 +42,10 @@ function securityHeaders(res: NextResponse) {
     [
       "default-src 'self'",
       "img-src 'self' data: https: blob:",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://api.anthropic.com wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co https://api.anthropic.com wss://*.supabase.co https://vercel.live https://*.vercel.live wss://vercel.live wss://*.vercel.live",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
