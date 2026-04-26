@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getAdminOrigin } from "@/lib/domain";
+import { logSecurityEvent } from "@/lib/security-log";
 
 export const runtime = "nodejs";
 
@@ -94,31 +95,64 @@ export async function POST(req: Request) {
     },
   );
 
-  if (error) {
-    // Fallback: still provide a secure invite link if SMTP/provider rejects the send.
-    const fallback = await admin.auth.admin.generateLink({
-      type: "invite",
-      email,
-      options: {
-        data: { role, invited_by: guard.user.id },
-        redirectTo,
-      },
-    });
+  // Always generate a manual backup link. This protects operations when
+  // SMTP is misconfigured or when delivery silently fails after accepted API call.
+  const fallback = await admin.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: {
+      data: { role, invited_by: guard.user.id },
+      redirectTo,
+    },
+  });
 
-    if (fallback.error || !fallback.data.properties?.action_link) {
+  const inviteUrl = fallback.data?.properties?.action_link ?? null;
+  const fallbackFailed = !!(fallback.error || !inviteUrl);
+
+  if (error) {
+    if (fallbackFailed) {
+      await logSecurityEvent("invite_sent", {
+        actorId: guard.user.id,
+        actorEmail: guard.user.email,
+        targetId: fallback.data?.user?.id ?? null,
+        metadata: {
+          email,
+          role,
+          email_sent: false,
+          invite_api_error: error.message,
+          fallback_generated: false,
+          fallback_error: fallback.error?.message ?? null,
+          redirect_to: redirectTo,
+        },
+        headers: req.headers,
+      });
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    await promoteIfNeeded({ id: fallback.data.user?.id ?? null, email });
+    await promoteIfNeeded({ id: fallback.data?.user?.id ?? null, email });
+    await logSecurityEvent("invite_sent", {
+      actorId: guard.user.id,
+      actorEmail: guard.user.email,
+      targetId: fallback.data?.user?.id ?? null,
+      metadata: {
+        email,
+        role,
+        email_sent: false,
+        invite_api_error: error.message,
+        fallback_generated: true,
+        redirect_to: fallback.data?.properties?.redirect_to ?? redirectTo,
+      },
+      headers: req.headers,
+    });
 
     return NextResponse.json({
       ok: true,
-      user_id: fallback.data.user?.id ?? null,
+      user_id: fallback.data?.user?.id ?? null,
       email_sent: false,
-      invite_url: fallback.data.properties.action_link,
+      invite_url: inviteUrl,
       warning:
         "Inbjudningsmail kunde inte skickas automatiskt. Dela reservlänken manuellt.",
-      redirect_to: fallback.data.properties.redirect_to ?? redirectTo,
+      redirect_to: fallback.data?.properties?.redirect_to ?? redirectTo,
     });
   }
 
@@ -126,10 +160,28 @@ export async function POST(req: Request) {
   // If the superadmin requested a superadmin invite, upgrade it here.
   await promoteIfNeeded({ id: data.user?.id ?? null, email });
 
+  await logSecurityEvent("invite_sent", {
+    actorId: guard.user.id,
+    actorEmail: guard.user.email,
+    targetId: data.user?.id ?? null,
+    metadata: {
+      email,
+      role,
+      email_sent: true,
+      fallback_generated: !fallbackFailed,
+      redirect_to: redirectTo,
+    },
+    headers: req.headers,
+  });
+
   return NextResponse.json({
     ok: true,
     user_id: data.user?.id ?? null,
     email_sent: true,
+    invite_url: fallbackFailed ? null : inviteUrl,
+    warning: fallbackFailed
+      ? "Inbjudningsmail initierat. Reservlänk kunde inte skapas i detta försök."
+      : "Inbjudningsmail initierat. Reservlänk är tillgänglig om mailet inte levereras.",
     redirect_to: redirectTo,
   });
 }
