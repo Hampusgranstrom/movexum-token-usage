@@ -24,7 +24,7 @@ export default async function HomePage() {
               Startupkompassen
             </span>
             <h1 className="max-w-4xl text-3xl leading-[1.05] text-fg-deep sm:text-5xl sm:leading-[1.02] lg:text-7xl">
-              Har du en idé? Provtryck den med oss!
+              Välkommen till startupkompassen. Testa din entreprenöriella förmåga och idé med oss!
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-muted sm:text-base sm:leading-7 lg:text-lg">
               Börja med ett kort test om dig själv eller din idé. När du är klar kan du lämna kontaktuppgifter så att teamet återkopplar.

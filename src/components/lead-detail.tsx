@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Building, MapPin, Sparkles, Download, Trash2 } from "lucide-react";
 import { StatusBadge } from "./status-badge";
+import { MetricInfo } from "./metric-info";
 import { cn, formatDate } from "@/lib/utils";
 import type { Lead, LeadStatus, Conversation, LeadQuestionResponse } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/types";
@@ -103,6 +104,7 @@ export function LeadDetail({
             <span className="font-mono text-sm font-medium text-fg-deep">
               {lead.score}/100
             </span>
+            <MetricInfo text="AI-poängen i chatten viktas i fyra lika delar (0-25 poäng vardera): 1) idéns tydlighet och problemlösning, 2) marknadspotential, 3) grundarens beredskap och engagemang, 4) passform med Movexums inkubator. Totalen blir 0-100. Formulärflödet utan quiz poängsätts inte." />
           </div>
         )}
       </div>
