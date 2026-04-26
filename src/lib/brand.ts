@@ -3,6 +3,15 @@ import { getSupabaseAdmin } from "./supabase";
 export type BrandSettings = {
   logoUrl: string | null;
   productName: string;
+  themeSettings: {
+    themes: Array<{
+      id: string;
+      name: string;
+      description: string;
+    }>;
+    adminThemeId: string;
+    publicThemeId: string;
+  };
   partnerLogos: Array<{
     id: string;
     name: string;
@@ -14,6 +23,14 @@ export type BrandSettings = {
 };
 
 const BRAND_BUCKET = "brand";
+const DEFAULT_THEME_ID = "movexum-tema";
+const DEFAULT_THEMES: BrandSettings["themeSettings"]["themes"] = [
+  {
+    id: DEFAULT_THEME_ID,
+    name: "Movexum-tema",
+    description: "Nuvarande visuella profil för Movexum Startupkompass.",
+  },
+];
 
 export function getBrandBucketName() {
   return BRAND_BUCKET;
@@ -30,6 +47,11 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const defaults: BrandSettings = {
     logoUrl: null,
     productName: "Startupkompass",
+    themeSettings: {
+      themes: DEFAULT_THEMES,
+      adminThemeId: DEFAULT_THEME_ID,
+      publicThemeId: DEFAULT_THEME_ID,
+    },
     partnerLogos: [],
   };
 
@@ -39,7 +61,14 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const { data } = await admin
     .from("brand_settings")
     .select("key, value")
-    .in("key", ["logo_path", "product_name", "partner_logos"]);
+    .in("key", [
+      "logo_path",
+      "product_name",
+      "partner_logos",
+      "themes",
+      "admin_theme_id",
+      "public_theme_id",
+    ]);
 
   if (!data) return defaults;
 
@@ -55,12 +84,61 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   }
 
   const partnerLogos = parsePartnerLogos(admin, map.partner_logos);
+  const themes = parseThemes(map.themes);
+  const fallbackThemeId = themes[0]?.id ?? DEFAULT_THEME_ID;
+  const adminThemeId = pickThemeId(map.admin_theme_id, themes, fallbackThemeId);
+  const publicThemeId = pickThemeId(map.public_theme_id, themes, fallbackThemeId);
 
   return {
     logoUrl,
     productName: map.product_name || defaults.productName,
+    themeSettings: {
+      themes,
+      adminThemeId,
+      publicThemeId,
+    },
     partnerLogos,
   };
+}
+
+function parseThemes(raw: string | null | undefined) {
+  if (!raw) return DEFAULT_THEMES;
+
+  try {
+    const parsed = JSON.parse(raw) as Array<{
+      id?: string;
+      name?: string;
+      description?: string;
+    }>;
+    if (!Array.isArray(parsed)) return DEFAULT_THEMES;
+
+    const themes = parsed
+      .map((item) => {
+        const id = typeof item.id === "string" ? item.id.trim() : "";
+        const name = typeof item.name === "string" ? item.name.trim() : "";
+        if (!id || !name) return null;
+        const description =
+          typeof item.description === "string" && item.description.trim().length > 0
+            ? item.description.trim()
+            : "";
+        return { id, name, description };
+      })
+      .filter((item): item is { id: string; name: string; description: string } => !!item);
+
+    return themes.length > 0 ? themes : DEFAULT_THEMES;
+  } catch {
+    return DEFAULT_THEMES;
+  }
+}
+
+function pickThemeId(
+  value: string | null | undefined,
+  themes: Array<{ id: string }>,
+  fallback: string,
+) {
+  const selected = typeof value === "string" ? value.trim() : "";
+  if (!selected) return fallback;
+  return themes.some((t) => t.id === selected) ? selected : fallback;
 }
 
 function parsePartnerLogos(

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Plus, Save, Upload, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeSettings } from "./theme-settings";
 
 type PartnerLogo = {
   id: string;
@@ -17,10 +18,21 @@ type PartnerLogo = {
 
 export function BrandSettingsForm({
   initialLogoUrl,
+  initialThemeSettings,
 }: {
   initialLogoUrl: string | null;
+  initialThemeSettings: {
+    themes: Array<{
+      id: string;
+      name: string;
+      description: string;
+    }>;
+    adminThemeId: string;
+    publicThemeId: string;
+  };
 }) {
   const router = useRouter();
+  const [tab, setTab] = useState<"theme" | "brand">("theme");
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
@@ -238,10 +250,47 @@ export function BrandSettingsForm({
           Ert varumärke
         </h1>
         <p className="text-base text-muted">
-          Ladda upp logotyp och hantera partnerloggor i karusellen.
+          Hantera tema, logotyp och partnerloggor för både adminplattformen och startupkompassen.
         </p>
+        <div className="inline-flex rounded-full bg-bg p-1 shadow-soft">
+          <button
+            type="button"
+            onClick={() => setTab("theme")}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-sm transition",
+              tab === "theme"
+                ? "bg-white text-fg-deep shadow-soft"
+                : "text-muted hover:text-fg",
+            )}
+          >
+            Tema
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("brand")}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-sm transition",
+              tab === "brand"
+                ? "bg-white text-fg-deep shadow-soft"
+                : "text-muted hover:text-fg",
+            )}
+          >
+            Varumärke
+          </button>
+        </div>
       </header>
 
+      {tab === "theme" ? (
+        <ThemeSettings
+          themes={initialThemeSettings.themes}
+          initialAdminThemeId={initialThemeSettings.adminThemeId}
+          initialPublicThemeId={initialThemeSettings.publicThemeId}
+          onSaved={() => router.refresh()}
+        />
+      ) : null}
+
+      {tab === "brand" ? (
+        <>
       <section className="card p-8">
         <h2 className="eyebrow">Logotyp</h2>
 
@@ -505,6 +554,8 @@ export function BrandSettingsForm({
           </div>
         )}
       </section>
+        </>
+      ) : null}
     </div>
   );
 }

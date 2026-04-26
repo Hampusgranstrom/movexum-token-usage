@@ -2,8 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Movexum-inspired palette */
+:root,
+:root[data-active-theme="movexum-tema"] {
+  /* movexum-tema (current default palette) */
   --color-bg: #EAF5FA;
   --color-bg-deep: #DCEEF5;
   --color-surface: #FFFFFF;

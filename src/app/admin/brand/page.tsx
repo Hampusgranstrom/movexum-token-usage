@@ -23,7 +23,10 @@ export default async function BrandSettingsPage() {
     <>
       <Nav user={user} brand={brand} />
       <main className="mx-auto min-h-screen max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
-        <BrandSettingsForm initialLogoUrl={brand.logoUrl} />
+        <BrandSettingsForm
+          initialLogoUrl={brand.logoUrl}
+          initialThemeSettings={brand.themeSettings}
+        />
       </main>
     </>
   );
