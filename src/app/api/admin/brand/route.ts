@@ -103,24 +103,64 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
   }
 
-  const body = await req.json().catch(() => null);
-  const themeKey = body?.theme;
-  if (!isThemeKey(themeKey)) {
-    return NextResponse.json({ error: "invalid theme" }, { status: 400 });
+  const body = await req.json().catch(() => null) as {
+    theme?: unknown;
+    landingShowAiChat?: unknown;
+    landingVisibleModuleIds?: unknown;
+  } | null;
+
+  const rows: Array<{ key: string; value: string; updated_by: string }> = [];
+
+  if (body && typeof body.theme !== "undefined") {
+    if (!isThemeKey(body.theme)) {
+      return NextResponse.json({ error: "invalid theme" }, { status: 400 });
+    }
+    rows.push({ key: "theme", value: body.theme, updated_by: guard.user.id });
+  }
+
+  if (body && typeof body.landingShowAiChat !== "undefined") {
+    if (typeof body.landingShowAiChat !== "boolean") {
+      return NextResponse.json({ error: "invalid landingShowAiChat" }, { status: 400 });
+    }
+    rows.push({
+      key: "landing_show_ai_chat",
+      value: body.landingShowAiChat ? "true" : "false",
+      updated_by: guard.user.id,
+    });
+  }
+
+  if (body && typeof body.landingVisibleModuleIds !== "undefined") {
+    if (!Array.isArray(body.landingVisibleModuleIds)) {
+      return NextResponse.json(
+        { error: "invalid landingVisibleModuleIds" },
+        { status: 400 },
+      );
+    }
+    const cleanedIds = body.landingVisibleModuleIds
+      .filter((id): id is string => typeof id === "string")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    rows.push({
+      key: "landing_visible_modules",
+      value: JSON.stringify(cleanedIds),
+      updated_by: guard.user.id,
+    });
+  }
+
+  if (rows.length === 0) {
+    return NextResponse.json({ error: "nothing to update" }, { status: 400 });
   }
 
   const { error } = await admin
     .from("brand_settings")
-    .upsert(
-      { key: "theme", value: themeKey, updated_by: guard.user.id },
-      { onConflict: "key" },
-    );
+    .upsert(rows, { onConflict: "key" });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, theme: themeKey });
+  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE() {

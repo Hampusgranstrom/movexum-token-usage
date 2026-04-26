@@ -196,7 +196,16 @@ export function ModuleEditor({ module: initial }: { module: Module }) {
                 max={60}
                 className="input"
                 value={mod.max_exchanges ?? 20}
-                onChange={(e) => patch("max_exchanges", Number(e.target.value))}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const parsed = Number(raw);
+                  if (!Number.isFinite(parsed)) {
+                    patch("max_exchanges", 20);
+                    return;
+                  }
+                  const clamped = Math.min(60, Math.max(4, Math.round(parsed)));
+                  patch("max_exchanges", clamped);
+                }}
               />
             </Field>
           </div>

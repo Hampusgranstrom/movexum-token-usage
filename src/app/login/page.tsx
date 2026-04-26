@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/components/login-form";
-import { ShieldCheck } from "lucide-react";
+import { LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { getBrandSettings } from "@/lib/brand";
 
 export const metadata = {
@@ -12,32 +12,56 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage() {
   const brand = await getBrandSettings();
   return (
-    <main className="relative min-h-screen overflow-hidden bg-bg px-6 py-12 text-fg-deep sm:px-10">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_18%_18%,rgba(255,90,60,0.10),transparent_55%),radial-gradient(ellipse_70%_60%_at_84%_8%,rgba(10,10,10,0.08),transparent_55%),linear-gradient(180deg,#FFFFFF_0%,#FAFAFA_55%,#F2F2F2_100%)]" />
-      <div className="mx-auto grid min-h-[calc(100vh-6rem)] w-full max-w-6xl gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-        <section className="space-y-7">
-          <span className="inline-flex items-center gap-2 rounded-full border border-fg-deep/10 bg-white/65 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-fg-deep/75">
+    <main className="relative min-h-screen overflow-hidden bg-bg px-6 py-10 text-fg-deep sm:px-10 sm:py-12">
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 18% 12%, var(--color-accent-soft) 0%, transparent 62%), radial-gradient(ellipse 65% 52% at 90% 0%, color-mix(in oklab, var(--color-fg-deep) 10%, transparent) 0%, transparent 66%), linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 48%, var(--color-bg-deep) 100%)",
+        }}
+      />
+
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+        <section className="space-y-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-fg-deep/80 shadow-soft">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" />
             Intern plattform
           </span>
 
-          <div className="space-y-5">
-            <h1 className="text-4xl leading-tight text-fg-deep sm:text-5xl lg:text-[3.55rem]">
+          <div className="space-y-4">
+            <h1 className="text-4xl leading-[1.02] text-fg-deep sm:text-5xl lg:text-[3.4rem]">
               Administrera Startupkompassen
             </h1>
-            <p className="max-w-xl text-base leading-7 text-muted sm:text-lg">
+            <p className="max-w-xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
               Här hanterar teamet moduler, kompassfrågor, leads, varumärke och den publika upplevelsen på startupkompassen.se.
             </p>
           </div>
 
-          <div className="max-w-lg border-l border-fg-deep/10 pl-4">
-            <p className="text-sm leading-6 text-muted">
-              Endast inbjudna administratörer har åtkomst. All aktivitet loggas för intern granskning och säkerhetsuppföljning.
-            </p>
+          <div className="grid gap-3 sm:max-w-xl">
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface/65 px-4 py-3 shadow-soft">
+              <LockKeyhole className="mt-0.5 h-4 w-4 text-accent" />
+              <p className="text-sm leading-6 text-muted">
+                Endast inbjudna administratörer har åtkomst.
+              </p>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface/65 px-4 py-3 shadow-soft">
+              <Sparkles className="mt-0.5 h-4 w-4 text-accent" />
+              <p className="text-sm leading-6 text-muted">
+                Säkerhetshändelser loggas automatiskt för granskning och uppföljning.
+              </p>
+            </div>
           </div>
         </section>
 
-        <section>
+        <section className="relative">
+          <div
+            className="pointer-events-none absolute -inset-3 -z-10 rounded-[2rem] blur-2xl"
+            style={{
+              background:
+                "radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 70%)",
+            }}
+            aria-hidden
+          />
           <Suspense>
             <LoginForm productName={brand.productName} logoUrl={brand.logoUrl} />
           </Suspense>

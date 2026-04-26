@@ -45,11 +45,10 @@ function TopNav() {
         <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 500, color: INK, letterSpacing: "-0.015em" }}>Startupkompassen</span>
       </span>
       <div className="lp-nav-links" style={{ display: "flex", gap: 30, fontFamily: SANS, fontSize: 14, color: INK_SOFT, alignItems: "center" }}>
-        {["Så funkar det", "För vem", "Vägar vidare", "Om oss"].map((l) => <span key={l}>{l}</span>)}
-      </div>
-      <div className="lp-nav-actions" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <Link href="/login" style={{ fontFamily: SANS, fontSize: 14, color: INK, fontWeight: 500, textDecoration: "none" }}>Logga in</Link>
-        <Link href="/chat" style={{ padding: "9px 18px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
+        <a href="#hur-det-funkar" style={{ color: INK_SOFT, textDecoration: "none" }}>Så funkar det</a>
+        <a href="#for-vem" style={{ color: INK_SOFT, textDecoration: "none" }}>För vem</a>
+        <a href="#ekosystemet" style={{ color: INK_SOFT, textDecoration: "none" }}>Vägar vidare</a>
+        <a href="#faq" style={{ color: INK_SOFT, textDecoration: "none" }}>Om oss</a>
       </div>
     </div>
   );
@@ -73,7 +72,7 @@ function Hero() {
             Startupkompassen är den enklaste vägen in i Gävleborgs innovationssystem. Berätta var du står — vi visar nästa steg och kopplar dig till rätt stöd. Gratis. Inga formulär.
           </p>
           <div className="lp-hero-cta" style={{ marginTop: 32, display: "flex", gap: 12, alignItems: "center" }}>
-            <Link href="/chat" style={{ padding: "14px 22px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
+            <Link href="/start" style={{ padding: "14px 22px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta om din idé →</Link>
             <a href="#hur-det-funkar" style={{ padding: "14px 22px", background: "transparent", color: INK, borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, border: `1px solid ${LINE}`, textDecoration: "none", display: "inline-block" }}>Se så funkar det</a>
           </div>
           <div className="lp-hero-partners" style={{ marginTop: 36, display: "flex", gap: 26, alignItems: "center" }}>
@@ -117,7 +116,7 @@ function CompassEntry() {
               <span key={t} style={{ padding: "7px 13px", border: `1px solid ${LINE}`, borderRadius: 999, fontFamily: SANS, fontSize: 12, color: INK_SOFT }}>{t}</span>
             ))}
           </div>
-          <Link href="/chat" style={{ padding: "10px 18px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>Visa min väg →</Link>
+          <Link href="/start" style={{ padding: "10px 18px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>Visa min väg →</Link>
         </div>
       </div>
       <style>{`@keyframes lp-blink { 50% { opacity: 0; } }`}</style>
@@ -205,7 +204,7 @@ function ForWhom() {
     { tag: "Etablerad", t: "Jag driver redan något, men vill prova nytt",  d: "Innovation handlar inte bara om startups. Vi har vägar för dig som vill växa sidledes." },
   ];
   return (
-    <div className="lp-forwhom" style={{ padding: "120px 0", background: INK, color: "#F5F5F5", borderRadius: 24, paddingInline: 64 }}>
+    <div id="for-vem" className="lp-forwhom" style={{ padding: "120px 0", background: INK, color: "#F5F5F5", borderRadius: 24, paddingInline: 64 }}>
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
         <Mono color="#F5F5F5" size={11} ls="0.18em" opacity={0.55}>För dig som</Mono>
         <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: "#F5F5F5" }}>Det finns ingen <I color="#F5F5F5">&ldquo;rätt&rdquo;</I> startpunkt.</h2>
@@ -237,7 +236,7 @@ function Ecosystem() {
     { n: "Almi Invest",                   role: "Riskkapital",                     desc: "Investeringar i tidiga skeden i regionen.",                   tag: "Invest"     },
   ];
   return (
-    <div className="lp-ecosystem" style={{ padding: "120px 0" }}>
+    <div id="ekosystemet" className="lp-ecosystem" style={{ padding: "120px 0" }}>
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
         <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Ekosystemet</Mono>
         <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK }}>Hela <I>Gävleborgs</I> stöd. På ett ställe.</h2>
@@ -315,7 +314,7 @@ function FAQ() {
     { q: "Vad om kompassen inte hittar rätt match?",  a: "Då ringer vi. En riktig människa i regionen tittar på din situation manuellt." },
   ];
   return (
-    <div className="lp-faq" style={{ padding: "120px 0" }}>
+    <div id="faq" className="lp-faq" style={{ padding: "120px 0" }}>
       <div className="lp-faq-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 80 }}>
         <div>
           <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Frågor &amp; svar</Mono>
@@ -351,7 +350,7 @@ function FinalCTA() {
         Du har en idé. Vi har resten av regionen. Det enda som saknas är ditt första steg.
       </p>
       <div className="lp-final-actions" style={{ marginTop: 36, display: "inline-flex", gap: 12 }}>
-        <Link href="/chat" style={{ padding: "16px 26px", background: "#FFFFFF", color: INK, borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
+        <Link href="/start" style={{ padding: "16px 26px", background: "#FFFFFF", color: INK, borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta om din idé →</Link>
         <a href="mailto:hej@startupkompassen.se" style={{ padding: "16px 26px", background: "transparent", color: "#F5F5F5", borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, border: "1px solid rgba(255,255,255,0.2)", textDecoration: "none", display: "inline-block" }}>Boka demo för kommun</a>
       </div>
     </div>
@@ -361,7 +360,7 @@ function FinalCTA() {
 // ── Footer ────────────────────────────────────────────────────────
 function Footer() {
   const cols = [
-    { h: "Tjänsten",    l: ["Berätta din idé", "Så funkar det", "För dig som"] },
+    { h: "Tjänsten",    l: ["Berätta om din idé", "Så funkar det", "För dig som"] },
     { h: "Ekosystemet", l: ["Movexum", "NyföretagarCentrum", "Almi", "Alla partner"] },
     { h: "Om",          l: ["Bakgrund", "Press", "Kontakt", "Integritet"] },
   ];
