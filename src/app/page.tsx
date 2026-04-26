@@ -409,7 +409,7 @@ export default function HomePage() {
       <FAQ />
       <FinalCTA />
       <Footer />
-      <style jsx global>{`
+      <style>{`
         @media (max-width: 1200px) {
           .lp-root { padding: 16px 24px 32px !important; }
           .lp-h1 { font-size: 64px !important; }
