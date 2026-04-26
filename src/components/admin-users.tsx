@@ -71,15 +71,18 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
         return;
       }
 
-      if (data.email_sent === false && data.invite_url) {
+      if (data.invite_url) {
         setInviteFallbackUrl(data.invite_url);
-        setStatus({
-          kind: "ok",
-          text: data.warning ?? `Mail kunde inte skickas. Reservlänk skapad för ${inviteEmail}.`,
-        });
-      } else {
-        setStatus({ kind: "ok", text: `Inbjudan skickad till ${inviteEmail}` });
       }
+
+      setStatus({
+        kind: "ok",
+        text:
+          data.warning ??
+          (data.email_sent === false
+            ? `Mail kunde inte skickas. Reservlänk skapad för ${inviteEmail}.`
+            : `Inbjudan initierad för ${inviteEmail}`),
+      });
 
       setInviteEmail("");
       setInviteRole("admin");

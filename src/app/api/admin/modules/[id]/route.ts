@@ -62,6 +62,35 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (ALLOWED_FIELDS.has(k)) patch[k] = v;
   }
 
+  if (typeof patch.max_exchanges !== "undefined") {
+    if (typeof patch.max_exchanges !== "number" || !Number.isFinite(patch.max_exchanges)) {
+      return NextResponse.json(
+        { error: "max_exchanges måste vara ett nummer mellan 4 och 60" },
+        { status: 400 },
+      );
+    }
+
+    const rounded = Math.round(patch.max_exchanges);
+    if (rounded < 4 || rounded > 60) {
+      return NextResponse.json(
+        { error: "max_exchanges måste vara mellan 4 och 60" },
+        { status: 400 },
+      );
+    }
+    patch.max_exchanges = rounded;
+  }
+
+  if (typeof patch.flow_type !== "undefined") {
+    if (
+      patch.flow_type !== "wizard" &&
+      patch.flow_type !== "chat" &&
+      patch.flow_type !== "hybrid" &&
+      patch.flow_type !== "quiz"
+    ) {
+      return NextResponse.json({ error: "invalid flow_type" }, { status: 400 });
+    }
+  }
+
   // If consent text changed, bump consent_version to invalidate prior consents.
   if (typeof patch.consent_text === "string") {
     const admin = getSupabaseAdmin();
