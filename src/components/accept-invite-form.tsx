@@ -20,18 +20,39 @@ export function AcceptInviteForm() {
     const check = async () => {
       const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
       const supabase = getSupabaseBrowser();
+
+      const query = new URLSearchParams(window.location.search);
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-      const accessToken = hash.get("access_token");
-      const refreshToken = hash.get("refresh_token");
 
-      if (accessToken && refreshToken) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
+      // Surface explicit errors from Supabase verify endpoint (expired/invalid OTP, etc).
+      // These can come back in either the query or the fragment depending on flow.
+      const hashError = hash.get("error_description") ?? hash.get("error");
+      const queryError = query.get("error_description") ?? query.get("error");
+      if (hashError || queryError) {
+        setStatus("missing");
+        return;
+      }
 
-        if (!sessionError) {
+      // PKCE flow (default for @supabase/ssr): verify endpoint redirects with ?code=...
+      const code = query.get("code");
+      if (code) {
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+        if (!exchangeError) {
           window.history.replaceState(null, "", window.location.pathname);
+        }
+      } else {
+        // Implicit flow fallback: tokens arrive in the URL fragment.
+        const accessToken = hash.get("access_token");
+        const refreshToken = hash.get("refresh_token");
+        if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!sessionError) {
+            window.history.replaceState(null, "", window.location.pathname);
+          }
         }
       }
 
