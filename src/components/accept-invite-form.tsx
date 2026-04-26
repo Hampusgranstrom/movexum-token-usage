@@ -5,6 +5,25 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Halftone } from "@/components/halftone";
 
+type EmailOtpType =
+  | "signup"
+  | "invite"
+  | "magiclink"
+  | "recovery"
+  | "email"
+  | "email_change";
+
+function isEmailOtpType(value: string): value is EmailOtpType {
+  return [
+    "signup",
+    "invite",
+    "magiclink",
+    "recovery",
+    "email",
+    "email_change",
+  ].includes(value);
+}
+
 export function AcceptInviteForm() {
   const router = useRouter();
   const [status, setStatus] = useState<"checking" | "ready" | "missing">(
@@ -14,12 +33,14 @@ export function AcceptInviteForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [missingHint, setMissingHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const check = async () => {
       const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
       const supabase = getSupabaseBrowser();
+<<<<<<< HEAD
 
       const query = new URLSearchParams(window.location.search);
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -39,6 +60,52 @@ export function AcceptInviteForm() {
         const { error: exchangeError } =
           await supabase.auth.exchangeCodeForSession(code);
         if (!exchangeError) {
+=======
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const code = query.get("code");
+      const tokenHash = query.get("token_hash");
+            const accessToken = hash.get("access_token");
+            const refreshToken = hash.get("refresh_token");
+            const code = query.get("code");
+            const tokenHash = query.get("token_hash");
+            const otpType = query.get("type");
+            let authErrorMessage: string | null = null;
+            let handledAuthLink = false;
+      const otpType = query.get("type");
+      let authErrorMessage: string | null = null;
+      let handledAuthLink = false;
+
+      if (accessToken && refreshToken) {
+        handledAuthLink = true;
+              setMissingHint(
+                "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
+              );
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+          authErrorMessage = sessionError.message;
+              handledAuthLink = true;
+        }
+      }
+              if (exchangeError) {
+                authErrorMessage = exchangeError.message;
+        handledAuthLink = true;
+            }
+
+            if (tokenHash && otpType && isEmailOtpType(otpType)) {
+              handledAuthLink = true;
+              const { error: otpError } = await supabase.auth.verifyOtp({
+                token_hash: tokenHash,
+                type: otpType,
+              });
+              if (otpError) {
+                authErrorMessage = otpError.message;
+          type: otpType,
+        });
+>>>>>>> 788e600 (Accept-invite-flödet hanterar fler tokenformat för att undvika falskt 'Inbjudan saknas')
           window.history.replaceState(null, "", window.location.pathname);
         }
       } else {
@@ -59,8 +126,14 @@ export function AcceptInviteForm() {
       const { data } = await supabase.auth.getUser();
       if (data.user?.email) {
         setEmail(data.user.email);
+        setMissingHint(null);
         setStatus("ready");
       } else {
+        if (authErrorMessage) {
+          setMissingHint(
+            "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
+          );
+        }
         setStatus("missing");
       }
     };
@@ -87,33 +160,17 @@ export function AcceptInviteForm() {
       const { error: updateError } = await supabase.auth.updateUser({
         password,
       });
-      if (updateError) {
-        setError(updateError.message);
-        return;
-      }
-      router.push("/dashboard");
-      router.refresh();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (status === "checking") {
-    return (
-      <div className="mx-auto max-w-md text-center text-sm text-muted">
-        Verifierar inbjudan...
-      </div>
-    );
-  }
-
-  if (status === "missing") {
-    return (
       <div className="mx-auto w-full max-w-md rounded-[2rem] border border-border/90 bg-surface/90 p-8 shadow-card text-center space-y-4">
-        <h1 className="text-2xl font-medium tracking-tight text-fg-deep">Inbjudan saknas</h1>
-        <p className="text-sm text-muted">
+          const url = `${window.location.search}${window.location.hash}`;
+          if (
+            url.includes("access_token") ||
+            url.includes("token_hash") ||
+            url.includes("code=")
+          ) {
           Länken ser ut att ha gått ut eller öppnats i fel webbläsare. Be din
           superadmin skicka en ny inbjudan.
         </p>
+        {missingHint && <p className="text-sm text-danger">{missingHint}</p>}
       </div>
     );
   }
