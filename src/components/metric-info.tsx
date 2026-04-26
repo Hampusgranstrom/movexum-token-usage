@@ -13,7 +13,7 @@ export function MetricInfo({ text }: { text: string }) {
       >
         <Info className="h-3.5 w-3.5" />
       </span>
-      <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-56 -translate-x-1/2 rounded-xl border border-border bg-white px-3 py-2 text-[11px] leading-snug text-muted opacity-0 shadow-soft transition group-hover:opacity-100 group-focus-within:opacity-100">
+      <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-56 -translate-x-1/2 rounded-xl border border-border bg-white px-3 py-2 text-[11px] leading-snug normal-case tracking-normal text-muted opacity-0 shadow-soft transition group-hover:opacity-100 group-focus-within:opacity-100">
         {text}
       </span>
     </span>

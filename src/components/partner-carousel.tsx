@@ -73,16 +73,16 @@ function PartnerItem({ partner }: { partner: Partner }) {
     <img
       src={partner.logoUrl}
       alt={partner.name}
-      width="220"
-      height="48"
+      width="360"
+      height="96"
       decoding="async"
       loading="lazy"
-      className="h-10 w-auto max-w-[190px] object-contain opacity-95 transition hover:opacity-100 sm:h-12 sm:max-w-[220px]"
+      className="h-16 w-auto max-w-[280px] object-contain opacity-95 transition hover:opacity-100 sm:h-20 sm:max-w-[360px]"
     />
   );
 
   return (
-    <div className="flex h-12 min-w-[180px] items-center justify-center px-2 sm:h-14 sm:min-w-[220px] sm:px-3">
+    <div className="flex h-20 min-w-[260px] items-center justify-center px-3 sm:h-24 sm:min-w-[340px] sm:px-4">
       {partner.websiteUrl ? (
         <a href={partner.websiteUrl} target="_blank" rel="noreferrer" aria-label={partner.name}>
           {inner}

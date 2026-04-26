@@ -2,12 +2,13 @@ import { cn } from "@/lib/utils";
 import type { LeadStatus } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/types";
 
-// Teal → accent hierarchy matching the Movexum palette.
+// Light → ink progression: fresh leads in soft glöd tints, mature stages in
+// ink. Uses the Startupkompassen palette (paper/ink + warm accent).
 const STATUS_CLASSES: Record<LeadStatus, string> = {
   new: "bg-accent-soft text-fg-deep",
-  contacted: "bg-[#BFE5F3] text-fg-deep",
+  contacted: "bg-[#FFCDBE] text-fg-deep",
   "meeting-booked": "bg-accent text-white",
-  evaluating: "bg-[#2E7691] text-white",
+  evaluating: "bg-[#3F3F3F] text-white",
   accepted: "bg-fg-deep text-white",
   declined: "bg-bg-deep text-muted line-through",
 };

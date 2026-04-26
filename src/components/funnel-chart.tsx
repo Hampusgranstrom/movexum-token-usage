@@ -10,12 +10,14 @@ type FunnelItem = {
   count: number;
 };
 
+// Glöd → ink progression: leads start as a warm tint, deepen into ink as
+// they advance. Declined uses a muted dusty tone.
 const STAGE_COLORS: Record<string, string> = {
-  new: "bg-[#BFE5F3]",
-  contacted: "bg-[#7ECCE7]",
-  "meeting-booked": "bg-[#38B4E3]",
-  evaluating: "bg-[#2E7691]",
-  accepted: "bg-[#0E3F52]",
+  new: "bg-[#FFE0D9]",
+  contacted: "bg-[#FFB39E]",
+  "meeting-booked": "bg-[#FF5A3C]",
+  evaluating: "bg-[#3F3F3F]",
+  accepted: "bg-[#0A0A0A]",
   declined: "bg-[#E6D0D4]",
 };
 
