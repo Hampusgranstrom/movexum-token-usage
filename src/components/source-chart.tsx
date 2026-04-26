@@ -19,8 +19,8 @@ type Props = {
   }>;
 };
 
-// Movexum-inspired palette (deep teal → accent sky).
-const SHADES = ["#0E3F52", "#1F5B72", "#2E7691", "#38B4E3", "#7ECCE7", "#BFE5F3"];
+// Startupkompassen palette — ink → glöd progression for chart bars.
+const SHADES = ["#0A0A0A", "#3F3F3F", "#FF5A3C", "#FF8770", "#FFB39E", "#FFE0D9"];
 
 export function SourceChart({ data }: Props) {
   if (data.length === 0) {
@@ -40,14 +40,14 @@ export function SourceChart({ data }: Props) {
       >
         <XAxis
           type="number"
-          tick={{ fill: "#9EB7C2", fontSize: 11 }}
+          tick={{ fill: "#A3A3A3", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           type="category"
           dataKey="label"
-          tick={{ fill: "#5A7886", fontSize: 12 }}
+          tick={{ fill: "#737373", fontSize: 12 }}
           tickLine={false}
           axisLine={false}
           width={120}
@@ -58,8 +58,8 @@ export function SourceChart({ data }: Props) {
             border: "none",
             borderRadius: "14px",
             boxShadow:
-              "0 2px 4px 0 rgba(14,63,82,0.05), 0 12px 30px -10px rgba(14,63,82,0.18)",
-            color: "#0E3F52",
+              "0 2px 4px 0 rgba(10,10,10,0.05), 0 12px 30px -10px rgba(10,10,10,0.16)",
+            color: "#0A0A0A",
             fontSize: "0.8125rem",
           }}
           formatter={(value: number) => [value, "Leads"]}

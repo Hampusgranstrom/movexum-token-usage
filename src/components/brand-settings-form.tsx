@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, Plus, Save, Upload, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Plus, Save, Upload, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { THEMES, type ThemeKey } from "@/lib/themes";
 
 type PartnerLogo = {
   id: string;
@@ -17,8 +18,10 @@ type PartnerLogo = {
 
 export function BrandSettingsForm({
   initialLogoUrl,
+  initialThemeKey,
 }: {
   initialLogoUrl: string | null;
+  initialThemeKey: ThemeKey;
 }) {
   const router = useRouter();
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
@@ -26,6 +29,43 @@ export function BrandSettingsForm({
   const [status, setStatus] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
+  const [themeKey, setThemeKey] = useState<ThemeKey>(initialThemeKey);
+  const [themeBusy, setThemeBusy] = useState(false);
+  const [themeStatus, setThemeStatus] = useState<{
+    kind: "ok" | "err";
+    text: string;
+  } | null>(null);
+
+  const saveTheme = async (next: ThemeKey) => {
+    if (next === themeKey) return;
+    setThemeBusy(true);
+    setThemeStatus(null);
+    const previous = themeKey;
+    setThemeKey(next);
+    try {
+      const res = await fetch("/api/admin/brand", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setThemeKey(previous);
+        setThemeStatus({
+          kind: "err",
+          text: data.error ?? "Kunde inte spara temat",
+        });
+        return;
+      }
+      setThemeStatus({
+        kind: "ok",
+        text: `Tema sparat: ${THEMES[next].name}`,
+      });
+      router.refresh();
+    } finally {
+      setThemeBusy(false);
+    }
+  };
   const [partners, setPartners] = useState<PartnerLogo[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(true);
   const [partnersBusy, setPartnersBusy] = useState(false);
@@ -241,6 +281,76 @@ export function BrandSettingsForm({
           Ladda upp logotyp och hantera partnerloggor i karusellen.
         </p>
       </header>
+
+      <section className="card p-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="eyebrow">Färgtema</h2>
+          {themeStatus && (
+            <span
+              className={cn(
+                "text-xs",
+                themeStatus.kind === "ok" ? "text-success" : "text-danger",
+              )}
+            >
+              {themeStatus.text}
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-sm text-muted">
+          Tema gäller hela appen — både publika sidor och adminplattformen.
+        </p>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {(Object.values(THEMES)).map((t) => {
+            const active = t.key === themeKey;
+            const swatch = [
+              t.colors.bg,
+              t.colors["fg-deep"],
+              t.colors.accent,
+              t.colors["accent-soft"],
+            ];
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => saveTheme(t.key)}
+                disabled={themeBusy}
+                aria-pressed={active}
+                className={cn(
+                  "group relative flex flex-col gap-3 rounded-2xl border p-5 text-left transition",
+                  active
+                    ? "border-fg-deep bg-surface shadow-card"
+                    : "border-border bg-surface/70 hover:border-fg-deep/30 hover:shadow-soft",
+                  themeBusy && "pointer-events-none opacity-60",
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    {swatch.map((hex) => (
+                      <span
+                        key={hex}
+                        className="h-5 w-5 rounded-full border border-border"
+                        style={{ background: hex }}
+                        aria-hidden
+                      />
+                    ))}
+                  </span>
+                  {active && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-fg-deep px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white">
+                      <Check className="h-3 w-3" />
+                      Aktivt
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-base font-medium text-fg-deep">{t.name}</div>
+                  <div className="mt-1 text-sm text-muted">{t.description}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="card p-8">
         <h2 className="eyebrow">Logotyp</h2>

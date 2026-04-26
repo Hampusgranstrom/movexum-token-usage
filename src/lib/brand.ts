@@ -1,8 +1,17 @@
+import { cache } from "react";
 import { getSupabaseAdmin } from "./supabase";
+import {
+  DEFAULT_THEME,
+  getTheme,
+  type ThemeDefinition,
+  type ThemeKey,
+} from "./themes";
 
 export type BrandSettings = {
   logoUrl: string | null;
   productName: string;
+  themeKey: ThemeKey;
+  theme: ThemeDefinition;
   partnerLogos: Array<{
     id: string;
     name: string;
@@ -26,10 +35,13 @@ export function getBrandBucketName() {
  * Falls back to a null logo + default product name if the migration has
  * not run yet or env is unavailable.
  */
-export async function getBrandSettings(): Promise<BrandSettings> {
+export const getBrandSettings = cache(async (): Promise<BrandSettings> => {
+  const defaultTheme = getTheme(DEFAULT_THEME);
   const defaults: BrandSettings = {
     logoUrl: null,
     productName: "Startupkompass",
+    themeKey: DEFAULT_THEME,
+    theme: defaultTheme,
     partnerLogos: [],
   };
 
@@ -39,7 +51,7 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const { data } = await admin
     .from("brand_settings")
     .select("key, value")
-    .in("key", ["logo_path", "product_name", "partner_logos"]);
+    .in("key", ["logo_path", "product_name", "partner_logos", "theme"]);
 
   if (!data) return defaults;
 
@@ -55,13 +67,16 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   }
 
   const partnerLogos = parsePartnerLogos(admin, map.partner_logos);
+  const theme = getTheme(map.theme);
 
   return {
     logoUrl,
     productName: map.product_name || defaults.productName,
+    themeKey: theme.key,
+    theme,
     partnerLogos,
   };
-}
+});
 
 function parsePartnerLogos(
   admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,

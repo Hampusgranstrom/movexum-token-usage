@@ -24,7 +24,7 @@ export function QrDownloadButton({ url, filename = "qr.png", title = "Ladda ned 
       const dataUrl = await QRCode.toDataURL(url, {
         width: 512,
         margin: 2,
-        color: { dark: "#0E3F52", light: "#FFFFFF" },
+        color: { dark: "#0A0A0A", light: "#FFFFFF" },
       });
       const a = document.createElement("a");
       a.href = dataUrl;

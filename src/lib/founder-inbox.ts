@@ -205,7 +205,7 @@ function buildHtmlBody(input: FounderInboxInput, language: FounderLanguage): str
   const checklist = checklistFor(language);
 
   return `
-<div style="font-family: Arial, sans-serif; line-height:1.6; color:#0E3F52; max-width:640px; margin:0 auto;">
+<div style="font-family: Arial, sans-serif; line-height:1.6; color:#0A0A0A; max-width:640px; margin:0 auto;">
   <p>${c.intro}</p>
   <h3 style="margin-bottom:8px;">${c.progressLabel}</h3>
   <ul>
@@ -214,7 +214,7 @@ function buildHtmlBody(input: FounderInboxInput, language: FounderLanguage): str
     <li>${c.progressLater}</li>
   </ul>
   ${input.moduleName ? `<p><strong>Modul:</strong> ${input.moduleName}</p>` : ""}
-  <h3 style="margin-bottom:8px;">${c.summaryLabel} <span style="font-size:12px; color:#5A7886;">(${c.aiLabel})</span></h3>
+  <h3 style="margin-bottom:8px;">${c.summaryLabel} <span style="font-size:12px; color:#737373;">(${c.aiLabel})</span></h3>
   <p>${summary ?? c.summaryFallback}</p>
   <h3 style="margin-bottom:8px;">${c.nextStepsLabel}</h3>
   <ul>${steps.map((s) => `<li>${s}</li>`).join("")}</ul>

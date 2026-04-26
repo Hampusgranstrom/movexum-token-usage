@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut, ArrowRight } from "lucide-react";
 import { NavLinks } from "@/components/nav-links";
+import { Halftone } from "@/components/halftone";
 import type { AppRole } from "@/lib/auth";
 import type { BrandSettings } from "@/lib/brand";
 
@@ -49,8 +50,11 @@ export function Nav({
               className="h-7 w-auto max-w-[140px] object-contain"
             />
           ) : (
-            <span className="text-xl font-semibold tracking-tight text-fg-deep">
-              {brand.productName.toLowerCase()}
+            <span className="flex items-center gap-2.5">
+              <Halftone size={32} color="#0A0A0A" bg="transparent" />
+              <span className="text-xl font-semibold tracking-tight text-fg-deep">
+                {brand.productName.toLowerCase()}
+              </span>
             </span>
           )}
         </Link>

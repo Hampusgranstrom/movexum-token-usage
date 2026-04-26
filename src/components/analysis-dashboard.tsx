@@ -73,7 +73,7 @@ export function AnalysisDashboard({ initialData }: { initialData: AnalysisSummar
         source_id: s.source_id,
         label: s.label,
         count: s.total,
-        color: "#38B4E3",
+        color: "#FF5A3C",
       })),
     [data],
   );
