@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, User2, Sparkles, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { downloadTextReport } from "@/lib/report-download";
+import { downloadPdfReport } from "@/lib/report-download";
 import { Halftone } from "@/components/halftone";
 import type { ExtractedLeadData, ChatResponse } from "@/lib/types";
 
@@ -28,7 +28,6 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
   const [error, setError] = useState<string | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [leadCreated, setLeadCreated] = useState(false);
   const [, setExtractedData] = useState<ExtractedLeadData | null>(null);
   const [report, setReport] = useState<{ fileName: string; content: string } | null>(
     null,
@@ -93,7 +92,6 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
 
       if (data.conversationId) setConversationId(data.conversationId);
       if (data.extractedData) setExtractedData(data.extractedData);
-      if (data.leadCreated) setLeadCreated(true);
       if (data.report) setReport(data.report);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -152,7 +150,7 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
 
           {loading && <TypingIndicator />}
 
-          {leadCreated && (
+          {report && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -164,15 +162,13 @@ export function ChatUI({ productName = "Startupkompass", logoUrl = null }: ChatU
                   Tack! Vi har noterat dina uppgifter. Någon från Movexum hör av sig.
                 </span>
               </div>
-              {report && (
-                <button
-                  onClick={() => downloadTextReport(report.fileName, report.content)}
-                  className="btn-secondary mt-3"
-                >
-                  <Download className="h-4 w-4" />
-                  Ladda ned min minirapport
-                </button>
-              )}
+              <button
+                onClick={() => downloadPdfReport(report.fileName, report.content)}
+                className="btn-secondary mt-3"
+              >
+                <Download className="h-4 w-4" />
+                Ladda ned min minirapport (PDF)
+              </button>
             </motion.div>
           )}
         </div>

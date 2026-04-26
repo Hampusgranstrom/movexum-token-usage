@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, Download } from "lucide-react";
 import type { QuestionWithVariant } from "@/lib/questions";
 import type { FounderLanguage } from "@/lib/founder-inbox";
 import { cn } from "@/lib/utils";
-import { downloadTextReport } from "@/lib/report-download";
+import { downloadPdfReport } from "@/lib/report-download";
 
 type AnswerMap = Record<string, unknown>;
 type ContactAnswers = {
@@ -233,11 +233,11 @@ export function ModuleWizard({
         </div>
         {report && (
           <button
-            onClick={() => downloadTextReport(report.fileName, report.content)}
+            onClick={() => downloadPdfReport(report.fileName, report.content)}
             className="btn-secondary mx-auto mt-6"
           >
             <Download className="h-4 w-4" />
-            {copy.report}
+            {copy.report} (PDF)
           </button>
         )}
       </motion.div>

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, User2, AlertTriangle, CheckCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { downloadTextReport } from "@/lib/report-download";
+import { downloadPdfReport } from "@/lib/report-download";
 import type { FounderLanguage } from "@/lib/founder-inbox";
 import type { ChatResponse } from "@/lib/types";
 
@@ -63,7 +63,6 @@ export function ModuleChat({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [leadCreated, setLeadCreated] = useState(false);
   const [report, setReport] = useState<{ fileName: string; content: string } | null>(
     null,
   );
@@ -120,7 +119,6 @@ export function ModuleChat({
         },
       ]);
       if (data.conversationId) setConversationId(data.conversationId);
-      if (data.leadCreated) setLeadCreated(true);
       if (data.report) setReport(data.report);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -159,7 +157,7 @@ export function ModuleChat({
             ))}
           </AnimatePresence>
           {loading && <Typing />}
-          {leadCreated && (
+          {report && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -177,15 +175,13 @@ export function ModuleChat({
                 <p>{copy.step2}</p>
                 <p>{copy.step3}</p>
               </div>
-              {report && (
-                <button
-                  onClick={() => downloadTextReport(report.fileName, report.content)}
-                  className="btn-secondary mt-3"
-                >
-                  <Download className="h-4 w-4" />
-                  {copy.report}
-                </button>
-              )}
+              <button
+                onClick={() => downloadPdfReport(report.fileName, report.content)}
+                className="btn-secondary mt-3"
+              >
+                <Download className="h-4 w-4" />
+                {copy.report} (PDF)
+              </button>
             </motion.div>
           )}
         </div>

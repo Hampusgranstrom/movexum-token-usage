@@ -8,7 +8,7 @@ import type { QuestionWithVariant } from "@/lib/questions";
 import type { ResultBucket } from "@/lib/modules";
 import type { FounderLanguage } from "@/lib/founder-inbox";
 import { cn } from "@/lib/utils";
-import { downloadTextReport } from "@/lib/report-download";
+import { downloadPdfReport } from "@/lib/report-download";
 
 type QuizResult = {
   bucket: ResultBucket;
@@ -399,11 +399,11 @@ function QuizResultView({
         </button>
         {report && (
           <button
-            onClick={() => downloadTextReport(report.fileName, report.content)}
+            onClick={() => downloadPdfReport(report.fileName, report.content)}
             className="btn-secondary"
           >
             <Download className="h-4 w-4" />
-            Ladda ned min minirapport
+            Ladda ned min minirapport (PDF)
           </button>
         )}
       </div>

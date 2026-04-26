@@ -104,7 +104,7 @@ export function buildLeadReport(input: ReportInput): DownloadReport {
     .slice(0, 40);
 
   return {
-    fileName: `startupkompassen-${prefix}-${safeName || "rapport"}.txt`,
+    fileName: `startupkompassen-${prefix}-${safeName || "rapport"}.pdf`,
     content: lines.join("\n"),
   };
 }
