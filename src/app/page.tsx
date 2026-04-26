@@ -39,15 +39,15 @@ function Mono({ children, color = INK, size = 11, opacity = 0.55, ls = "0.16em",
 // ── Nav ───────────────────────────────────────────────────────────
 function TopNav() {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "22px 0" }}>
+    <div className="lp-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "22px 0" }}>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
         <Halftone size={36} color={INK} bg="transparent" />
         <span style={{ fontFamily: SANS, fontSize: 17, fontWeight: 500, color: INK, letterSpacing: "-0.015em" }}>Startupkompassen</span>
       </span>
-      <div style={{ display: "flex", gap: 30, fontFamily: SANS, fontSize: 14, color: INK_SOFT, alignItems: "center" }}>
+      <div className="lp-nav-links" style={{ display: "flex", gap: 30, fontFamily: SANS, fontSize: 14, color: INK_SOFT, alignItems: "center" }}>
         {["Så funkar det", "För vem", "Vägar vidare", "Om oss"].map((l) => <span key={l}>{l}</span>)}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div className="lp-nav-actions" style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <Link href="/login" style={{ fontFamily: SANS, fontSize: 14, color: INK, fontWeight: 500, textDecoration: "none" }}>Logga in</Link>
         <Link href="/chat" style={{ padding: "9px 18px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
       </div>
@@ -58,32 +58,32 @@ function TopNav() {
 // ── Hero ──────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <div style={{ background: "radial-gradient(ellipse 90% 70% at 50% 35%, #FFFFFF 0%, #F4F4F4 70%, #ECECEC 100%)", borderRadius: 24, padding: "32px 48px 80px", position: "relative", overflow: "hidden", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)" }}>
+    <div className="lp-hero" style={{ background: "radial-gradient(ellipse 90% 70% at 50% 35%, #FFFFFF 0%, #F4F4F4 70%, #ECECEC 100%)", borderRadius: 24, padding: "32px 48px 80px", position: "relative", overflow: "hidden", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)" }}>
       <TopNav />
-      <div style={{ marginTop: 56, display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 56, alignItems: "center" }}>
+      <div className="lp-hero-grid" style={{ marginTop: 56, display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 56, alignItems: "center" }}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", border: `1px solid ${LINE}`, background: "#FFFFFFCC", borderRadius: 999, marginBottom: 28 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT }} />
             <span style={{ fontFamily: SANS, fontSize: 12, color: INK_SOFT }}>Regionens kompass · Gävleborg</span>
           </div>
-          <h1 style={{ margin: 0, fontFamily: SANS, fontSize: 76, fontWeight: 500, lineHeight: 0.98, letterSpacing: "-0.04em", color: INK }}>
+          <h1 className="lp-h1" style={{ margin: 0, fontFamily: SANS, fontSize: 76, fontWeight: 500, lineHeight: 0.98, letterSpacing: "-0.04em", color: INK }}>
             Har du en <I size="1.04em">idé</I>?<br />Vi visar vägen vidare.
           </h1>
-          <p style={{ marginTop: 26, fontFamily: SANS, fontSize: 18, lineHeight: 1.55, color: INK_SOFT, maxWidth: 520 }}>
+          <p className="lp-hero-copy" style={{ marginTop: 26, fontFamily: SANS, fontSize: 18, lineHeight: 1.55, color: INK_SOFT, maxWidth: 520 }}>
             Startupkompassen är den enklaste vägen in i Gävleborgs innovationssystem. Berätta var du står — vi visar nästa steg och kopplar dig till rätt stöd. Gratis. Inga formulär.
           </p>
-          <div style={{ marginTop: 32, display: "flex", gap: 12, alignItems: "center" }}>
+          <div className="lp-hero-cta" style={{ marginTop: 32, display: "flex", gap: 12, alignItems: "center" }}>
             <Link href="/chat" style={{ padding: "14px 22px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
             <a href="#hur-det-funkar" style={{ padding: "14px 22px", background: "transparent", color: INK, borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, border: `1px solid ${LINE}`, textDecoration: "none", display: "inline-block" }}>Se så funkar det</a>
           </div>
-          <div style={{ marginTop: 36, display: "flex", gap: 26, alignItems: "center" }}>
+          <div className="lp-hero-partners" style={{ marginTop: 36, display: "flex", gap: 26, alignItems: "center" }}>
             <Mono color={INK_MUT} size={11} ls="0.14em">I samverkan med</Mono>
             <span style={{ display: "flex", gap: 22, fontFamily: SANS, fontSize: 13, color: INK_SOFT, fontWeight: 500 }}>
               {["Movexum", "NyföretagarCentrum", "Almi", "Region Gävleborg"].map((n) => <span key={n}>{n}</span>)}
             </span>
           </div>
         </div>
-        <div style={{ display: "grid", placeItems: "center" }}>
+        <div className="lp-hero-mark" style={{ display: "grid", placeItems: "center" }}>
           <Halftone size={460} color={INK} bg="transparent" />
         </div>
       </div>
@@ -94,20 +94,20 @@ function Hero() {
 // ── Chatt-mock ────────────────────────────────────────────────────
 function CompassEntry() {
   return (
-    <div style={{ padding: "120px 0 80px", textAlign: "center" }}>
+    <div className="lp-compass" style={{ padding: "120px 0 80px", textAlign: "center" }}>
       <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Steg 01 — Berätta</Mono>
-      <h2 style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK, maxWidth: 880 }}>
+      <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK, maxWidth: 880 }}>
         Skriv om din <I>idé</I> som du skulle berätta för en vän.
       </h2>
-      <p style={{ marginTop: 22, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT, maxWidth: 580, marginInline: "auto" }}>
+      <p className="lp-lead" style={{ marginTop: 22, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT, maxWidth: 580, marginInline: "auto" }}>
         Inga obligatoriska fält. Inget rätt eller fel. Du behöver inte ha allt klart — bara veta vad du tänker.
       </p>
-      <div style={{ marginTop: 56, maxWidth: 720, marginInline: "auto", background: "#FFFFFF", borderRadius: 22, padding: 28, textAlign: "left", boxShadow: "0 30px 80px -30px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
+      <div className="lp-compass-card" style={{ marginTop: 56, maxWidth: 720, marginInline: "auto", background: "#FFFFFF", borderRadius: 22, padding: 28, textAlign: "left", boxShadow: "0 30px 80px -30px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <Mono color={INK} size={10} ls="0.16em" opacity={0.55}>Din idé</Mono>
           <Mono color={INK_MUT} size={10} ls="0.06em" upper={false}>Tar 2–3 minuter</Mono>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 22, color: INK, lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.015em", minHeight: 96 }}>
+        <div className="lp-compass-input" style={{ fontFamily: SANS, fontSize: 22, color: INK, lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.015em", minHeight: 96 }}>
           Jag har funderat länge på att starta något inom <span style={{ color: ACCENT }}>hållbar mat</span>. Min mamma har drivit lunchrestaurang i 20 år och jag tror att…
           <span style={{ display: "inline-block", width: 2, height: 22, background: INK, marginLeft: 2, verticalAlign: "middle", animation: "lp-blink 1.1s infinite" }} />
         </div>
@@ -171,13 +171,13 @@ function HowItWorks() {
     },
   ];
   return (
-    <div id="hur-det-funkar" style={{ padding: "120px 0" }}>
+    <div className="lp-how" id="hur-det-funkar" style={{ padding: "120px 0" }}>
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
         <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Så funkar det</Mono>
-        <h2 style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK }}>Tre steg. <I>Inget krångel</I>.</h2>
-        <p style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT }}>Du behöver inte veta vad en inkubator är, eller vad ALMI gör. Vi översätter ekosystemet åt dig.</p>
+        <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK }}>Tre steg. <I>Inget krångel</I>.</h2>
+        <p className="lp-lead" style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT }}>Du behöver inte veta vad en inkubator är, eller vad ALMI gör. Vi översätter ekosystemet åt dig.</p>
       </div>
-      <div style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+      <div className="lp-steps-grid" style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
         {steps.map((s) => (
           <div key={s.n} style={{ background: PAPER_ALT, borderRadius: 18, padding: 32, display: "flex", flexDirection: "column", gap: 22, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -205,17 +205,17 @@ function ForWhom() {
     { tag: "Etablerad", t: "Jag driver redan något, men vill prova nytt",  d: "Innovation handlar inte bara om startups. Vi har vägar för dig som vill växa sidledes." },
   ];
   return (
-    <div style={{ padding: "120px 0", background: INK, color: "#F5F5F5", borderRadius: 24, paddingInline: 64 }}>
+    <div className="lp-forwhom" style={{ padding: "120px 0", background: INK, color: "#F5F5F5", borderRadius: 24, paddingInline: 64 }}>
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
         <Mono color="#F5F5F5" size={11} ls="0.18em" opacity={0.55}>För dig som</Mono>
-        <h2 style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: "#F5F5F5" }}>Det finns ingen <I color="#F5F5F5">&ldquo;rätt&rdquo;</I> startpunkt.</h2>
-        <p style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: "#A3A3A3" }}>Vi möter dig där du är — inte där en mall säger att du borde vara.</p>
+        <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: "#F5F5F5" }}>Det finns ingen <I color="#F5F5F5">&ldquo;rätt&rdquo;</I> startpunkt.</h2>
+        <p className="lp-lead" style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: "#A3A3A3" }}>Vi möter dig där du är — inte där en mall säger att du borde vara.</p>
       </div>
-      <div style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
+      <div className="lp-personas-grid" style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
         {personas.map((p) => (
           <div key={p.tag} style={{ padding: 36, borderRadius: 18, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.02)" }}>
             <Mono color="#FFFFFF" size={10} ls="0.18em" opacity={0.5}>{p.tag}</Mono>
-            <div style={{ marginTop: 16, fontFamily: SANS, fontSize: 30, fontWeight: 500, color: "#F5F5F5", letterSpacing: "-0.025em", lineHeight: 1.1 }}>&ldquo;{p.t}&rdquo;</div>
+            <div className="lp-persona-quote" style={{ marginTop: 16, fontFamily: SANS, fontSize: 30, fontWeight: 500, color: "#F5F5F5", letterSpacing: "-0.025em", lineHeight: 1.1 }}>&ldquo;{p.t}&rdquo;</div>
             <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 15, color: "#A3A3A3", lineHeight: 1.6 }}>{p.d}</div>
           </div>
         ))}
@@ -237,13 +237,13 @@ function Ecosystem() {
     { n: "Almi Invest",                   role: "Riskkapital",                     desc: "Investeringar i tidiga skeden i regionen.",                   tag: "Invest"     },
   ];
   return (
-    <div style={{ padding: "120px 0" }}>
+    <div className="lp-ecosystem" style={{ padding: "120px 0" }}>
       <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
         <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Ekosystemet</Mono>
-        <h2 style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK }}>Hela <I>Gävleborgs</I> stöd. På ett ställe.</h2>
-        <p style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT }}>Du behöver inte ringa runt. Vi har redan kartlagt vem som gör vad — och vem du borde prata med.</p>
+        <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK }}>Hela <I>Gävleborgs</I> stöd. På ett ställe.</h2>
+        <p className="lp-lead" style={{ marginTop: 18, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT }}>Du behöver inte ringa runt. Vi har redan kartlagt vem som gör vad — och vem du borde prata med.</p>
       </div>
-      <div style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+      <div className="lp-ecosystem-grid" style={{ marginTop: 64, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
         {partners.map((p) => (
           <div key={p.n} style={{ background: "#FFFFFF", borderRadius: 16, padding: 26, minHeight: 200, display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
             <div>
@@ -263,14 +263,14 @@ function Ecosystem() {
 // ── Berättelse ────────────────────────────────────────────────────
 function Story() {
   return (
-    <div style={{ padding: "120px 0" }}>
-      <div style={{ background: PAPER_ALT, borderRadius: 24, padding: "72px 64px", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)" }}>
+    <div className="lp-story" style={{ padding: "120px 0" }}>
+      <div className="lp-story-card" style={{ background: PAPER_ALT, borderRadius: 24, padding: "72px 64px", display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 60, alignItems: "center", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)" }}>
         <div>
           <div style={{ width: "100%", aspectRatio: "1 / 1", borderRadius: 18, background: "linear-gradient(135deg, #DDD 0%, #BBB 100%)", display: "grid", placeItems: "center", color: INK_MUT, fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em" }}>PORTRÄTT</div>
         </div>
         <div>
           <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>En av många</Mono>
-          <div style={{ marginTop: 22, fontFamily: SANS, fontSize: 38, fontWeight: 500, lineHeight: 1.15, letterSpacing: "-0.025em", color: INK }}>
+          <div className="lp-story-quote" style={{ marginTop: 22, fontFamily: SANS, fontSize: 38, fontWeight: 500, lineHeight: 1.15, letterSpacing: "-0.025em", color: INK }}>
             &ldquo;Jag tänkte att jag borde börja med <I>en affärsplan</I>. Kompassen sa: börja med ett samtal. Det förändrade allt.&rdquo;
           </div>
           <div style={{ marginTop: 28, fontFamily: SANS, fontSize: 14, color: INK_SOFT }}>
@@ -291,11 +291,11 @@ function Numbers() {
     { n: "0 kr", l: "kostar det dig",          note: "alltid" },
   ];
   return (
-    <div style={{ padding: "80px 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+    <div className="lp-numbers" style={{ padding: "80px 0" }}>
+      <div className="lp-numbers-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
         {stats.map((s) => (
           <div key={s.n} style={{ background: "#FFFFFF", borderRadius: 16, padding: 32, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontFamily: SANS, fontSize: 80, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.04em", color: INK }}>{s.n}</div>
+            <div className="lp-number-value" style={{ fontFamily: SANS, fontSize: 80, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.04em", color: INK }}>{s.n}</div>
             <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 14, color: INK_SOFT, lineHeight: 1.45 }}>{s.l}</div>
             {s.note && <Mono color={INK_MUT} size={10} ls="0.14em" opacity={0.7} style={{ marginTop: 12, display: "block" }}>{s.note}</Mono>}
           </div>
@@ -315,11 +315,11 @@ function FAQ() {
     { q: "Vad om kompassen inte hittar rätt match?",  a: "Då ringer vi. En riktig människa i regionen tittar på din situation manuellt." },
   ];
   return (
-    <div style={{ padding: "120px 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 80 }}>
+    <div className="lp-faq" style={{ padding: "120px 0" }}>
+      <div className="lp-faq-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 80 }}>
         <div>
           <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Frågor &amp; svar</Mono>
-          <h2 style={{ margin: "20px 0 0", fontFamily: SANS, fontSize: 48, fontWeight: 500, lineHeight: 1.05, letterSpacing: "-0.035em", color: INK }}>Saker folk ofta <I>undrar</I>.</h2>
+          <h2 className="lp-faq-h2" style={{ margin: "20px 0 0", fontFamily: SANS, fontSize: 48, fontWeight: 500, lineHeight: 1.05, letterSpacing: "-0.035em", color: INK }}>Saker folk ofta <I>undrar</I>.</h2>
           <p style={{ marginTop: 18, fontFamily: SANS, fontSize: 15, color: INK_MUT, lineHeight: 1.6 }}>
             Hittar du inte svaret? Skriv till oss på{" "}
             <a href="mailto:hej@startupkompassen.se" style={{ color: INK, fontWeight: 500 }}>hej@startupkompassen.se</a>{" "}
@@ -342,15 +342,15 @@ function FAQ() {
 // ── CTA ───────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
-    <div style={{ background: "radial-gradient(ellipse 100% 80% at 50% 30%, #1A1A1A 0%, #0A0A0A 100%)", color: "#F5F5F5", borderRadius: 24, padding: "120px 64px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+    <div className="lp-final-cta" style={{ background: "radial-gradient(ellipse 100% 80% at 50% 30%, #1A1A1A 0%, #0A0A0A 100%)", color: "#F5F5F5", borderRadius: 24, padding: "120px 64px", textAlign: "center", position: "relative", overflow: "hidden" }}>
       <div style={{ display: "grid", placeItems: "center" }}>
         <Halftone size={120} color="#F5F5F5" bg="transparent" />
       </div>
-      <h2 style={{ marginTop: 36, fontFamily: SANS, fontSize: 80, fontWeight: 500, lineHeight: 0.98, letterSpacing: "-0.04em", color: "#F5F5F5" }}>Lämna <I color="#F5F5F5">omloppsbanan</I>.</h2>
+      <h2 className="lp-final-h2" style={{ marginTop: 36, fontFamily: SANS, fontSize: 80, fontWeight: 500, lineHeight: 0.98, letterSpacing: "-0.04em", color: "#F5F5F5" }}>Lämna <I color="#F5F5F5">omloppsbanan</I>.</h2>
       <p style={{ marginTop: 22, fontFamily: SANS, fontSize: 18, color: "#A3A3A3", lineHeight: 1.55, maxWidth: 540, marginInline: "auto" }}>
         Du har en idé. Vi har resten av regionen. Det enda som saknas är ditt första steg.
       </p>
-      <div style={{ marginTop: 36, display: "inline-flex", gap: 12 }}>
+      <div className="lp-final-actions" style={{ marginTop: 36, display: "inline-flex", gap: 12 }}>
         <Link href="/chat" style={{ padding: "16px 26px", background: "#FFFFFF", color: INK, borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, textDecoration: "none", display: "inline-block" }}>Berätta din idé →</Link>
         <a href="mailto:hej@startupkompassen.se" style={{ padding: "16px 26px", background: "transparent", color: "#F5F5F5", borderRadius: 999, fontFamily: SANS, fontSize: 14, fontWeight: 500, border: "1px solid rgba(255,255,255,0.2)", textDecoration: "none", display: "inline-block" }}>Boka demo för kommun</a>
       </div>
@@ -366,8 +366,8 @@ function Footer() {
     { h: "Om",          l: ["Bakgrund", "Press", "Kontakt", "Integritet"] },
   ];
   return (
-    <div style={{ padding: "80px 0 40px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr 1fr", gap: 40 }}>
+    <div className="lp-footer" style={{ padding: "80px 0 40px" }}>
+      <div className="lp-footer-grid" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr 1fr", gap: 40 }}>
         <div>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
             <Halftone size={32} color={INK} bg="transparent" />
@@ -386,7 +386,7 @@ function Footer() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 60, paddingTop: 24, borderTop: `1px solid ${LINE}`, display: "flex", justifyContent: "space-between" }}>
+      <div className="lp-footer-bottom" style={{ marginTop: 60, paddingTop: 24, borderTop: `1px solid ${LINE}`, display: "flex", justifyContent: "space-between" }}>
         <Mono color={INK_MUT} size={11} ls="0.14em">© 2026 Startupkompassen</Mono>
         <Mono color={INK_MUT} size={11} ls="0.14em">Gävleborg</Mono>
       </div>
@@ -398,7 +398,7 @@ function Footer() {
 export default function HomePage() {
   const fontVars = `${interTight.variable} ${instrumentSerif.variable} ${ibmPlexMono.variable}`;
   return (
-    <div className={fontVars} style={{ background: PAPER, color: INK, padding: "20px 56px 40px", minHeight: "100%", fontFamily: SANS }}>
+    <div className={`${fontVars} lp-root`} style={{ background: PAPER, color: INK, padding: "20px 56px 40px", minHeight: "100%", fontFamily: SANS }}>
       <Hero />
       <CompassEntry />
       <HowItWorks />
@@ -409,6 +409,64 @@ export default function HomePage() {
       <FAQ />
       <FinalCTA />
       <Footer />
+      <style jsx global>{`
+        @media (max-width: 1200px) {
+          .lp-root { padding: 16px 24px 32px !important; }
+          .lp-h1 { font-size: 64px !important; }
+          .lp-h2 { font-size: 46px !important; }
+          .lp-final-h2 { font-size: 64px !important; }
+          .lp-ecosystem-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .lp-numbers-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+
+        @media (max-width: 960px) {
+          .lp-nav-links { display: none !important; }
+          .lp-hero-grid,
+          .lp-story-card,
+          .lp-faq-grid { grid-template-columns: 1fr !important; }
+          .lp-steps-grid,
+          .lp-personas-grid,
+          .lp-ecosystem-grid,
+          .lp-footer-grid { grid-template-columns: 1fr !important; }
+          .lp-hero-mark { margin-top: 12px; }
+          .lp-hero-mark > span { width: min(100%, 320px) !important; height: auto !important; }
+          .lp-number-value { font-size: 62px !important; }
+          .lp-final-actions { display: flex !important; flex-wrap: wrap !important; justify-content: center !important; }
+        }
+
+        @media (max-width: 640px) {
+          .lp-root { padding: 10px 12px 24px !important; }
+          .lp-hero,
+          .lp-forwhom,
+          .lp-final-cta,
+          .lp-story-card { padding: 24px 18px 28px !important; border-radius: 18px !important; }
+          .lp-nav { padding: 8px 0 14px !important; }
+          .lp-nav-actions { gap: 8px !important; }
+          .lp-nav-actions a:last-child { padding: 8px 12px !important; font-size: 12px !important; }
+          .lp-h1 { font-size: 42px !important; line-height: 0.98 !important; }
+          .lp-h2 { font-size: 34px !important; line-height: 1.04 !important; }
+          .lp-faq-h2 { font-size: 32px !important; }
+          .lp-final-h2 { font-size: 42px !important; }
+          .lp-lead,
+          .lp-hero-copy { font-size: 15px !important; line-height: 1.58 !important; }
+          .lp-hero-cta,
+          .lp-hero-partners,
+          .lp-final-actions,
+          .lp-footer-bottom { flex-direction: column !important; align-items: flex-start !important; }
+          .lp-hero-partners > span:last-child { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; }
+          .lp-compass,
+          .lp-how,
+          .lp-ecosystem,
+          .lp-story,
+          .lp-faq { padding: 64px 0 !important; }
+          .lp-numbers { padding: 48px 0 !important; }
+          .lp-compass-card { margin-top: 28px !important; padding: 18px !important; border-radius: 16px !important; }
+          .lp-compass-input { font-size: 18px !important; min-height: 84px !important; }
+          .lp-persona-quote { font-size: 24px !important; }
+          .lp-story-quote { font-size: 30px !important; }
+          .lp-number-value { font-size: 46px !important; }
+        }
+      `}</style>
     </div>
   );
 }
