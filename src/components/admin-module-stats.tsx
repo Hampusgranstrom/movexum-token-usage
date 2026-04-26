@@ -114,22 +114,22 @@ export function ModuleStats({
           <section className="grid gap-4 sm:grid-cols-4">
             <Kpi
               label="Startade"
-              info="Antal personer som borjade detta flode i vald period."
+              info="Antal personer som började detta flöde i vald period."
               value={data.funnel.started}
             />
             <Kpi
               label="Slutförda"
-              info="Antal personer som tog sig igenom hela flodet."
+              info="Antal personer som tog sig igenom hela flödet."
               value={data.funnel.completed}
             />
             <Kpi
               label="Completion"
-              info="Andel av startade som slutför hela flodet."
+              info="Andel av startade som slutför hela flödet."
               value={`${Math.round(data.funnel.completion_rate * 100)} %`}
             />
             <Kpi
               label="Avbrutna"
-              info="Antal personer som lamnade innan flodet var klart."
+              info="Antal personer som lämnade innan flödet var klart."
               value={data.funnel.abandoned}
             />
           </section>
@@ -138,7 +138,7 @@ export function ModuleStats({
             <div className="border-b border-border px-6 py-4">
               <h2 className="eyebrow inline-flex items-center gap-1.5">
                 Per fråga
-                <MetricInfo text="Visar hur varje fraga presterar i svarsfrekvens och tidsatgang." />
+                <MetricInfo text="Visar hur varje fråga presterar i svarsfrekvens och tidsåtgång." />
               </h2>
             </div>
             <table className="w-full text-sm">
@@ -148,19 +148,19 @@ export function ModuleStats({
                   <th className="px-6 py-3">
                     <span className="inline-flex items-center gap-1">
                       Besvarade
-                      <MetricInfo text="Hur manga ganger fragan har besvarats." />
+                      <MetricInfo text="Hur många gånger frågan har besvarats." />
                     </span>
                   </th>
                   <th className="px-6 py-3">
                     <span className="inline-flex items-center gap-1">
                       Hoppade
-                      <MetricInfo text="Hur manga ganger fragan hoppades over." />
+                      <MetricInfo text="Hur många gånger frågan hoppades över." />
                     </span>
                   </th>
                   <th className="px-6 py-3">
                     <span className="inline-flex items-center gap-1">
                       Snittid
-                      <MetricInfo text="Genomsnittlig tid att besvara fragan." />
+                      <MetricInfo text="Genomsnittlig tid att besvara frågan." />
                     </span>
                   </th>
                 </tr>
@@ -194,7 +194,7 @@ export function ModuleStats({
           <section className="space-y-4">
             <h2 className="eyebrow inline-flex items-center gap-1.5">
               A/B-analys per fråga
-              <MetricInfo text="Jämfor varianter och visar sannolik vinnare for varje fraga." />
+              <MetricInfo text="Jämför varianter och visar sannolik vinnare för varje fråga." />
             </h2>
             {filteredQuestions.map((q) => {
               const ab = data.ab_analysis[q.question_id];
@@ -227,7 +227,7 @@ export function ModuleStats({
                           <span className="flex-1 text-muted">
                             {v.shown} visn.
                             <span className="ml-1 inline-flex align-middle">
-                              <MetricInfo text="Antal ganger varianten visats for besokare." />
+                              <MetricInfo text="Antal gånger varianten visats för besökare." />
                             </span>
                             {" "}· {v.converted} svar
                             <span className="ml-1 inline-flex align-middle">
@@ -237,13 +237,13 @@ export function ModuleStats({
                           <span className="font-mono text-fg-deep">
                             {(v.rate * 100).toFixed(1)} %
                             <span className="ml-1 inline-flex align-middle">
-                              <MetricInfo text="Konverteringsgrad for varianten." />
+                              <MetricInfo text="Konverteringsgrad för varianten." />
                             </span>
                           </span>
                           <span className="w-28 text-right text-xs text-muted">
                             {(v.probBest * 100).toFixed(0)} % sannolik bäst
                             <span className="ml-1 inline-flex align-middle">
-                              <MetricInfo text="Sannolikhet att varianten ar bast givet observerad data." />
+                              <MetricInfo text="Sannolikhet att varianten är bäst givet observerad data." />
                             </span>
                           </span>
                           {v.upliftVsControl != null &&

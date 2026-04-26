@@ -319,6 +319,12 @@ export async function POST(request: Request) {
             }
           } else {
             leadId = existingConv.lead_id;
+            const { data: currentLead } = await supabase
+              .from("leads")
+              .select("name, email")
+              .eq("id", existingConv.lead_id)
+              .single();
+
             const updateFields: Record<string, unknown> = {};
             if (extractedData.name) updateFields.name = extractedData.name;
             if (extractedData.email) updateFields.email = extractedData.email;
@@ -337,6 +343,32 @@ export async function POST(request: Request) {
                 .from("leads")
                 .update(updateFields)
                 .eq("id", existingConv.lead_id);
+            }
+
+            const currentEmail =
+              typeof currentLead?.email === "string" ? currentLead.email.trim() : "";
+            const nextEmail =
+              typeof extractedData.email === "string" ? extractedData.email.trim() : "";
+            const shouldSendFounderInbox =
+              nextEmail.length > 0 &&
+              (currentEmail.length === 0 || currentEmail.toLowerCase() !== nextEmail.toLowerCase());
+
+            if (shouldSendFounderInbox) {
+              const founderName =
+                extractedData.name?.trim() ||
+                currentLead?.name?.trim() ||
+                (nextEmail.includes("@") ? nextEmail.split("@")[0] : nextEmail);
+
+              sendFounderInboxEmail({
+                toEmail: nextEmail,
+                founderName,
+                moduleName: mod?.name ?? "Fri chatt",
+                source: "chat",
+                language: preferredLanguage,
+                data: extractedData,
+              }).catch(() => {
+                /* founder inbox is best-effort */
+              });
             }
           }
         }

@@ -96,7 +96,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="%"
           delta={kpis.conversionDelta}
           formula="Antagna / totalt antal leads"
-          info="Andelen leads som blir antagna. Hogre andel betyder att fler passar erbjudandet."
+          info="Andelen leads som blir antagna. Högre andel betyder att fler passar erbjudandet."
           decimals={0}
           index={1}
         />
@@ -106,7 +106,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="st"
           delta={kpis.pipelineDelta}
           formula="Leads i aktiva steg"
-          info="Leads som fortfarande handlaggs och inte ar avslutade."
+          info="Leads som fortfarande handläggs och inte är avslutade."
           index={2}
         />
         <KpiCard
@@ -115,7 +115,7 @@ export function Dashboard({ initialData }: { initialData: DashboardSummary }) {
           unit="/ 100"
           delta={kpis.scoreDelta}
           formula="AI-baserad lead scoring"
-          info="Genomsnittligt matchningsbetyg for nya leads pa skalan 0 till 100."
+          info="Genomsnittligt matchningsbetyg för nya leads på skalan 0 till 100."
           index={3}
         />
       </div>

@@ -174,11 +174,11 @@ function MetricLabel({ label, info }: { label: string; info: string }) {
 }
 
 function vitalInfoText(metric: "CLS" | "INP" | "LCP" | "FCP" | "TTFB") {
-  if (metric === "CLS") return "Visar hur stabil layouten ar under inlasning. Lagre ar battre.";
-  if (metric === "FCP") return "Visar nar forsta synliga innehallet visas for besokaren. Lagre ar battre.";
-  if (metric === "LCP") return "Visar nar sidans viktigaste synliga innehall ar laddat. Lagre ar battre.";
-  if (metric === "INP") return "Visar hur snabbt sidan svarar nar besokaren klickar eller skriver. Lagre ar battre.";
-  return "Visar serverns svarstid till webblasaren. Lagre ar battre.";
+  if (metric === "CLS") return "Visar hur stabil layouten är under inläsning. Lägre är bättre.";
+  if (metric === "FCP") return "Visar när första synliga innehållet visas för besökaren. Lägre är bättre.";
+  if (metric === "LCP") return "Visar när sidans viktigaste synliga innehåll är laddat. Lägre är bättre.";
+  if (metric === "INP") return "Visar hur snabbt sidan svarar när besökaren klickar eller skriver. Lägre är bättre.";
+  return "Visar serverns svarstid till webbläsaren. Lägre är bättre.";
 }
 
 function formatVitalValue(metric: "CLS" | "INP" | "LCP" | "FCP" | "TTFB", value: number) {
@@ -245,7 +245,7 @@ function downloadVitalsCsv(data: AnalysisSummary) {
 function PerformanceTab({ data }: { data: AnalysisSummary }) {
   return (
     <div className="space-y-5">
-      <InfoBox text="Denna vy visar hur snabb webbplatsen upplevs av riktiga besokare. Fokus ligger pa Core Web Vitals: om de blir battre far fler en snabb och stabil upplevelse." />
+      <InfoBox text="Denna vy visar hur snabb webbplatsen upplevs av riktiga besökare. Fokus ligger på Core Web Vitals: om de blir bättre får fler en snabb och stabil upplevelse." />
 
       <div className="flex justify-end">
         <button
@@ -267,7 +267,7 @@ function PerformanceTab({ data }: { data: AnalysisSummary }) {
             unit={metric.metric === "CLS" ? "" : "ms"}
             delta={metric.p75Delta}
             formula={`${metric.samples} sampel · poor rate ${formatPercent(metric.poorRate)}`}
-            info={`p75 betyder att 75% av besoken ar snabbare an detta varde. ${metric.metric === "CLS" ? "Lagre ar battre for stabil layout." : "Lagre ar battre for snabbare upplevelse."}`}
+            info={`p75 betyder att 75% av besöken är snabbare än detta värde. ${metric.metric === "CLS" ? "Lägre är bättre för stabil layout." : "Lägre är bättre för snabbare upplevelse."}`}
             decimals={metric.metric === "CLS" ? 3 : 0}
             index={index}
           />
@@ -278,7 +278,7 @@ function PerformanceTab({ data }: { data: AnalysisSummary }) {
         <section className="card p-6">
           <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
             Core Web Vitals
-            <MetricInfo text="Fem standardmatt for laddning, respons och stabilitet i verkliga besok." />
+            <MetricInfo text="Fem standardmått för laddning, respons och stabilitet i verkliga besök." />
           </h3>
           <div className="space-y-3">
             {data.performance.webVitals.map((metric) => (
@@ -302,7 +302,7 @@ function PerformanceTab({ data }: { data: AnalysisSummary }) {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  p75 {formatVitalValue(metric.metric, metric.p75)} · forra perioden {formatVitalValue(metric.metric, metric.prevP75)} · trend {formatPercent(metric.p75Delta)}
+                  p75 {formatVitalValue(metric.metric, metric.p75)} · förra perioden {formatVitalValue(metric.metric, metric.prevP75)} · trend {formatPercent(metric.p75Delta)}
                 </p>
                 <p className="mt-1 text-xs text-muted">
                   snitt {formatVitalValue(metric.metric, metric.avg)} · {metric.samples} sampel · poor {formatPercent(metric.poorRate)}
@@ -321,7 +321,7 @@ function PerformanceTab({ data }: { data: AnalysisSummary }) {
         <section className="card p-6">
           <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
             Långsammaste paths
-            <MetricInfo text="Visar de sidvagar dar prestandan ar samst, sorterat pa p75." />
+            <MetricInfo text="Visar de sidvägar där prestandan är sämst, sorterat på p75." />
           </h3>
           <div className="space-y-3">
             {data.performance.slowPaths.map((row) => (
@@ -334,9 +334,9 @@ function PerformanceTab({ data }: { data: AnalysisSummary }) {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  <MetricLabel label="p75" info="Det varde som 75% av besoken ar snabbare an." /> {formatVitalValue(row.metric, row.p75)} · {" "}
-                  <MetricLabel label="sampel" info="Antal matningar som ligger till grund for vardet." /> {row.samples} · {" "}
-                  <MetricLabel label="poor" info="Andel besok som hamnar i dalig niva enligt standardgranser." /> {formatPercent(row.poorRate)}
+                  <MetricLabel label="p75" info="Det värde som 75% av besöken är snabbare än." /> {formatVitalValue(row.metric, row.p75)} · {" "}
+                  <MetricLabel label="sampel" info="Antal mätningar som ligger till grund för värdet." /> {row.samples} · {" "}
+                  <MetricLabel label="poor" info="Andel besök som hamnar i dålig nivå enligt standardgränser." /> {formatPercent(row.poorRate)}
                 </p>
               </div>
             ))}
@@ -359,7 +359,7 @@ function OverviewTab({
 }) {
   return (
     <div className="space-y-6">
-      <InfoBox text="Oversikten sammanfattar helheten: hur mycket trafik ni har, hur manga som stannar kvar och hur stor andel som blir leads." />
+      <InfoBox text="Översikten sammanfattar helheten: hur mycket trafik ni har, hur många som stannar kvar och hur stor andel som blir leads." />
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -377,7 +377,7 @@ function OverviewTab({
           unit="st"
           delta={0}
           formula="module_sessions startade"
-          info="Antal besok som startat ett inflodesflode."
+          info="Antal besök som startat ett inflödesflöde."
           index={1}
         />
         <KpiCard
@@ -386,7 +386,7 @@ function OverviewTab({
           unit="%"
           delta={0}
           formula="Ej engagerade sessioner / sessioner"
-          info="Andel besok som lamnar utan tydlig interaktion. Lagre ar normalt battre."
+          info="Andel besök som lämnar utan tydlig interaktion. Lägre är normalt bättre."
           index={2}
         />
         <KpiCard
@@ -428,7 +428,7 @@ function OverviewTab({
         <section className="card p-6">
           <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
             Källor
-            <MetricInfo text="Visar var leads kommer ifran och hur bra varje kalla presterar." />
+            <MetricInfo text="Visar var leads kommer ifrån och hur bra varje källa presterar." />
           </h3>
           <div className="min-h-[320px]">
             <SourceChart data={sourceChartData} />
@@ -438,8 +438,8 @@ function OverviewTab({
               <div key={s.source_id} className="flex items-center justify-between text-sm">
                 <span className="text-fg-deep">{s.label}</span>
                 <span className="text-muted">
-                  <MetricLabel label="leads" info="Antal leads fran denna kalla." /> {s.total} · {" "}
-                  <MetricLabel label="accepted" info="Andel leads fran kallan som blivit antagna." /> {formatPercent(s.acceptedRate)}
+                  <MetricLabel label="leads" info="Antal leads från denna källa." /> {s.total} · {" "}
+                  <MetricLabel label="accepted" info="Andel leads från källan som blivit antagna." /> {formatPercent(s.acceptedRate)}
                 </span>
               </div>
             ))}
@@ -460,13 +460,13 @@ function OverviewTab({
             ))}
           </div>
           <p className="mt-4 text-xs text-muted">
-            <MetricLabel label="Snittscore" info="Genomsnittlig AI-score for periodens leads." />: {data.overview.avgScore} · {" "}
+            <MetricLabel label="Snittscore" info="Genomsnittlig AI-score för periodens leads." />: {data.overview.avgScore} · {" "}
             <MetricLabel label="Snitt assistant output-tokens" info="Genomsnittligt antal output-tokens som assistenten genererar per svar." />: {data.overview.avgAssistantOutputTokens}
           </p>
         </section>
       </div>
 
-      <InfoBox text="Tips: Om sessionskar men lead conversion star stilla pekar det ofta pa att fraga/erbjudande behovs justeras tidigt i flodet." />
+      <InfoBox text="Tips: Om sessions ökar men lead conversion står stilla pekar det ofta på att fråga/erbjudande behöver justeras tidigt i flödet." />
     </div>
   );
 }
@@ -475,7 +475,7 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <div className="lg:col-span-2">
-        <InfoBox text="Acquisition visar var besokarna kommer fran. Syftet ar att se vilka kanaler som inte bara driver trafik utan ocksa leder till fler kvalificerade leads." />
+        <InfoBox text="Acquisition visar var besökarna kommer från. Syftet är att se vilka kanaler som inte bara driver trafik utan också leder till fler kvalificerade leads." />
       </div>
 
       <section className="card p-6">
@@ -489,12 +489,12 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-fg-deep">{c.channel} / {c.medium}</span>
                 <span className="text-muted">
-                  {c.sessions} <MetricLabel label="sessions" info="Antal besok i kanalen under perioden." />
+                  {c.sessions} <MetricLabel label="sessions" info="Antal besök i kanalen under perioden." />
                 </span>
               </div>
               <p className="mt-1 text-xs text-muted">
                 <MetricLabel label="Engaged" info="Sessioner med aktiv interaktion." /> {c.engagedSessions} · {" "}
-                <MetricLabel label="Leads" info="Antal leads skapade fran kanalen." /> {c.leads} · {" "}
+                <MetricLabel label="Leads" info="Antal leads skapade från kanalen." /> {c.leads} · {" "}
                 <MetricLabel label="CVR" info="Konverteringsgrad: andel sessioner som blir leads." /> {formatPercent(c.conversionRate)}
               </p>
             </div>
@@ -512,8 +512,8 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
             <div key={c.campaign} className="flex items-center justify-between rounded-full bg-bg px-4 py-2 text-sm">
               <span className="text-fg-deep">{c.campaign}</span>
               <span className="text-muted">
-                {c.sessions} <MetricLabel label="sessions" info="Besok med denna kampanjtagg." /> · {" "}
-                {c.leads} <MetricLabel label="leads" info="Leads fran denna kampanjtagg." />
+                {c.sessions} <MetricLabel label="sessions" info="Besök med denna kampanjtagg." /> · {" "}
+                {c.leads} <MetricLabel label="leads" info="Leads från denna kampanjtagg." />
               </span>
             </div>
           ))}
@@ -530,7 +530,7 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
             <div key={r.referrer} className="flex items-center justify-between rounded-full bg-bg px-4 py-2 text-sm">
               <span className="text-fg-deep">{r.referrer}</span>
               <span className="text-muted">
-                {r.sessions} <MetricLabel label="sessions" info="Besok som kom via denna referenskalla." />
+                {r.sessions} <MetricLabel label="sessions" info="Besök som kom via denna referenskälla." />
               </span>
             </div>
           ))}
@@ -540,14 +540,14 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
       <section className="card p-6">
         <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
           Locales
-          <MetricInfo text="Sprak- eller lokalinställning som besokaren anvander." />
+          <MetricInfo text="Språk- eller lokalinställning som besökaren använder." />
         </h3>
         <div className="space-y-2">
           {data.acquisition.locales.map((l) => (
             <div key={l.locale} className="flex items-center justify-between rounded-full bg-bg px-4 py-2 text-sm">
               <span className="text-fg-deep">{l.locale}</span>
               <span className="text-muted">
-                {l.sessions} <MetricLabel label="sessions" info="Besok med denna locale under perioden." />
+                {l.sessions} <MetricLabel label="sessions" info="Besök med denna locale under perioden." />
               </span>
             </div>
           ))}
@@ -560,7 +560,7 @@ function AcquisitionTab({ data }: { data: AnalysisSummary }) {
 function EngagementTab({ data }: { data: AnalysisSummary }) {
   return (
     <div className="space-y-5">
-      <InfoBox text="Engagement beskriver hur djupt besokare interagerar. Hogre engagement betyder oftast att fragor och budskap ar relevanta for malgruppen." />
+      <InfoBox text="Engagement beskriver hur djupt besökare interagerar. Högre engagement betyder oftast att frågor och budskap är relevanta för målgruppen." />
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
@@ -569,7 +569,7 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
           unit="st"
           delta={0}
           formula="messages / conversations"
-          info="Hur manga meddelanden en genomsnittlig konversation innehaller."
+          info="Hur många meddelanden en genomsnittlig konversation innehåller."
           decimals={2}
           index={0}
         />
@@ -579,7 +579,7 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
           unit="st"
           delta={0}
           formula="answered question_responses / sessions"
-          info="Antal fragor som faktiskt besvaras per besok."
+          info="Antal frågor som faktiskt besvaras per besök."
           decimals={2}
           index={1}
         />
@@ -589,7 +589,7 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
           unit="ms"
           delta={0}
           formula="medel response_time_ms (ej skip)"
-          info="Genomsnittlig svarstid i flodet. Kortare tid brukar ge battre upplevelse."
+          info="Genomsnittlig svarstid i flödet. Kortare tid brukar ge bättre upplevelse."
           index={2}
         />
       </div>
@@ -598,7 +598,7 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
         <section className="card p-6">
           <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
             Module engagement
-            <MetricInfo text="Hur djupt besokare engagerar sig i varje modul." />
+            <MetricInfo text="Hur djupt besökare engagerar sig i varje modul." />
           </h3>
           <div className="space-y-2">
             {data.engagement.moduleEngagement.map((m) => (
@@ -608,9 +608,9 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
                   <span className="text-muted">/{m.slug}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  <MetricLabel label="Sessions" info="Antal startade besok i modulen." /> {m.sessions} · {" "}
-                  <MetricLabel label="Engaged" info="Andel eller antal besok med aktiv interaktion." /> {m.engagedSessions} · {" "}
-                  <MetricLabel label="Completion" info="Andel som fullfoljer modulens flode." /> {formatPercent(m.completionRate)} · {" "}
+                  <MetricLabel label="Sessions" info="Antal startade besök i modulen." /> {m.sessions} · {" "}
+                  <MetricLabel label="Engaged" info="Andel eller antal besök med aktiv interaktion." /> {m.engagedSessions} · {" "}
+                  <MetricLabel label="Completion" info="Andel som fullföljer modulens flöde." /> {formatPercent(m.completionRate)} · {" "}
                   <MetricLabel label="Lead rate" info="Andel sessioner som blir leads i modulen." /> {formatPercent(m.leadRate)} · {" "}
                   <MetricLabel label="Avg responses" info="Genomsnittligt antal svar per session i modulen." /> {m.avgResponsesPerSession.toFixed(2)}
                 </p>
@@ -622,14 +622,14 @@ function EngagementTab({ data }: { data: AnalysisSummary }) {
         <section className="card p-6">
           <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
             Top events
-            <MetricInfo text="Mest forekommande handelser i den valda perioden." />
+            <MetricInfo text="Mest förekommande händelser i den valda perioden." />
           </h3>
           <div className="space-y-2">
             {data.engagement.events.map((e) => (
               <div key={e.eventType} className="flex items-center justify-between rounded-full bg-bg px-4 py-2 text-sm">
                 <span className="text-fg-deep">{e.eventType}</span>
                 <span className="text-muted">
-                  {e.count} <MetricLabel label="antal" info="Hur manga ganger eventet registrerats." />
+                  {e.count} <MetricLabel label="antal" info="Hur många gånger eventet registrerats." />
                 </span>
               </div>
             ))}
@@ -647,13 +647,13 @@ function ConversionTab({ data }: { data: AnalysisSummary }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <div className="lg:col-span-2">
-        <InfoBox text="Conversion visar stegen fran start till antagen lead. Har ser ni exakt var i tratten ni tappar flest personer och var forbattringar ger storst effekt." />
+        <InfoBox text="Conversion visar stegen från start till antagen lead. Här ser ni exakt var i tratten ni tappar flest personer och var förbättringar ger störst effekt." />
       </div>
 
       <section className="card p-6">
         <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
           Funnel steps
-          <MetricInfo text="Visar hur manga som finns kvar i varje steg av tratten." />
+            <MetricInfo text="Visar hur många som finns kvar i varje steg av tratten." />
         </h3>
         <div className="space-y-2">
           {data.conversion.steps.map((s) => (
@@ -663,7 +663,7 @@ function ConversionTab({ data }: { data: AnalysisSummary }) {
                 <span className="text-muted">{formatNumber(s.count)}</span>
               </div>
               <p className="mt-1 text-xs text-muted">
-                <MetricLabel label="Rate from previous" info="Andel som gar vidare hit fran foregaende steg." />: {formatPercent(s.rateFromPrevious)}
+                <MetricLabel label="Rate from previous" info="Andel som går vidare hit från föregående steg." />: {formatPercent(s.rateFromPrevious)}
               </p>
             </div>
           ))}
@@ -683,10 +683,10 @@ function ConversionTab({ data }: { data: AnalysisSummary }) {
                 <span className="text-muted">/{m.slug}</span>
               </div>
               <p className="mt-1 text-xs text-muted">
-                <MetricLabel label="Started" info="Hur manga sessioner som startade modulen." /> {m.started} · {" "}
-                <MetricLabel label="Completed" info="Hur manga som fullfoljde modulen." /> {m.completed} · {" "}
-                <MetricLabel label="Leads" info="Hur manga leads som skapades via modulen." /> {m.leads} · {" "}
-                <MetricLabel label="Accepted" info="Hur manga leads fran modulen som markerats antagna." /> {m.accepted}
+                <MetricLabel label="Started" info="Hur många sessioner som startade modulen." /> {m.started} · {" "}
+                <MetricLabel label="Completed" info="Hur många som fullföljde modulen." /> {m.completed} · {" "}
+                <MetricLabel label="Leads" info="Hur många leads som skapades via modulen." /> {m.leads} · {" "}
+                <MetricLabel label="Accepted" info="Hur många leads från modulen som markerats antagna." /> {m.accepted}
               </p>
             </div>
           ))}
@@ -696,7 +696,7 @@ function ConversionTab({ data }: { data: AnalysisSummary }) {
       <section className="card p-6 lg:col-span-2">
         <h3 className="eyebrow mb-4 inline-flex items-center gap-1.5">
           Geografi
-          <MetricInfo text="Fordelning av leads per kommun i vald period." />
+          <MetricInfo text="Fördelning av leads per kommun i vald period." />
         </h3>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {data.geography.municipalities.map((m) => (
