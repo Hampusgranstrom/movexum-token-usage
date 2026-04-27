@@ -176,7 +176,7 @@
       </div>
       
       <div class="button-wrapper">
-        <a href="{{ .ConfirmationURL }}" class="button">Acceptera inbjudan</a>
+        <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&amp;type=invite" class="button">Acceptera inbjudan</a>
       </div>
       
       <div class="note">
@@ -188,7 +188,7 @@
       
       <div class="link-section">
         <span class="link-label">Eller kopiera denna länk manuellt</span>
-        <div class="link-box">{{ .ConfirmationURL }}</div>
+        <div class="link-box">{{ .RedirectTo }}?token_hash={{ .TokenHash }}&amp;type=invite</div>
       </div>
     </div>
     

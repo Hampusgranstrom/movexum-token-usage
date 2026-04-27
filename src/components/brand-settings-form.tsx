@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, Plus, Save, Upload, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,10 +59,38 @@ export function BrandSettingsForm({
     text: string;
   } | null>(null);
 
-  const toggleModuleVisibility = (id: string) => {
-    setLandingVisibleModuleIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
+  const selectedVisibleModuleIds = useMemo(() => {
+    const selected = new Set<string>();
+    const rawValues = landingVisibleModuleIds
+      .map((value) => value.trim().toLowerCase())
+      .filter((value) => value.length > 0);
+
+    for (const mod of availableModules) {
+      const id = mod.id.toLowerCase();
+      const slug = mod.slug.toLowerCase();
+      if (rawValues.includes(id) || rawValues.includes(slug)) {
+        selected.add(mod.id);
+      }
+    }
+    return selected;
+  }, [availableModules, landingVisibleModuleIds]);
+
+  const toggleModuleVisibility = (id: string, slug: string) => {
+    const idLower = id.toLowerCase();
+    const slugLower = slug.toLowerCase();
+
+    setLandingVisibleModuleIds((prev) => {
+      const cleaned = prev.filter((item) => {
+        const normalized = item.trim().toLowerCase();
+        return normalized !== idLower && normalized !== slugLower;
+      });
+
+      if (selectedVisibleModuleIds.has(id)) {
+        return cleaned;
+      }
+
+      return [...cleaned, id];
+    });
   };
 
   const saveLanding = async () => {
@@ -74,7 +102,7 @@ export function BrandSettingsForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           landingShowAiChat,
-          landingVisibleModuleIds,
+          landingVisibleModuleIds: Array.from(selectedVisibleModuleIds),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -468,7 +496,7 @@ export function BrandSettingsForm({
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
               {availableModules.map((mod) => {
-                const checked = landingVisibleModuleIds.includes(mod.id);
+                const checked = selectedVisibleModuleIds.has(mod.id);
                 return (
                   <label
                     key={mod.id}
@@ -483,7 +511,7 @@ export function BrandSettingsForm({
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => toggleModuleVisibility(mod.id)}
+                        onChange={() => toggleModuleVisibility(mod.id, mod.slug)}
                         className="mt-1 h-4 w-4"
                       />
                       <span>

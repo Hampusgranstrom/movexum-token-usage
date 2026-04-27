@@ -4,7 +4,7 @@ Välkommen! Du har blivit inbjuden att bli administratör på Startupkompassen.
 Acceptera inbjudan genom att klicka på länken nedan för att komma igång.
 
 Acceptera inbjudan:
-{{ .ConfirmationURL }}
+{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite
 
 ---
 

@@ -141,9 +141,36 @@ export async function PUT(req: Request) {
       .map((id) => id.trim())
       .filter((id) => id.length > 0);
 
+    const normalizedInput = new Set(cleanedIds.map((id) => id.toLowerCase()));
+    const normalizedIds = new Set<string>();
+
+    if (normalizedInput.size > 0) {
+      const { data: modules, error: modulesError } = await admin
+        .from("modules")
+        .select("id, slug")
+        .eq("is_active", true);
+
+      if (modulesError) {
+        return NextResponse.json({ error: modulesError.message }, { status: 500 });
+      }
+
+      for (const mod of modules ?? []) {
+        const id = typeof mod.id === "string" ? mod.id.trim() : "";
+        const slug = typeof mod.slug === "string" ? mod.slug.trim() : "";
+        if (!id) continue;
+
+        if (
+          normalizedInput.has(id.toLowerCase()) ||
+          (slug && normalizedInput.has(slug.toLowerCase()))
+        ) {
+          normalizedIds.add(id);
+        }
+      }
+    }
+
     rows.push({
       key: "landing_visible_modules",
-      value: JSON.stringify(cleanedIds),
+      value: JSON.stringify(Array.from(normalizedIds)),
       updated_by: guard.user.id,
     });
   }

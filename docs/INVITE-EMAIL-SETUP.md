@@ -13,8 +13,15 @@ Kopiera innehållet från `invite-email-template.html` och klistra in i HTML-red
 ### Text-versionen
 Kopiera innehållet från `invite-email-template.txt` och klistra in i textversionen.
 
-## Variabel
-- `{{ .ConfirmationURL }}` — denna ersätts automatiskt av Supabase med rätt invite-länk
+## Variabler
+- `{{ .RedirectTo }}` — destinationen från appens invite-route (ska vara `/accept-invite` på admin-ytan)
+- `{{ .TokenHash }}` — engångstoken för invite-verifiering
+
+Rekommenderad länk i mallen:
+- `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite`
+
+Varför: detta låter frontend verifiera token via `verifyOtp` och minskar problem där
+mailklienters länkskannrar förbrukar `ConfirmationURL` innan användaren klickar.
 
 ## Design-notes
 - Gradientbakgrund med Startupkompassen-färger (`#0E3F52` och `#38B4E3`)

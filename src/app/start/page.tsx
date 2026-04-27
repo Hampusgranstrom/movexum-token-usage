@@ -15,10 +15,15 @@ export default async function StartPage() {
   const [brand, modules] = await Promise.all([getBrandSettings(), listModules()]);
 
   const activeModules = modules.filter((m) => m.is_active);
-  const visibleModuleIds = new Set(brand.landingEntry.visibleModuleIds);
+  const visibleModuleIds = new Set(
+    brand.landingEntry.visibleModuleIds.map((id) => id.trim().toLowerCase()),
+  );
   const visibleModules = activeModules.filter((m) => {
     if (visibleModuleIds.size === 0) return m.flow_type !== "chat";
-    return visibleModuleIds.has(m.id);
+    return (
+      visibleModuleIds.has(m.id.toLowerCase()) ||
+      visibleModuleIds.has(m.slug.toLowerCase())
+    );
   });
 
   return (
