@@ -19,7 +19,7 @@ export default async function AdminLayout({
   if (user.role !== "superadmin") redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-bg lg:pl-64">
+    <div className="min-h-screen bg-bg md:pl-64">
       <AdminSidebar user={user} brand={brand} />
       <main className="mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
         {children}
