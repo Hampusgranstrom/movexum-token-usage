@@ -69,6 +69,7 @@ export function isAdminRoute(path: string): boolean {
     path.startsWith("/leads") ||
     path.startsWith("/login") ||
     path.startsWith("/accept-invite") ||
+    path.startsWith("/auth/") ||
     path.startsWith("/api/admin") ||
     path.startsWith("/api/leads") ||
     path.startsWith("/api/dashboard") ||
