@@ -42,7 +42,7 @@ const ADMIN: Item[] = [
   { href: "/admin/security", label: "Säkerhet", icon: ShieldCheck },
 ];
 
-export function AdminSidebar({
+export function AppSidebar({
   user,
   brand,
 }: {
@@ -121,8 +121,8 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-5 py-3 lg:hidden">
+      {/* Phone-only top bar (sidebar slides in as drawer below md) */}
+      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface px-5 py-3 md:hidden">
         <Brand size={26} />
         <button
           type="button"
@@ -134,21 +134,21 @@ export function AdminSidebar({
         </button>
       </div>
 
-      {/* Mobile backdrop */}
+      {/* Phone backdrop */}
       {open ? (
         <button
           type="button"
           aria-label="Stäng meny"
           onClick={close}
-          className="fixed inset-0 z-40 bg-fg-deep/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-fg-deep/30 backdrop-blur-sm md:hidden"
         />
       ) : null}
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface transition-transform duration-200 ease-out lg:translate-x-0",
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface transition-transform duration-200 ease-out md:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
         aria-label="Huvudmeny"
       >
@@ -157,7 +157,7 @@ export function AdminSidebar({
           <button
             type="button"
             onClick={close}
-            className="icon-btn-outline lg:hidden"
+            className="icon-btn-outline md:hidden"
             aria-label="Stäng meny"
           >
             <X className="h-4 w-4" />
@@ -166,8 +166,12 @@ export function AdminSidebar({
 
         <nav className="flex-1 space-y-3 overflow-y-auto px-3 pb-4">
           <Section title="Översikt" items={OVERVIEW} />
-          <div className="mx-3 border-t border-border" />
-          <Section title="Administration" items={ADMIN} />
+          {user.role === "superadmin" ? (
+            <>
+              <div className="mx-3 border-t border-border" />
+              <Section title="Administration" items={ADMIN} />
+            </>
+          ) : null}
         </nav>
 
         <div className="border-t border-border px-3 py-3">
