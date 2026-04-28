@@ -18,7 +18,7 @@ import {
 const ADMIN_ONLY_PUBLIC_PATHS = [
   "/login",
   "/accept-invite",
-  "/auth/",
+  "/api/auth",
 ];
 
 const PUBLIC_SURFACE_PATHS = [

@@ -68,16 +68,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
   }
 
-  // Invite flow: send user to a server route that exchanges the token via the
-  // SSR-aware Supabase client, sets session cookies, and only then redirects
-  // into /accept-invite. Going through the server avoids the PKCE-verifier
-  // mismatch you'd hit with client-side `exchangeCodeForSession`, and works
-  // whether the email template uses {{ .ConfirmationURL }} (?code=...) or the
-  // newer {{ .RedirectTo }}?token_hash=...&type=invite format. The route
-  // defaults `next` to /accept-invite when omitted, so we keep redirectTo
-  // free of query params (Supabase appends `?code=` etc).
+  // Invite flow: send the user to /accept-invite with the token in the URL.
+  // We deliberately do NOT verify the token on page load; it's verified only
+  // when the user submits the password form (POST /api/auth/accept-invite).
+  // This prevents corporate email link-scanners (Microsoft SafeLinks, Mimecast,
+  // etc.) from consuming the single-use token before the human can click.
   const adminOrigin = getAdminOrigin(req);
-  const redirectTo = `${adminOrigin}/auth/confirm`;
+  const redirectTo = `${adminOrigin}/accept-invite`;
 
   const promoteIfNeeded = async (idOrEmail: { id?: string | null; email: string }) => {
     if (role !== "superadmin") return;
@@ -114,7 +111,15 @@ export async function POST(req: Request) {
     },
   });
 
-  const inviteUrl = fallback.data?.properties?.action_link ?? null;
+  // Build the fallback link from `hashed_token` rather than `action_link`.
+  // action_link points to Supabase's verify endpoint and uses PKCE on redirect,
+  // which we can't complete without a browser-side code_verifier. The token-
+  // hash form lands on /accept-invite directly and is verified only when the
+  // user actually submits the password form.
+  const hashedToken = fallback.data?.properties?.hashed_token ?? null;
+  const inviteUrl = hashedToken
+    ? `${redirectTo}?token_hash=${encodeURIComponent(hashedToken)}&type=invite`
+    : null;
   const fallbackFailed = !!(fallback.error || !inviteUrl);
 
   if (error) {
