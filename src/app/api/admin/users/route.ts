@@ -100,29 +100,27 @@ export async function POST(req: Request) {
     },
   );
 
-  // Always generate a manual backup link. This protects operations when
-  // SMTP is misconfigured or when delivery silently fails after accepted API call.
-  const fallback = await admin.auth.admin.generateLink({
-    type: "invite",
-    email,
-    options: {
-      data: { role, invited_by: guard.user.id },
-      redirectTo,
-    },
-  });
-
-  // Build the fallback link from `hashed_token` rather than `action_link`.
-  // action_link points to Supabase's verify endpoint and uses PKCE on redirect,
-  // which we can't complete without a browser-side code_verifier. The token-
-  // hash form lands on /accept-invite directly and is verified only when the
-  // user actually submits the password form.
-  const hashedToken = fallback.data?.properties?.hashed_token ?? null;
-  const inviteUrl = hashedToken
-    ? `${redirectTo}?token_hash=${encodeURIComponent(hashedToken)}&type=invite`
-    : null;
-  const fallbackFailed = !!(fallback.error || !inviteUrl);
-
   if (error) {
+    // Email send failed (or whole invite failed). Fall back to generateLink so
+    // the superadmin can copy a link manually. We deliberately DON'T call
+    // generateLink on the success path: each invite/generateLink call replaces
+    // any existing one-time-token on the user, which would invalidate the
+    // token already embedded in the email Supabase just queued.
+    const fallback = await admin.auth.admin.generateLink({
+      type: "invite",
+      email,
+      options: {
+        data: { role, invited_by: guard.user.id },
+        redirectTo,
+      },
+    });
+
+    const hashedToken = fallback.data?.properties?.hashed_token ?? null;
+    const inviteUrl = hashedToken
+      ? `${redirectTo}?token_hash=${encodeURIComponent(hashedToken)}&type=invite`
+      : null;
+    const fallbackFailed = !!(fallback.error || !inviteUrl);
+
     if (fallbackFailed) {
       await logSecurityEvent("invite_sent", {
         actorId: guard.user.id,
@@ -181,7 +179,6 @@ export async function POST(req: Request) {
       email,
       role,
       email_sent: true,
-      fallback_generated: !fallbackFailed,
       redirect_to: redirectTo,
     },
     headers: req.headers,
@@ -191,10 +188,8 @@ export async function POST(req: Request) {
     ok: true,
     user_id: data.user?.id ?? null,
     email_sent: true,
-    invite_url: fallbackFailed ? null : inviteUrl,
-    warning: fallbackFailed
-      ? "Inbjudningsmail initierat. Reservlänk kunde inte skapas i detta försök."
-      : "Inbjudningsmail initierat. Reservlänk är tillgänglig om mailet inte levereras.",
+    invite_url: null,
+    warning: `Inbjudan skickad till ${email}.`,
     redirect_to: redirectTo,
   });
 }
