@@ -13,121 +13,123 @@ type EmailOtpType =
   | "email"
   | "email_change";
 
+const VALID_OTP_TYPES: EmailOtpType[] = [
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email",
+  "email_change",
+];
+
 function isEmailOtpType(value: string): value is EmailOtpType {
-  return [
-    "signup",
-    "invite",
-    "magiclink",
-    "recovery",
-    "email",
-    "email_change",
-  ].includes(value);
+  return VALID_OTP_TYPES.includes(value as EmailOtpType);
 }
+
+type Mode =
+  | { kind: "checking" }
+  | { kind: "token"; tokenHash: string; type: EmailOtpType }
+  | { kind: "session"; email: string }
+  | { kind: "missing"; hint?: string };
 
 export function AcceptInviteForm() {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "ready" | "missing">(
-    "checking",
-  );
-  const [email, setEmail] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>({ kind: "checking" });
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [missingHint, setMissingHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const check = async () => {
-      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
-      const supabase = getSupabaseBrowser();
+    const init = async () => {
       const query = new URLSearchParams(window.location.search);
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
 
       const hashError = hash.get("error_description") ?? hash.get("error");
       const queryError = query.get("error_description") ?? query.get("error");
-      const serverAuthError = query.get("auth_error");
-      if (hashError || queryError || serverAuthError) {
-        setMissingHint(
-          "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
-        );
-        setStatus("missing");
+      if (hashError || queryError) {
+        setMode({
+          kind: "missing",
+          hint: "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
+        });
         return;
       }
 
-      // Backwards-compat path: if Supabase sends us straight here (because
-      // someone bookmarked the old redirect URL or pasted the link before the
-      // /auth/confirm route existed), still try to consume the token client
-      // side. Normal flow goes through /auth/confirm and lands here with no
-      // params but a valid session cookie.
+      // Primary path: token_hash + type in the query string. The token is NOT
+      // verified now — we only show the password form. Verification happens
+      // when the user submits the form. This makes the flow immune to
+      // corporate email link scanners that pre-fetch URLs.
+      const tokenHash = query.get("token_hash");
+      const otpType = query.get("type");
+      if (tokenHash && otpType && isEmailOtpType(otpType)) {
+        setMode({ kind: "token", tokenHash, type: otpType });
+        return;
+      }
+
+      // Backwards-compat: links generated before this fix or via Supabase's
+      // {{ .ConfirmationURL }} default may arrive with access_token in the
+      // hash (implicit flow) or a PKCE code. Handle them client-side as a
+      // fallback so older invite links don't dead-end.
       const accessToken = hash.get("access_token");
       const refreshToken = hash.get("refresh_token");
       const code = query.get("code");
-      const tokenHash = query.get("token_hash");
-      const otpType = query.get("type");
-
-      let authErrorMessage: string | null = null;
-      let handledAuthLink = false;
-
-      if (code) {
-        handledAuthLink = true;
-        const { error: exchangeError } =
-          await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) {
-          authErrorMessage = exchangeError.message;
-        }
-      }
-
-      if (tokenHash && otpType && isEmailOtpType(otpType)) {
-        handledAuthLink = true;
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: otpType,
-        });
-        if (otpError) {
-          authErrorMessage = otpError.message;
-        }
-      }
 
       if (accessToken && refreshToken) {
-        handledAuthLink = true;
+        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+        const supabase = getSupabaseBrowser();
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
+        window.history.replaceState(null, "", window.location.pathname);
         if (sessionError) {
-          authErrorMessage = sessionError.message;
+          setMode({
+            kind: "missing",
+            hint: "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
+          });
+          return;
+        }
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.email) {
+          setMode({ kind: "session", email: data.user.email });
+          return;
         }
       }
 
-      if (handledAuthLink) {
-        const rawUrl = `${window.location.search}${window.location.hash}`;
-        if (
-          rawUrl.includes("code=") ||
-          rawUrl.includes("token_hash") ||
-          rawUrl.includes("access_token")
-        ) {
-          window.history.replaceState(null, "", window.location.pathname);
+      if (code) {
+        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+        const supabase = getSupabaseBrowser();
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+        window.history.replaceState(null, "", window.location.pathname);
+        if (exchangeError) {
+          setMode({
+            kind: "missing",
+            hint: "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
+          });
+          return;
+        }
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.email) {
+          setMode({ kind: "session", email: data.user.email });
+          return;
         }
       }
 
+      // Last resort: maybe the user already has a session (e.g. logged in in
+      // another tab). If so, let them set/replace their password.
+      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = getSupabaseBrowser();
       const { data } = await supabase.auth.getUser();
       if (data.user?.email) {
-        setEmail(data.user.email);
-        setMissingHint(null);
-        setStatus("ready");
+        setMode({ kind: "session", email: data.user.email });
         return;
       }
 
-      if (authErrorMessage) {
-        setMissingHint(
-          "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
-        );
-      }
-      setStatus("missing");
+      setMode({ kind: "missing" });
     };
 
-    const t = setTimeout(check, 150);
-    return () => clearTimeout(t);
+    void init();
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -145,25 +147,59 @@ export function AcceptInviteForm() {
 
     setLoading(true);
     try {
-      const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
-      const supabase = getSupabaseBrowser();
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
-      });
-
-      if (updateError) {
-        setError(updateError.message);
+      if (mode.kind === "token") {
+        const res = await fetch("/api/auth/accept-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token_hash: mode.tokenHash,
+            type: mode.type,
+            password,
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          detail?: string;
+        };
+        if (!res.ok) {
+          if (data.error === "verify_failed") {
+            setError(
+              "Inbjudningslänken kunde inte verifieras. Be din superadmin skicka en ny.",
+            );
+          } else if (data.error === "weak_password") {
+            setError("Lösenordet måste vara minst 8 tecken.");
+          } else {
+            setError(
+              data.detail ?? "Något gick fel när lösenordet skulle sparas.",
+            );
+          }
+          return;
+        }
+        // Hard navigation so the new session cookie is picked up by the
+        // server on the next request.
+        window.location.assign("/dashboard");
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      if (mode.kind === "session") {
+        const { getSupabaseBrowser } = await import("@/lib/supabase-browser");
+        const supabase = getSupabaseBrowser();
+        const { error: updateError } = await supabase.auth.updateUser({
+          password,
+        });
+        if (updateError) {
+          setError(updateError.message);
+          return;
+        }
+        router.push("/dashboard");
+        router.refresh();
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (status === "checking") {
+  if (mode.kind === "checking") {
     return (
       <div className="mx-auto max-w-md text-center text-sm text-muted">
         Verifierar inbjudan...
@@ -171,7 +207,7 @@ export function AcceptInviteForm() {
     );
   }
 
-  if (status === "missing") {
+  if (mode.kind === "missing") {
     return (
       <div className="mx-auto w-full max-w-md rounded-[2rem] border border-border/90 bg-surface/90 p-8 text-center shadow-card space-y-4">
         <h1 className="text-2xl font-medium tracking-tight text-fg-deep">
@@ -181,10 +217,12 @@ export function AcceptInviteForm() {
           Länken ser ut att ha gått ut eller öppnats i fel webbläsare. Be din
           superadmin skicka en ny inbjudan.
         </p>
-        {missingHint && <p className="text-sm text-danger">{missingHint}</p>}
+        {mode.hint && <p className="text-sm text-danger">{mode.hint}</p>}
       </div>
     );
   }
+
+  const headingEmail = mode.kind === "session" ? mode.email : null;
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -202,7 +240,14 @@ export function AcceptInviteForm() {
           Välkommen
         </h1>
         <p className="text-sm text-muted">
-          Sätt ett lösenord för <span className="font-medium text-fg">{email}</span>.
+          {headingEmail ? (
+            <>
+              Sätt ett lösenord för{" "}
+              <span className="font-medium text-fg">{headingEmail}</span>.
+            </>
+          ) : (
+            <>Sätt ett lösenord för ditt nya admin-konto.</>
+          )}
         </p>
       </div>
 
