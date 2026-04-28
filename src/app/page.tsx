@@ -6,6 +6,8 @@
 import Link from "next/link";
 import { Inter_Tight, Instrument_Serif, IBM_Plex_Mono } from "next/font/google";
 import { Halftone } from "@/components/halftone";
+import { getBrandSettings } from "@/lib/brand";
+import { listModules, type Module } from "@/lib/modules";
 
 export const dynamic = "force-dynamic";
 
@@ -133,36 +135,58 @@ function Hero() {
   );
 }
 
-// ── Chatt-mock ────────────────────────────────────────────────────
-function CompassEntry() {
+// ── Modul-väljare ─────────────────────────────────────────────────
+function CompassEntry({ modules }: { modules: Module[] }) {
   return (
-    <div className="lp-compass" style={{ padding: "120px 0 80px", textAlign: "center" }}>
+    <div id="moduler" className="lp-compass" style={{ padding: "120px 0 80px", textAlign: "center" }}>
       <Mono color={INK} size={11} ls="0.18em" opacity={0.5}>Steg 01 — Berätta</Mono>
       <h2 className="lp-h2" style={{ margin: "20px auto 0", fontFamily: SANS, fontSize: 56, fontWeight: 500, lineHeight: 1.02, letterSpacing: "-0.035em", color: INK, maxWidth: 880 }}>
-        Skriv om din <I>idé</I> som du skulle berätta för en vän.
+        Välj din <I>startpunkt</I>.
       </h2>
       <p className="lp-lead" style={{ marginTop: 22, fontFamily: SANS, fontSize: 17, lineHeight: 1.55, color: INK_MUT, maxWidth: 580, marginInline: "auto" }}>
-        Inga obligatoriska fält. Inget rätt eller fel. Du behöver inte ha allt klart — bara veta vad du tänker.
+        Inga obligatoriska fält. Inget rätt eller fel. Välj formuläret eller testet som passar din idé — tar 2–5 minuter.
       </p>
-      <div className="lp-compass-card" style={{ marginTop: 56, maxWidth: 720, marginInline: "auto", background: "#FFFFFF", borderRadius: 22, padding: 28, textAlign: "left", boxShadow: "0 30px 80px -30px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <Mono color={INK} size={10} ls="0.16em" opacity={0.55}>Din idé</Mono>
-          <Mono color={INK_MUT} size={10} ls="0.06em" upper={false}>Tar 2–3 minuter</Mono>
+      {modules.length === 0 ? (
+        <div className="lp-compass-empty" style={{ marginTop: 56, maxWidth: 720, marginInline: "auto", background: "#FFFFFF", borderRadius: 22, padding: 28, textAlign: "center", fontFamily: SANS, fontSize: 14, color: INK_MUT, boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)" }}>
+          Inga formulär eller tester är publicerade just nu.
         </div>
-        <div className="lp-compass-input" style={{ fontFamily: SANS, fontSize: 22, color: INK, lineHeight: 1.4, fontWeight: 400, letterSpacing: "-0.015em", minHeight: 96 }}>
-          Jag har funderat länge på att starta något inom <span style={{ color: ACCENT }}>hållbar mat</span>. Min mamma har drivit lunchrestaurang i 20 år och jag tror att…
-          <span style={{ display: "inline-block", width: 2, height: 22, background: INK, marginLeft: 2, verticalAlign: "middle", animation: "lp-blink 1.1s infinite" }} />
+      ) : (
+        <div className="lp-compass-modules" style={{ marginTop: 56, maxWidth: 960, marginInline: "auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, textAlign: "left" }}>
+          {modules.map((m) => (
+            <Link
+              key={m.id}
+              href={`/m/${m.slug}`}
+              className="lp-module-card"
+              style={{
+                background: "#FFFFFF",
+                borderRadius: 18,
+                padding: 28,
+                boxShadow: "0 20px 50px -28px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.06)",
+                textDecoration: "none",
+                color: INK,
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+                minHeight: 200,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Mono color={ACCENT} size={10} ls="0.18em" opacity={0.95}>{m.flow_type}</Mono>
+                <Mono color={INK_MUT} size={10} ls="0.14em">2–5 min</Mono>
+              </div>
+              <div>
+                <div style={{ fontFamily: SANS, fontSize: 22, fontWeight: 500, color: INK, letterSpacing: "-0.02em" }}>{m.name}</div>
+                <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 14, color: INK_MUT, lineHeight: 1.55 }}>
+                  {m.description ?? "Starta modulen för att beskriva din idé och få rätt väg vidare."}
+                </div>
+              </div>
+              <div style={{ marginTop: "auto", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: INK }}>
+                Starta {m.name} →
+              </div>
+            </Link>
+          ))}
         </div>
-        <div style={{ marginTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {["Jag har testat något redan", "Jag är osäker", "Jag vill träffa någon"].map((t) => (
-              <span key={t} style={{ padding: "7px 13px", border: `1px solid ${LINE}`, borderRadius: 999, fontFamily: SANS, fontSize: 12, color: INK_SOFT }}>{t}</span>
-            ))}
-          </div>
-          <Link href="/start" style={{ padding: "10px 18px", background: INK, color: "#FFF", borderRadius: 999, fontFamily: SANS, fontSize: 13, fontWeight: 500, textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>Visa min väg →</Link>
-        </div>
-      </div>
-      <style>{`@keyframes lp-blink { 50% { opacity: 0; } }`}</style>
+      )}
     </div>
   );
 }
@@ -437,12 +461,24 @@ function Footer() {
 }
 
 // ── Sida ──────────────────────────────────────────────────────────
-export default function HomePage() {
+export default async function HomePage() {
   const fontVars = `${interTight.variable} ${instrumentSerif.variable} ${ibmPlexMono.variable}`;
+  const [brand, modules] = await Promise.all([getBrandSettings(), listModules()]);
+  const activeModules = modules.filter((m) => m.is_active);
+  const visibleModuleIds = new Set(
+    brand.landingEntry.visibleModuleIds.map((id) => id.trim().toLowerCase()),
+  );
+  const visibleModules = activeModules.filter((m) => {
+    if (visibleModuleIds.size === 0) return m.flow_type !== "chat";
+    return (
+      visibleModuleIds.has(m.id.toLowerCase()) ||
+      visibleModuleIds.has(m.slug.toLowerCase())
+    );
+  });
   return (
     <div className={`${fontVars} lp-root`} style={{ background: PAPER, color: INK, padding: "20px 56px 40px", minHeight: "100%", fontFamily: SANS }}>
       <Hero />
-      <CompassEntry />
+      <CompassEntry modules={visibleModules} />
       <HowItWorks />
       <ForWhom />
       <Ecosystem />
@@ -469,7 +505,8 @@ export default function HomePage() {
           .lp-steps-grid,
           .lp-personas-grid,
           .lp-ecosystem-grid,
-          .lp-footer-grid { grid-template-columns: 1fr !important; }
+          .lp-footer-grid,
+          .lp-compass-modules { grid-template-columns: 1fr !important; }
           .lp-hero-mark { margin-top: 12px; }
           .lp-hero-mark > span { width: min(100%, 320px) !important; height: auto !important; }
           .lp-number-value { font-size: 62px !important; }
@@ -502,8 +539,8 @@ export default function HomePage() {
           .lp-story,
           .lp-faq { padding: 64px 0 !important; }
           .lp-numbers { padding: 48px 0 !important; }
-          .lp-compass-card { margin-top: 28px !important; padding: 18px !important; border-radius: 16px !important; }
-          .lp-compass-input { font-size: 18px !important; min-height: 84px !important; }
+          .lp-compass-modules { margin-top: 28px !important; gap: 12px !important; }
+          .lp-module-card { padding: 22px !important; border-radius: 16px !important; min-height: 0 !important; }
           .lp-persona-quote { font-size: 24px !important; }
           .lp-story-quote { font-size: 30px !important; }
           .lp-number-value { font-size: 46px !important; }
