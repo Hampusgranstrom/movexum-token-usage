@@ -14,21 +14,22 @@ Kopiera innehållet från `invite-email-template.html` och klistra in i HTML-red
 Kopiera innehållet från `invite-email-template.txt` och klistra in i textversionen.
 
 ## Variabler
-- `{{ .RedirectTo }}` — destinationen från appens invite-route. Sätts av API:et
-  till `/auth/confirm` på admin-ytan, en server-route som verifierar token
-  via SSR-klienten och skriver sessionscookies innan vidareledning till
-  `/accept-invite`.
-- `{{ .TokenHash }}` — engångstoken för invite-verifiering
+- `{{ .RedirectTo }}` — destinationen som API:et anger (`/accept-invite` på
+  admin-ytan).
+- `{{ .TokenHash }}` — engångstoken för invite-verifiering.
 
-Rekommenderad länk i mallen:
+Mallen MÅSTE använda denna länk:
 - `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite`
 
-Varför: server-routen `/auth/confirm` använder `verifyOtp` med cookies-medveten
-klient, vilket undviker PKCE-verifierproblemet i webbläsaren (token genereras
-server-side så ingen verifier finns lokalt) och fungerar även om
-mailklientens länkskanner skulle förladda `ConfirmationURL`. Routen accepterar
-både `?token_hash=…&type=…` och `?code=…` så samma URL fungerar oavsett om
-mallen i Supabase-dashboarden uppdaterats eller står kvar på default.
+Varför just så: token verifieras inte när användaren landar på sidan – den
+verifieras först när användaren submitterar lösenordsformuläret
+(`POST /api/auth/accept-invite`). Det gör flödet immunt mot
+företagsmail-skannrar (Microsoft SafeLinks, Mimecast m.fl.) som förladdar
+GET-länkar och annars skulle bränna engångstoken innan personen hinner klicka.
+
+Använd inte default `{{ .ConfirmationURL }}` — den passerar Supabase verify-
+endpoint och returnerar med en PKCE-kod som webbläsaren saknar verifier för
+(inbjudan skapas server-side), vilket leder till "Inbjudan saknas".
 
 ## Design-notes
 - Gradientbakgrund med Startupkompassen-färger (`#0E3F52` och `#38B4E3`)
