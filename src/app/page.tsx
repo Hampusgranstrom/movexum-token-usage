@@ -151,40 +151,47 @@ function CompassEntry({ modules }: { modules: Module[] }) {
           Inga formulär eller tester är publicerade just nu.
         </div>
       ) : (
-        <div className="lp-compass-modules" style={{ marginTop: 56, maxWidth: 960, marginInline: "auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, textAlign: "left" }}>
-          {modules.map((m) => (
-            <Link
-              key={m.id}
-              href={`/m/${m.slug}`}
-              className="lp-module-card"
-              style={{
-                background: "#FFFFFF",
-                borderRadius: 18,
-                padding: 28,
-                boxShadow: "0 20px 50px -28px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.06)",
-                textDecoration: "none",
-                color: INK,
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minHeight: 200,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Mono color={ACCENT} size={10} ls="0.18em" opacity={0.95}>{m.flow_type}</Mono>
-                <Mono color={INK_MUT} size={10} ls="0.14em">2–5 min</Mono>
-              </div>
-              <div>
-                <div style={{ fontFamily: SANS, fontSize: 22, fontWeight: 500, color: INK, letterSpacing: "-0.02em" }}>{m.name}</div>
-                <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 14, color: INK_MUT, lineHeight: 1.55 }}>
-                  {m.description ?? "Starta modulen för att beskriva din idé och få rätt väg vidare."}
+        <div className="lp-compass-modules" style={{ marginTop: 56, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, textAlign: "left" }}>
+          {modules.map((m) => {
+            const isChat = m.flow_type === "chat";
+            return (
+              <Link
+                key={m.id}
+                href={`/m/${m.slug}`}
+                className="lp-module-card"
+                style={{
+                  background: isChat ? INK : "#FFFFFF",
+                  borderRadius: 18,
+                  padding: 28,
+                  boxShadow: isChat
+                    ? "0 24px 60px -18px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.06)"
+                    : "0 20px 50px -28px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.06)",
+                  textDecoration: "none",
+                  color: isChat ? "#FFFFFF" : INK,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 16,
+                  minHeight: 200,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Mono color={ACCENT} size={10} ls="0.18em" opacity={0.95}>
+                    {isChat ? "AI-chat" : m.flow_type}
+                  </Mono>
+                  <Mono color={isChat ? "#A3A3A3" : INK_MUT} size={10} ls="0.14em">2–5 min</Mono>
                 </div>
-              </div>
-              <div style={{ marginTop: "auto", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: INK }}>
-                Starta {m.name} →
-              </div>
-            </Link>
-          ))}
+                <div>
+                  <div style={{ fontFamily: SANS, fontSize: 22, fontWeight: 500, color: isChat ? "#FFFFFF" : INK, letterSpacing: "-0.02em" }}>{m.name}</div>
+                  <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 14, color: isChat ? "#A3A3A3" : INK_MUT, lineHeight: 1.55 }}>
+                    {m.description ?? "Starta modulen för att beskriva din idé och få rätt väg vidare."}
+                  </div>
+                </div>
+                <div style={{ marginTop: "auto", fontFamily: SANS, fontSize: 13, fontWeight: 500, color: isChat ? "#FFFFFF" : INK }}>
+                  Starta {m.name} →
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
@@ -468,13 +475,22 @@ export default async function HomePage() {
   const visibleModuleIds = new Set(
     brand.landingEntry.visibleModuleIds.map((id) => id.trim().toLowerCase()),
   );
-  const visibleModules = activeModules.filter((m) => {
-    if (visibleModuleIds.size === 0) return m.flow_type !== "chat";
-    return (
-      visibleModuleIds.has(m.id.toLowerCase()) ||
-      visibleModuleIds.has(m.slug.toLowerCase())
-    );
-  });
+  const visibleModules = activeModules
+    .filter((m) => {
+      if (visibleModuleIds.size === 0) {
+        if (m.flow_type === "chat") return brand.landingEntry.showAiChat;
+        return true;
+      }
+      return (
+        visibleModuleIds.has(m.id.toLowerCase()) ||
+        visibleModuleIds.has(m.slug.toLowerCase())
+      );
+    })
+    .sort((a, b) => {
+      if (a.flow_type === "chat" && b.flow_type !== "chat") return -1;
+      if (b.flow_type === "chat" && a.flow_type !== "chat") return 1;
+      return 0;
+    });
   return (
     <div className={`${fontVars} lp-root`} style={{ background: PAPER, color: INK, padding: "20px 56px 40px", minHeight: "100%", fontFamily: SANS }}>
       <Hero />
@@ -495,6 +511,7 @@ export default async function HomePage() {
           .lp-final-h2 { font-size: 64px !important; }
           .lp-ecosystem-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .lp-numbers-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .lp-compass-modules { grid-template-columns: repeat(2, 1fr) !important; }
         }
 
         @media (max-width: 960px) {
