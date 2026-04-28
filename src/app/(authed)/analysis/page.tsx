@@ -1,8 +1,4 @@
-import { redirect } from "next/navigation";
 import dynamicImport from "next/dynamic";
-import { Nav } from "@/components/nav";
-import { getCurrentUser } from "@/lib/auth";
-import { getBrandSettings } from "@/lib/brand";
 import { getAnalysisSummary } from "@/lib/analysis-summary";
 
 const AnalysisDashboard = dynamicImport(
@@ -28,23 +24,6 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AnalysisPage() {
-  const [user, brand] = await Promise.all([
-    getCurrentUser(),
-    getBrandSettings(),
-  ]);
-
-  if (!user) {
-    redirect("/login?redirect=/analysis");
-  }
-
   const summary = await getAnalysisSummary(30);
-
-  return (
-    <>
-      <Nav user={user} brand={brand} />
-      <main className="mx-auto min-h-screen max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
-        <AnalysisDashboard initialData={summary} />
-      </main>
-    </>
-  );
+  return <AnalysisDashboard initialData={summary} />;
 }
