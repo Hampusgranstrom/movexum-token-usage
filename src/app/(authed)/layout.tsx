@@ -20,7 +20,7 @@ export default async function AuthedLayout({
   return (
     <div className="min-h-screen bg-bg md:pl-64">
       <AppSidebar user={user} brand={brand} />
-      <main className="mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
+      <main className="px-6 py-12 sm:px-10 sm:py-16">
         {children}
       </main>
     </div>

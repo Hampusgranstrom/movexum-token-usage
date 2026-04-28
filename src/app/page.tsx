@@ -151,7 +151,7 @@ function CompassEntry({ modules }: { modules: Module[] }) {
           Inga formulär eller tester är publicerade just nu.
         </div>
       ) : (
-        <div className="lp-compass-modules" style={{ marginTop: 56, maxWidth: 960, marginInline: "auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, textAlign: "left" }}>
+        <div className="lp-compass-modules" style={{ marginTop: 56, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, textAlign: "left" }}>
           {modules.map((m) => (
             <Link
               key={m.id}
@@ -495,6 +495,7 @@ export default async function HomePage() {
           .lp-final-h2 { font-size: 64px !important; }
           .lp-ecosystem-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .lp-numbers-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .lp-compass-modules { grid-template-columns: repeat(2, 1fr) !important; }
         }
 
         @media (max-width: 960px) {
