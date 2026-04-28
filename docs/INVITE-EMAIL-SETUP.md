@@ -14,14 +14,21 @@ Kopiera innehållet från `invite-email-template.html` och klistra in i HTML-red
 Kopiera innehållet från `invite-email-template.txt` och klistra in i textversionen.
 
 ## Variabler
-- `{{ .RedirectTo }}` — destinationen från appens invite-route (ska vara `/accept-invite` på admin-ytan)
+- `{{ .RedirectTo }}` — destinationen från appens invite-route. Sätts av API:et
+  till `/auth/confirm` på admin-ytan, en server-route som verifierar token
+  via SSR-klienten och skriver sessionscookies innan vidareledning till
+  `/accept-invite`.
 - `{{ .TokenHash }}` — engångstoken för invite-verifiering
 
 Rekommenderad länk i mallen:
 - `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite`
 
-Varför: detta låter frontend verifiera token via `verifyOtp` och minskar problem där
-mailklienters länkskannrar förbrukar `ConfirmationURL` innan användaren klickar.
+Varför: server-routen `/auth/confirm` använder `verifyOtp` med cookies-medveten
+klient, vilket undviker PKCE-verifierproblemet i webbläsaren (token genereras
+server-side så ingen verifier finns lokalt) och fungerar även om
+mailklientens länkskanner skulle förladda `ConfirmationURL`. Routen accepterar
+både `?token_hash=…&type=…` och `?code=…` så samma URL fungerar oavsett om
+mallen i Supabase-dashboarden uppdaterats eller står kvar på default.
 
 ## Design-notes
 - Gradientbakgrund med Startupkompassen-färger (`#0E3F52` och `#38B4E3`)
