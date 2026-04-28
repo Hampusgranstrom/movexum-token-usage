@@ -45,7 +45,8 @@ export function AcceptInviteForm() {
 
       const hashError = hash.get("error_description") ?? hash.get("error");
       const queryError = query.get("error_description") ?? query.get("error");
-      if (hashError || queryError) {
+      const serverAuthError = query.get("auth_error");
+      if (hashError || queryError || serverAuthError) {
         setMissingHint(
           "Inbjudningslänken kunde inte verifieras. Den kan vara förbrukad eller ha gått ut.",
         );
@@ -53,6 +54,11 @@ export function AcceptInviteForm() {
         return;
       }
 
+      // Backwards-compat path: if Supabase sends us straight here (because
+      // someone bookmarked the old redirect URL or pasted the link before the
+      // /auth/confirm route existed), still try to consume the token client
+      // side. Normal flow goes through /auth/confirm and lands here with no
+      // params but a valid session cookie.
       const accessToken = hash.get("access_token");
       const refreshToken = hash.get("refresh_token");
       const code = query.get("code");

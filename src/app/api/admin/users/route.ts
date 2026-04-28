@@ -68,10 +68,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "supabase unavailable" }, { status: 500 });
   }
 
-  // For invite flow, always redirect to admin surface to ensure user lands on password setup page.
-  // getAdminOrigin returns the explicit admin domain if ADMIN_HOST is set, otherwise falls back.
+  // Invite flow: send user to a server route that exchanges the token via the
+  // SSR-aware Supabase client, sets session cookies, and only then redirects
+  // into /accept-invite. Going through the server avoids the PKCE-verifier
+  // mismatch you'd hit with client-side `exchangeCodeForSession`, and works
+  // whether the email template uses {{ .ConfirmationURL }} (?code=...) or the
+  // newer {{ .RedirectTo }}?token_hash=...&type=invite format. The route
+  // defaults `next` to /accept-invite when omitted, so we keep redirectTo
+  // free of query params (Supabase appends `?code=` etc).
   const adminOrigin = getAdminOrigin(req);
-  const redirectTo = `${adminOrigin}/accept-invite`;
+  const redirectTo = `${adminOrigin}/auth/confirm`;
 
   const promoteIfNeeded = async (idOrEmail: { id?: string | null; email: string }) => {
     if (role !== "superadmin") return;
