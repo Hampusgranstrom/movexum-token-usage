@@ -42,7 +42,7 @@ const ADMIN: Item[] = [
   { href: "/admin/security", label: "Säkerhet", icon: ShieldCheck },
 ];
 
-export function AdminSidebar({
+export function AppSidebar({
   user,
   brand,
 }: {
@@ -166,8 +166,12 @@ export function AdminSidebar({
 
         <nav className="flex-1 space-y-3 overflow-y-auto px-3 pb-4">
           <Section title="Översikt" items={OVERVIEW} />
-          <div className="mx-3 border-t border-border" />
-          <Section title="Administration" items={ADMIN} />
+          {user.role === "superadmin" ? (
+            <>
+              <div className="mx-3 border-t border-border" />
+              <Section title="Administration" items={ADMIN} />
+            </>
+          ) : null}
         </nav>
 
         <div className="border-t border-border px-3 py-3">

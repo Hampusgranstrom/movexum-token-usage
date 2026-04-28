@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { AdminSidebar } from "@/components/admin-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { getCurrentUser } from "@/lib/auth";
 import { getBrandSettings } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLayout({
+export default async function AuthedLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,11 +16,10 @@ export default async function AdminLayout({
   ]);
 
   if (!user) redirect("/login");
-  if (user.role !== "superadmin") redirect("/dashboard");
 
   return (
     <div className="min-h-screen bg-bg md:pl-64">
-      <AdminSidebar user={user} brand={brand} />
+      <AppSidebar user={user} brand={brand} />
       <main className="mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16">
         {children}
       </main>
