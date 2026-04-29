@@ -163,8 +163,11 @@ export function AcceptInviteForm() {
         };
         if (!res.ok) {
           if (data.error === "verify_failed") {
+            const supabaseDetail = data.detail
+              ? ` (${data.detail})`
+              : "";
             setError(
-              "Inbjudningslänken kunde inte verifieras. Be din superadmin skicka en ny.",
+              `Inbjudningslänken kunde inte verifieras${supabaseDetail}. Be din superadmin skicka en ny inbjudan.`,
             );
           } else if (data.error === "weak_password") {
             setError("Lösenordet måste vara minst 8 tecken.");

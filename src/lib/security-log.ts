@@ -6,6 +6,7 @@ export type SecurityEventType =
   | "logout"
   | "invite_sent"
   | "invite_accepted"
+  | "invite_accept_failed"
   | "role_change"
   | "delete_user"
   | "delete_lead"
